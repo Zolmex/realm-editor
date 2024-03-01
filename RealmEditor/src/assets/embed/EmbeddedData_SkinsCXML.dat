@@ -1,0 +1,152 @@
+<Objects>
+  <Object type="0x0342" id="Bandit">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>0</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0300</PlayerClassType>
+    <UnlockLevel>0</UnlockLevel>
+  </Object>
+  <Object type="0x0343" id="Robin Hood">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>1</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0307</PlayerClassType>
+    <UnlockLevel>5</UnlockLevel>
+  </Object>
+  <Object type="0x0344" id="Merlin">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>2</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x030e</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x0345" id="Traditional">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>3</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0310</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x0346" id="Juggernaut">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>4</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x031d</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x0347" id="Knight of the Round">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>5</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x031e</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x0348" id="Decorated Paladin">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>6</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x031f</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x034a" id="Skull Necromancer">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>8</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0321</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x034b" id="Battle Huntress">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>9</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0322</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x034c" id="Gem Mystic">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>10</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0323</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x034d" id="Super Trickster">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>11</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0324</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x034e" id="Sorcerer Mage">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>12</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0325</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x034f" id="Shadow">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>13</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0326</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+  <Object type="0x0350" id="Elder Wizard">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>14</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x030e</PlayerClassType>
+    <UnlockLevel>15</UnlockLevel>
+  </Object>
+  <Object type="0x0351" id="Robed Priest">
+    <Skin/>
+    <Class>Skin</Class>
+    <AnimatedTexture>
+      <File>playerskins</File>
+      <Index>15</Index>
+    </AnimatedTexture>
+    <PlayerClassType>0x0310</PlayerClassType>
+    <UnlockLevel>10</UnlockLevel>
+  </Object>
+</Objects>
