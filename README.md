@@ -1,6 +1,9 @@
 # realm-editor
 
-## Basic controls
+## Getting started
+Download the .rar file from the [latest release](https://github.com/Zolmex/realm-editor/releases/latest) and extract the files into a folder, then simply run the executable to use the editor.
+
+### Basic controls
 Drag middle-click to move the map around.
 
 Use scroll-wheel to zoom in/out.
@@ -11,7 +14,7 @@ Use scroll-wheel to zoom in/out.
 
 [Shift + G]: toggle grid.
 
-## Tools
+### Tools
 - Select tool:
 Drag left-click to select multiple tiles. Click once to select a single tile. Escape to unselect everything.
 Hold click on selected tile/s to move them around the map.
@@ -32,7 +35,7 @@ NOT IMPLEMENTED.
 - Edit tool:
 Click on an object to edit its name/cfg string.
 
-## Property filter
+### Property filter
 Click the arrow to the right of the right-side panel (elements panel) to open the property filter list.
 
 Write the name of the property and the desired value for it (leave blank for *true*).
