@@ -1,4 +1,6 @@
 package editor.ui {
+import assets.AssetLoader;
+import assets.DynamicAssetLoader;
 import assets.embed.Background;
 import assets.ground.GroundLibrary;
 import assets.objects.ObjectLibrary;
@@ -53,11 +55,13 @@ public class MainView extends Sprite {
 
     private var background:Background;
     private var exitButton:SimpleTextButton;
+    private var assetsButton:SimpleTextButton;
     private var loadButton:SimpleTextButton;
     private var newButton:SimpleTextButton;
     private var saveButton:SimpleTextButton;
     private var saveWmapButton:SimpleTextButton;
     private var mapCreateWindow:MapCreateWindow;
+    private var assetsWindow:AssetsWindow;
 
     private var inputHandler:MapInputHandler;
     public var notifications:NotificationView;
@@ -141,6 +145,10 @@ public class MainView extends Sprite {
         this.exitButton.addEventListener(MouseEvent.CLICK, onExitClick);
         addChild(this.exitButton);
 
+        this.assetsButton = new SimpleTextButton("Assets");
+        this.assetsButton.addEventListener(MouseEvent.CLICK, this.onAssetsClick);
+        addChild(this.assetsButton);
+
         this.loadButton = new SimpleTextButton("Load");
         this.loadButton.addEventListener(MouseEvent.CLICK, this.onLoadClick);
         addChild(this.loadButton);
@@ -198,9 +206,12 @@ public class MainView extends Sprite {
         this.background.scaleY = Main.ScaleY;
     }
 
-    private function updatePositions():void {
+    public function updatePositions():void {
         this.exitButton.x = Main.StageWidth - this.exitButton.width - 15;
         this.exitButton.y = 15;
+
+        this.assetsButton.x = this.exitButton.x - this.assetsButton.width - 10;
+        this.assetsButton.y = this.exitButton.y;
 
         this.loadButton.x = 15;
         this.loadButton.y = 15;
@@ -253,6 +264,11 @@ public class MainView extends Sprite {
             this.mapCreateWindow.y = (Main.StageHeight - this.mapCreateWindow.height) / 2;
         }
 
+        if (this.assetsWindow != null && this.assetsWindow.visible) {
+            this.assetsWindow.x = (Main.StageWidth - this.assetsWindow.width) / 2;
+            this.assetsWindow.y = (Main.StageHeight - this.assetsWindow.height) / 2;
+        }
+
         if (this.editNameView != null && this.editNameView.visible) {
             this.editNameView.x = (Main.StageWidth - this.editNameView.width) / 2;
             this.editNameView.y = (Main.StageHeight - this.editNameView.height) / 2;
@@ -280,6 +296,26 @@ public class MainView extends Sprite {
     private static function onExitClick(e:Event):void {
         fscommand("quit"); // For Flash
         NativeApplication.nativeApplication.exit(); // For AIR
+    }
+
+    private function onAssetsClick(e:Event):void {
+        if (this.assetsWindow == null) {
+            this.assetsWindow = new AssetsWindow(); // Window where user selects assets directory
+            this.assetsWindow.x = (Main.StageWidth - this.assetsWindow.width) / 2;
+            this.assetsWindow.y = (Main.StageHeight - this.assetsWindow.height) / 2;
+            this.assetsWindow.addEventListener(MEEvent.ASSETS_DIR_SELECT, this.onAssetsDirectorySelected); // Dispatched when user clicks OK
+            addChild(this.assetsWindow);
+        } else {
+            this.assetsWindow.resetOriginal();
+            this.assetsWindow.visible = true;
+        }
+    }
+
+    private function onAssetsDirectorySelected(e:Event):void {
+        DynamicAssetLoader.load(); // Reload asset library
+
+        this.drawElementsList.resetFilters();
+        this.drawElementsList.setContent(this.userBrush.drawType);
     }
 
     private function onLoadClick(e:Event):void {

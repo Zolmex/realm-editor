@@ -45,7 +45,7 @@ public class EmbeddedData
    {
       public static const PlayersCXML:Class = EmbeddedData_PlayersCXML;
       private static const GroundCXML:Class = EmbeddedData_GroundCXML;
-      public static const groundFiles:Array = [new GroundCXML()];
+      public static var groundFiles:Array = [new GroundCXML()];
       private static const ProjectilesCXML:Class = EmbeddedData_ProjectilesCXML;
       private static const EquipCXML:Class = EmbeddedData_EquipCXML;
       private static const SkinsCXML:Class = EmbeddedData_SkinsCXML;
@@ -84,9 +84,9 @@ public class EmbeddedData
       private static const HauntedCemeteryCXML:Class = EmbeddedData_HauntedCemeteryCXML;
 
       public static const skinsXML:XML = XML(new SkinsCXML());
-      public static const objectFiles:Array = [new ProjectilesCXML(),new EquipCXML(),new DyesCXML(),new TextilesCXML(),new PermapetsCXML(),new PlayersCXML(),new ObjectsCXML(),new TestingObjectsCXML(),new StaticObjectsCXML(),new TutorialObjectsCXML(),new MonstersCXML(),new PetsCXML(),new TempObjectsCXML(),new ShoreCXML(),new LowCXML(),new MidCXML(),new HighCXML(),new MountainsCXML(),new EncountersCXML(),new OryxCastleCXML(),new TombOfTheAncientsCXML(),new SpriteWorldCXML(),new UndeadLairCXML(),new OceanTrenchCXML(),new ForbiddenJungleCXML(),new OryxChamberCXML(),new OryxWineCellarCXML(),new ManorOfTheImmortalsCXML(),new PirateCaveCXML(),new SnakePitCXML(),new AbyssOfDemonsCXML(),new GhostShipCXML(),new MadLabCXML(),new CaveOfAThousandTreasuresCXML(),new CandyLandCXML(),new HauntedCemeteryCXML()];
+      public static var objectFiles:Array = [new ProjectilesCXML(),new EquipCXML(),new DyesCXML(),new TextilesCXML(),new PermapetsCXML(),new PlayersCXML(),new ObjectsCXML(),new TestingObjectsCXML(),new StaticObjectsCXML(),new TutorialObjectsCXML(),new MonstersCXML(),new PetsCXML(),new TempObjectsCXML(),new ShoreCXML(),new LowCXML(),new MidCXML(),new HighCXML(),new MountainsCXML(),new EncountersCXML(),new OryxCastleCXML(),new TombOfTheAncientsCXML(),new SpriteWorldCXML(),new UndeadLairCXML(),new OceanTrenchCXML(),new ForbiddenJungleCXML(),new OryxChamberCXML(),new OryxWineCellarCXML(),new ManorOfTheImmortalsCXML(),new PirateCaveCXML(),new SnakePitCXML(),new AbyssOfDemonsCXML(),new GhostShipCXML(),new MadLabCXML(),new CaveOfAThousandTreasuresCXML(),new CandyLandCXML(),new HauntedCemeteryCXML()];
       private static const RegionsCXML:Class = EmbeddedData_RegionsCXML;
-      public static const regionFiles:Array = [new RegionsCXML()];
+      public static var regionFiles:Array = [new RegionsCXML()];
       private static const TutorialScriptCXML:Class = EmbeddedData_TutorialScriptCXML;
       public static const tutorialXML:XML = XML(new TutorialScriptCXML());
        

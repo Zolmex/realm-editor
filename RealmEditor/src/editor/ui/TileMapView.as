@@ -106,7 +106,7 @@ public class TileMapView extends Sprite {
         var spriteX:int = x * TILE_SIZE;
         var spriteY:int = y * TILE_SIZE;
         var idx:int = x + y * this.mapData.mapWidth;
-        if (tileData == null) {
+        if (tileData == null || (tileData.groundType == -1 && tileData.objType == 0 && tileData.regType == 0)) {
             this.tiles[idx] = null;
             this.mapData.tileDict[idx] = null;
             this.tileMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
@@ -117,6 +117,7 @@ public class TileMapView extends Sprite {
 
         var tile:MapTileSprite = this.getTileSprite(x, y) || new MapTileSprite(x, y);
         tile.tileData = tileData;
+
         tile.texture = GroundLibrary.getBitmapData(tileData.groundType);
         tile.x = x * TILE_SIZE;
         tile.y = y * TILE_SIZE;

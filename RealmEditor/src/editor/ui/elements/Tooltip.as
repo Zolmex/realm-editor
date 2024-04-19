@@ -14,18 +14,20 @@ public class Tooltip extends Sprite {
     private var target:DisplayObject;
     private var background:Shape;
 
+    // Tooltips should always be instantiated on roll over
     public function Tooltip(target:DisplayObject) {
         this.background = new Shape();
         addChild(this.background);
 
+        this.target = target;
+        target.addEventListener(MouseEvent.ROLL_OUT, this.onTargetOut);
+        target.addEventListener(MouseEvent.ROLL_OVER, this.onTargetOver);
+        target.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
+
         this.addChildren();
         this.positionChildren();
         this.drawBackground();
-
-        this.target = target;
-        target.addEventListener(MouseEvent.ROLL_OVER, this.onTargetOver);
-
-        this.visible = false;
+        this.fixPosition();
     }
 
     private function onTargetOver(e:Event):void {

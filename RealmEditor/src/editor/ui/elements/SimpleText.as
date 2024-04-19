@@ -103,6 +103,13 @@ public class SimpleText extends TextField {
         return this;
     }
 
+    public function setItalic(italic:Boolean):SimpleText {
+        var format:TextFormat = defaultTextFormat;
+        format.italic = italic;
+        this.applyFormat(format);
+        return this;
+    }
+
     public function setAlignment(alignment:String):SimpleText {
         var format:TextFormat = defaultTextFormat;
         format.align = alignment;

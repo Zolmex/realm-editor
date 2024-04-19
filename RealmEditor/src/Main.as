@@ -1,6 +1,9 @@
 package {
 
 import assets.AssetLoader;
+import assets.DynamicAssetLoader;
+
+import editor.Parameters;
 
 import editor.ui.Keybinds;
 
@@ -57,8 +60,23 @@ public class Main extends Sprite {
         stage.scaleMode = StageScaleMode.NO_SCALE;
         stage.align = StageAlign.TOP_LEFT;
 
+        Parameters.load();
         Keybinds.loadKeys();
-        AssetLoader.load();
+
+        if (Parameters.data.selectedAssetsDir != null){
+            if (Parameters.getAssetDirs().length == 0){
+                Parameters.data.selectedAssetsDir = null;
+                Parameters.save();
+
+                AssetLoader.load(); // Load from embedded assets if there are no selected directories
+            }
+            else {
+                DynamicAssetLoader.load();
+            }
+        }
+        else {
+            AssetLoader.load();
+        }
 
         View = new MainView();
         addChild(View);

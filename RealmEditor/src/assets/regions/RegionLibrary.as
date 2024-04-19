@@ -5,15 +5,21 @@ import flash.utils.Dictionary;
 
 public class RegionLibrary {
 
-    public static const typeToTextureData_:Dictionary = new Dictionary();
+    public static var typeToTextureData_:Dictionary = new Dictionary();
 
-    public static const xmlLibrary_:Dictionary = new Dictionary();
+    public static var xmlLibrary_:Dictionary = new Dictionary();
 
     public static var idToType_:Dictionary = new Dictionary();
 
 
     public function RegionLibrary() {
         super();
+    }
+
+    public static function clear():void {
+        typeToTextureData_ = new Dictionary();
+        xmlLibrary_ = new Dictionary();
+        idToType_ = new Dictionary();
     }
 
     public static function search(text:String):Vector.<int> {
@@ -27,6 +33,10 @@ public class RegionLibrary {
     }
 
     public static function parseFromXML(xml:XML):void {
+        if (!xml.hasOwnProperty("Region")){
+            return;
+        }
+
         var regionXML:XML = null;
         var type:int = 0;
         for each(regionXML in xml.Region) {

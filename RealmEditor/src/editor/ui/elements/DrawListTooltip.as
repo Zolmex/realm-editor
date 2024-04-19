@@ -1,4 +1,5 @@
-package editor.ui {
+package editor.ui.elements {
+import editor.ui.*;
 import editor.MEDrawType;
 import editor.ui.elements.SimpleText;
 import editor.ui.elements.Tooltip;

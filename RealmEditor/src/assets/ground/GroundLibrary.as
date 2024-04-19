@@ -8,13 +8,13 @@ import util.BitmapUtil;
 
 public class GroundLibrary {
 
-    public static const propsLibrary_:Dictionary = new Dictionary();
+    public static var propsLibrary_:Dictionary = new Dictionary();
 
-    public static const xmlLibrary_:Dictionary = new Dictionary();
+    public static var xmlLibrary_:Dictionary = new Dictionary();
 
     private static var tileTypeColorDict_:Dictionary = new Dictionary();
 
-    public static const typeToTextureData_:Dictionary = new Dictionary();
+    public static var typeToTextureData_:Dictionary = new Dictionary();
 
     public static var idToType_:Dictionary = new Dictionary();
 
@@ -23,6 +23,14 @@ public class GroundLibrary {
 
     public function GroundLibrary() {
         super();
+    }
+
+    public static function clear():void {
+        propsLibrary_ = new Dictionary();
+        xmlLibrary_ = new Dictionary();
+        tileTypeColorDict_ = new Dictionary();
+        typeToTextureData_ = new Dictionary();
+        idToType_ = new Dictionary();
     }
 
     public static function search(text:String):Vector.<int> {
@@ -44,6 +52,10 @@ public class GroundLibrary {
     }
 
     public static function parseFromXML(xml:XML):void {
+        if (!xml.hasOwnProperty("Ground")){
+            return;
+        }
+
         var groundXML:XML = null;
         var groundType:int = 0;
         for each(groundXML in xml.Ground) {

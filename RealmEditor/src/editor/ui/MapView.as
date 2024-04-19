@@ -588,7 +588,9 @@ public class MapView extends Sprite {
                     continue;
                 }
 
-                this.tileMap.redrawTile(tileData, x, y);
+                this.editGround(x, y, tileData.groundType, false);
+                this.editObject(x, y, tileData.objType, false);
+                this.editRegion(x, y, tileData.regType, false);
 
                 action = new MapActionDesc(MEAction.PASTE, x, y, prevData, tileData);
                 action.finalRedoNode = false;

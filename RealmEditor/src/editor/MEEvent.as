@@ -34,5 +34,8 @@ public class MEEvent {
     public static const MOVE_SELECTION_DOWN:String = "MoveSelectionDown";
     public static const MOVE_SELECTION_LEFT:String = "MoveSelectionLeft";
     public static const MOVE_SELECTION_RIGHT:String = "MoveSelectionRight";
+    public static const ASSETS_DIR_SELECT:String = "AssetsDirSelect";
+    public static const ASSETS_DIR_REMOVED:String = "AssetsDirRemoved";
+    public static const ASSETS_DIR_ADDED:String = "AssetsDirAdded";
 }
 }

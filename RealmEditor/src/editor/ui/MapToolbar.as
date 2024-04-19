@@ -113,17 +113,27 @@ import editor.ui.elements.TextTooltip;
 
 import flash.display.Bitmap;
 import flash.display.Sprite;
+import flash.events.Event;
+import flash.events.MouseEvent;
 
 class ToolIconContainer extends Sprite {
 
     public var icon:Bitmap;
+    private var toolTextureId:int;
     private var tooltip:TextTooltip;
 
     public function ToolIconContainer(toolTextureId:int) {
+        this.toolTextureId = toolTextureId;
         this.icon = new Bitmap(AssetLibrary.getImageFromSet("editorTools", toolTextureId));
         addChild(this.icon);
 
-        this.tooltip = new TextTooltip(this, METool.ToolTextureIdToName(toolTextureId), 18, 0xFFFFFF, true);
+        this.addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+    }
+
+    private function onRollOver(e:Event):void {
+        this.removeEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
+
+        this.tooltip = new TextTooltip(this, METool.ToolTextureIdToName(this.toolTextureId), 18, 0xFFFFFF, true);
         Main.STAGE.addChild(this.tooltip);
     }
 }

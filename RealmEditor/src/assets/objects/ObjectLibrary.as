@@ -12,17 +12,30 @@ public class ObjectLibrary {
     public static var playerChars_:Vector.<XML> = new Vector.<XML>();
     public static var hexTransforms_:Vector.<XML> = new Vector.<XML>();
     public static var playerClassAbbr_:Dictionary = new Dictionary();
-    public static const propsLibrary_:Dictionary = new Dictionary();
-    public static const xmlLibrary_:Dictionary = new Dictionary();
-    public static const idToType_:Dictionary = new Dictionary();
-    public static const typeToDisplayId_:Dictionary = new Dictionary();
-    public static const typeToTextureData_:Dictionary = new Dictionary();
-    public static const typeToTopTextureData_:Dictionary = new Dictionary();
-    public static const typeToAnimationsData_:Dictionary = new Dictionary();
-    public static const defaultProps_:ObjectProperties = new ObjectProperties(null);
+    public static var propsLibrary_:Dictionary = new Dictionary();
+    public static var xmlLibrary_:Dictionary = new Dictionary();
+    public static var idToType_:Dictionary = new Dictionary();
+    public static var typeToDisplayId_:Dictionary = new Dictionary();
+    public static var typeToTextureData_:Dictionary = new Dictionary();
+    public static var typeToTopTextureData_:Dictionary = new Dictionary();
+    public static var typeToAnimationsData_:Dictionary = new Dictionary();
+    public static var defaultProps_:ObjectProperties = new ObjectProperties(null);
 
     public function ObjectLibrary() {
         super();
+    }
+
+    public static function clear():void{
+        playerChars_ = new Vector.<XML>();
+        hexTransforms_ = new Vector.<XML>();
+        playerClassAbbr_ = new Dictionary();
+        propsLibrary_ = new Dictionary();
+        xmlLibrary_ = new Dictionary();
+        idToType_ = new Dictionary();
+        typeToDisplayId_ = new Dictionary();
+        typeToTextureData_ = new Dictionary();
+        typeToTopTextureData_ = new Dictionary();
+        typeToAnimationsData_ = new Dictionary();
     }
 
     public static function search(text:String):Vector.<int> {
@@ -36,6 +49,10 @@ public class ObjectLibrary {
     }
 
     public static function parseFromXML(xml:XML):void {
+        if (!xml.hasOwnProperty("Object")){
+            return;
+        }
+
         var objectXML:XML = null;
         var id:String = null;
         var displayId:String = null;

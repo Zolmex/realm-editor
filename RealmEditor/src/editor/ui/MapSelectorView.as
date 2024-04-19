@@ -185,10 +185,6 @@ class MapSelectorSlot extends Sprite {
         this.cross.x = WIDTH - crossSize - 5;
         this.cross.y = (HEIGHT - crossSize) / 2;
 
-        this.closeTooltip = new TextTooltip(this.cross, "Close", 18, 0xFFFFFF, true);
-        this.closeTooltip.addSubText("Save map before closing!");
-        Main.STAGE.addChild(this.closeTooltip);
-
         this.addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
         this.addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
     }
@@ -200,6 +196,12 @@ class MapSelectorSlot extends Sprite {
     }
 
     private function onRollOver(e:Event):void {
+        if (this.closeTooltip == null) {
+            this.closeTooltip = new TextTooltip(this.cross, "Close", 18, 0xFFFFFF, true);
+            this.closeTooltip.addSubText("Save map before closing!");
+            Main.STAGE.addChild(this.closeTooltip);
+        }
+
         if (!this.selected) {
             this.transform.colorTransform.redMultiplier += 0.1;
             this.transform.colorTransform.greenMultiplier += 0.1;
