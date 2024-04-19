@@ -44,4 +44,4 @@ Press "Add" to add it to the list.
 The elements panel will update based on the filter list. Elements that don't match every property in the filter list will not show in the panel.
 
 ### Missing features
-- Importing assets folder.
+~~- Importing assets folder.~~
