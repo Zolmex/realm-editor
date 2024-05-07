@@ -3,6 +3,7 @@ import assets.*;
 
 import flash.display.BitmapData;
 import flash.utils.Dictionary;
+
 import util.GlowRedrawer;
 
 import util.TextureRedrawer;
@@ -25,7 +26,7 @@ public class ObjectLibrary {
         super();
     }
 
-    public static function clear():void{
+    public static function clear():void {
         playerChars_ = new Vector.<XML>();
         hexTransforms_ = new Vector.<XML>();
         playerClassAbbr_ = new Dictionary();
@@ -49,7 +50,7 @@ public class ObjectLibrary {
     }
 
     public static function parseFromXML(xml:XML):void {
-        if (!xml.hasOwnProperty("Object")){
+        if (!xml.hasOwnProperty("Object")) {
             return;
         }
 
@@ -88,12 +89,17 @@ public class ObjectLibrary {
                     playerChars_.push(objectXML);
                 }
             }
-            typeToTextureData_[objectType] = new TextureData(objectXML);
-            if (objectXML.hasOwnProperty("Top")) {
-                typeToTopTextureData_[objectType] = new TextureData(XML(objectXML.Top));
-            }
-            if (objectXML.hasOwnProperty("Animation")) {
-                typeToAnimationsData_[objectType] = new AnimationsData(objectXML);
+            try {
+                typeToTextureData_[objectType] = new TextureData(objectXML);
+                if (objectXML.hasOwnProperty("Top")) {
+                    typeToTopTextureData_[objectType] = new TextureData(XML(objectXML.Top));
+                }
+                if (objectXML.hasOwnProperty("Animation")) {
+                    typeToAnimationsData_[objectType] = new AnimationsData(objectXML);
+                }
+            } catch (e:Error) {
+                trace("FAILED LOADING TEXTURE FOR", id);
+                trace(e.getStackTrace());
             }
         }
     }

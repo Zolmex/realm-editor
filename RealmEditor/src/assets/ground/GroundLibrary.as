@@ -62,8 +62,13 @@ public class GroundLibrary {
             groundType = int(groundXML.@type);
             propsLibrary_[groundType] = new GroundProperties(groundXML);
             xmlLibrary_[groundType] = groundXML;
-            typeToTextureData_[groundType] = new TextureData(groundXML);
-            idToType_[String(groundXML.@id)] = groundType;
+            try {
+                typeToTextureData_[groundType] = new TextureData(groundXML);
+                idToType_[String(groundXML.@id)] = groundType;
+            } catch (e:Error) {
+                trace("FAILED LOADING TEXTURE FOR", groundXML.@id);
+                trace(e.getStackTrace());
+            }
         }
         defaultProps_ = propsLibrary_[255];
     }

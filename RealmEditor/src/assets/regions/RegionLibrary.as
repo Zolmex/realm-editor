@@ -43,7 +43,12 @@ public class RegionLibrary {
             type = int(regionXML.@type);
             xmlLibrary_[type] = regionXML;
             idToType_[String(regionXML.@id)] = type;
-            typeToTextureData_[type] = new TextureData(regionXML, true);
+            try {
+                typeToTextureData_[type] = new TextureData(regionXML, true);
+            } catch (e:Error) {
+                trace("FAILED LOADING TEXTURE FOR", regionXML.@id);
+                trace(e.getStackTrace());
+            }
         }
     }
 
