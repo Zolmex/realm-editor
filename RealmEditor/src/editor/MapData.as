@@ -263,7 +263,7 @@ public class MapData extends EventDispatcher {
         tileData.endian = Endian.LITTLE_ENDIAN;
         for (var y:int = 0; y < this.mapHeight; y++) {
             for (var x:int = 0; x < this.mapWidth; x++) {
-                tile = this.getTile(x, y);
+                tile = this.tileMap.getTileData(x, y);
 
                 var idx:int = -1;
                 for (var i:int = 0; i < tiles.length; i++) {
@@ -356,7 +356,7 @@ public class MapData extends EventDispatcher {
 
     private function getJsonTile(x:int, y:int):Object {
         var ret:Object = {};
-        var tileData:MapTileData = this.getTile(x, y);
+        var tileData:MapTileData = this.tileMap.getTileData(x, y);
         if (tileData == null) {
             return ret;
         }
