@@ -54,42 +54,42 @@ public class ObjectLibrary {
             return;
         }
 
-        var objectXML:XML = null;
-        var id:String = null;
-        var displayId:String = null;
-        var objectType:int = 0;
-        var found:Boolean = false;
-        var i:int = 0;
-        for each(objectXML in xml.Object) {
-            id = String(objectXML.@id);
-            displayId = id;
-            if (objectXML.hasOwnProperty("DisplayId")) {
-                displayId = objectXML.DisplayId;
-            }
-            if (objectXML.hasOwnProperty("Group")) {
-                if (objectXML.Group == "Hexable") {
-                    hexTransforms_.push(objectXML);
+        try {
+            var objectXML:XML = null;
+            var id:String = null;
+            var displayId:String = null;
+            var objectType:int = 0;
+            var found:Boolean = false;
+            var i:int = 0;
+            for each(objectXML in xml.Object) {
+                id = String(objectXML.@id);
+                displayId = id;
+                if (objectXML.hasOwnProperty("DisplayId")) {
+                    displayId = objectXML.DisplayId;
                 }
-            }
-            objectType = int(objectXML.@type);
-            propsLibrary_[objectType] = new ObjectProperties(objectXML);
-            xmlLibrary_[objectType] = objectXML;
-            idToType_[id] = objectType;
-            typeToDisplayId_[objectType] = displayId;
-            if (String(objectXML.Class) == "Player") {
-                playerClassAbbr_[objectType] = String(objectXML.@id).substr(0, 2);
-                found = false;
-                for (i = 0; i < playerChars_.length; i++) {
-                    if (int(playerChars_[i].@type) == objectType) {
-                        playerChars_[i] = objectXML;
-                        found = true;
+                if (objectXML.hasOwnProperty("Group")) {
+                    if (objectXML.Group == "Hexable") {
+                        hexTransforms_.push(objectXML);
                     }
                 }
-                if (!found) {
-                    playerChars_.push(objectXML);
+                objectType = int(objectXML.@type);
+                propsLibrary_[objectType] = new ObjectProperties(objectXML);
+                xmlLibrary_[objectType] = objectXML;
+                idToType_[id] = objectType;
+                typeToDisplayId_[objectType] = displayId;
+                if (String(objectXML.Class) == "Player") {
+                    playerClassAbbr_[objectType] = String(objectXML.@id).substr(0, 2);
+                    found = false;
+                    for (i = 0; i < playerChars_.length; i++) {
+                        if (int(playerChars_[i].@type) == objectType) {
+                            playerChars_[i] = objectXML;
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        playerChars_.push(objectXML);
+                    }
                 }
-            }
-            try {
                 typeToTextureData_[objectType] = new TextureData(objectXML);
                 if (objectXML.hasOwnProperty("Top")) {
                     typeToTopTextureData_[objectType] = new TextureData(XML(objectXML.Top));
@@ -97,10 +97,10 @@ public class ObjectLibrary {
                 if (objectXML.hasOwnProperty("Animation")) {
                     typeToAnimationsData_[objectType] = new AnimationsData(objectXML);
                 }
-            } catch (e:Error) {
-                trace("FAILED LOADING TEXTURE FOR", id);
-                trace(e.getStackTrace());
             }
+        } catch (e:Error) {
+            trace("OBJECT ASSET FAILED ", id);
+            trace(e.getStackTrace());
         }
     }
 

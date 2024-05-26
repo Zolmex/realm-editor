@@ -9,7 +9,10 @@ import flash.display.Graphics;
 import flash.display.Shape;
 
 import flash.display.Sprite;
+import flash.events.Event;
+import flash.events.MouseEvent;
 import flash.filters.DropShadowFilter;
+import flash.text.TextFieldAutoSize;
 import flash.text.TextFormatAlign;
 
 public class NotificationView extends Sprite {
@@ -28,41 +31,57 @@ public class NotificationView extends Sprite {
 
         visible = false;
         filters = Constants.SHADOW_FILTER_1;
+
+        addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
     }
 
-    public function showNotification(text:String):void {
+    public function showNotification(text:String, size:int = 18, duration:Number = 2):void {
+        this.text.setSize(size);
         this.text.text = text;
         this.text.multiline = true;
         this.text.wordWrap = true;
-        this.text.updateMetrics();
+        this.text.useTextDimensions();
 
-        var totalWidth:int = this.text.textWidth + 10;
         var g:Graphics = this.background.graphics;
         g.clear();
         g.beginFill(Constants.BACK_COLOR_1, 0.8);
-        g.drawRoundRect(-2, 0, this.text.textWidth + 6, this.text.textHeight + 4, 5, 5);
+        g.drawRoundRect(-2, 0, this.text.width + 6, this.text.height + 4, 5, 5);
         g.endFill();
 
-        this.x = (Main.StageWidth - totalWidth) / 2;
-        this.y = 20;
+        this.updatePosition();
 
-        this.startAnimation();
+        this.startAnimation(duration);
     }
 
-    private function startAnimation():void {
+    public function updatePosition():void {
+        this.x = (Main.StageWidth - this.width) / 2;
+        this.y = 60;
+    }
+
+    private function startAnimation(duration:Number):void {
         if (this.tween != null){
             this.tween.end();
         }
 
         alpha = 1;
         visible = true;
-        this.tween = new GTween(this, 2, {"alpha": 0});
+        this.tween = new GTween(this, duration, {"alpha": 0});
         this.tween.onComplete = this.endAnimation;
     }
 
     private function endAnimation(tween:GTween):void {
         alpha = 1;
         visible = false;
+    }
+
+    private function onRollOver(e:Event):void{
+        addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+        this.tween.paused = true;
+    }
+
+    private function onRollOut(e:Event):void {
+        removeEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
+        this.tween.paused = false;
     }
 }
 }

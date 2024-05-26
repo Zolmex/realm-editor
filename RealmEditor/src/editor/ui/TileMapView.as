@@ -23,11 +23,11 @@ public class TileMapView extends Sprite {
 
     public static const TILE_SIZE:Number = 8;
 
-    private var mapData:MapData;
-    private var tiles:Vector.<MapTileSprite>;
-
     private static var emptyBitmap:BitmapData = new BitmapData(TILE_SIZE, TILE_SIZE, true, 0);
     private static var emptyRegionBitmap:BitmapData = new BitmapData(1, 1, true, 0);
+
+    private var mapData:MapData; // Contains the original map data (last saved data)
+    private var tiles:Vector.<MapTileSprite>; // This is our own copy of the tile
 
     private var tileMapTexture:BitmapData;
     private var tileMap:Bitmap;
@@ -58,104 +58,107 @@ public class TileMapView extends Sprite {
         this.regionMapTexture = new BitmapData(mapData.mapWidth, mapData.mapHeight, true, 0);
     }
 
-    public function drawTile(tileData:MapTileData, x:int, y:int):MapTileSprite { // IMPORTANT: this is only meant to be used when the map loads
-        var idx:int = x + y * this.mapData.mapWidth;
+    // IMPORTANT: This should only be used when the map loads
+    // Creates a new tile sprite object based on tile data
+    public function loadTileFromMap(tileData:MapTileData, mapX:int, mapY:int):void {
+//        trace("TILE LOADED, X:", x, "Y:", y);
+
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
+        var tile:MapTileSprite = new MapTileSprite(mapX, mapY, mapX * TILE_SIZE, mapY * TILE_SIZE);
+
+        this.tiles[idx] = tile; // Make sure we have a tile sprite object even though there's nothing in that tile
         if (tileData == null) {
-            this.tiles[idx] = null;
-            this.mapData.tileDict[idx] = null;
-            return null;
+            return;
         }
 
-        var tile:MapTileSprite = new MapTileSprite(x, y);
-        tile.tileData = tileData;
-        tile.texture = GroundLibrary.getBitmapData(tileData.groundType);
-        tile.x = x * TILE_SIZE;
-        tile.y = y * TILE_SIZE;
-        this.tiles[idx] = tile;
-        this.mapData.tileDict[idx] = tileData;
-
-        // Draw object
-        if (tileData.objType > 0) {
-            var objTexture:BitmapData = ObjectLibrary.getTextureFromType(tileData.objType);
-            if (objTexture != null) {
-                var matrix:Matrix = new Matrix();
-                matrix.scale(TILE_SIZE / objTexture.width, TILE_SIZE / objTexture.height);
-                matrix.translate(tile.x, tile.y);
-
-                // Clear space before drawing object
-                this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(tile.x, tile.y));
-                this.objectMapTexture.draw(objTexture, matrix);
-            }
-        }
-
-        if (tileData.regType > 0) {
-            var regColor:uint = RegionLibrary.getColor(tileData.regType);
-            this.regionMapTexture.fillRect(new Rectangle(x, y, 1, 1), 1593835520 | regColor);
-        }
-
-        // Draw tile
-        if (tile.texture != null) {
-            this.tileMapTexture.copyPixels(tile.texture, new Rectangle(0, 0, tile.texture.width, tile.texture.height), new Point(tile.x, tile.y));
-        }
-
-//        trace("TILE TEXTURE DRAWN X:", x, "Y:", y);
-        return tile;
+        tile.setTileData(tileData);
+        this.drawTile(mapX, mapY);
     }
 
-    public function redrawTile(tileData:MapTileData, x:int, y:int):MapTileSprite { // IMPORTANT: use this for drawing after map is loaded
-        var spriteX:int = x * TILE_SIZE;
-        var spriteY:int = y * TILE_SIZE;
-        var idx:int = x + y * this.mapData.mapWidth;
-        if (tileData == null || (tileData.groundType == -1 && tileData.objType == 0 && tileData.regType == 0)) {
-            this.tiles[idx] = null;
-            this.mapData.tileDict[idx] = null;
-            this.tileMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
-            this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
-            this.regionMapTexture.copyPixels(emptyRegionBitmap, new Rectangle(0, 0, emptyRegionBitmap.width, emptyRegionBitmap.height), new Point(x, y));
-            return null;
+    public function drawTile(mapX:int, mapY:int):void {
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
+        if (idx < 0 || idx >= this.tiles.length) {
+            return;
         }
-
-        var tile:MapTileSprite = this.getTileSprite(x, y) || new MapTileSprite(x, y);
-        tile.tileData = tileData;
-
-        tile.texture = GroundLibrary.getBitmapData(tileData.groundType);
-        tile.x = x * TILE_SIZE;
-        tile.y = y * TILE_SIZE;
-        this.tiles[idx] = tile;
-        this.mapData.tileDict[idx] = tileData;
+        var tile:MapTileSprite = this.tiles[idx];
+        if (tile == null) {
+            return;
+        }
 
         // Draw object
-        if (tileData.objType > 0) {
-            var objTexture:BitmapData = ObjectLibrary.getTextureFromType(tileData.objType);
-            if (objTexture != null) {
-                var matrix:Matrix = new Matrix();
-                matrix.scale(TILE_SIZE / objTexture.width, TILE_SIZE / objTexture.height);
-                matrix.translate(tile.x, tile.y);
+        // Clear space before drawing object
+        this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(tile.spriteX, tile.spriteY));
+        if (tile.objTexture != null) {
+            var matrix:Matrix = new Matrix();
+            matrix.scale(TILE_SIZE / tile.objTexture.width, TILE_SIZE / tile.objTexture.height);
+            matrix.translate(tile.spriteX, tile.spriteY);
 
-                // Clear space before drawing object
-                this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(tile.x, tile.y));
-                this.objectMapTexture.draw(objTexture, matrix);
-            }
-        } else {
-            this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
+            this.objectMapTexture.draw(tile.objTexture, matrix);
         }
 
-        if (tileData.regType > 0) {
-            var regColor:uint = RegionLibrary.getColor(tileData.regType);
-            this.regionMapTexture.fillRect(new Rectangle(x, y, 1, 1), 1593835520 | regColor);
-        } else {
-            this.regionMapTexture.copyPixels(emptyRegionBitmap, new Rectangle(0, 0, emptyRegionBitmap.width, emptyRegionBitmap.height), new Point(x, y));
+        // Draw region
+        this.regionMapTexture.copyPixels(emptyRegionBitmap, new Rectangle(0, 0, emptyRegionBitmap.width, emptyRegionBitmap.height), new Point(mapX, mapY));
+        if (tile.tileData.regType > 0) {
+            this.regionMapTexture.fillRect(new Rectangle(mapX, mapY, 1, 1), 1593835520 | tile.regColor);
         }
 
         // Draw tile
-        if (tile.texture != null) {
-            this.tileMapTexture.copyPixels(tile.texture, new Rectangle(0, 0, tile.texture.width, tile.texture.height), new Point(tile.x, tile.y));
-        } else {
-            this.tileMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
+        this.tileMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(tile.spriteX, tile.spriteY));
+        if (tile.groundTexture != null) {
+            this.tileMapTexture.copyPixels(tile.groundTexture, new Rectangle(0, 0, tile.groundTexture.width, tile.groundTexture.height), new Point(tile.spriteX, tile.spriteY));
+        }
+    }
+
+    public function setTileData(mapX:int, mapY:int, tileData:MapTileData):void{
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
+        if (idx < 0 || idx >= this.tiles.length) {
+            return;
+        }
+        var tile:MapTileSprite = this.tiles[idx];
+        if (tile == null) { // Should never happen but eh
+            return;
         }
 
-//        trace("TILE TEXTURE DRAWN X:", x, "Y:", y);
-        return tile;
+        tile.setTileData(tileData);
+    }
+
+    public function setTileGround(mapX:int, mapY:int, groundType:int):void{ // Modify the tile's data, but don't draw unless we want to, in that case we cal drawTile()
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
+        if (idx < 0 || idx >= this.tiles.length) {
+            return;
+        }
+        var tile:MapTileSprite = this.tiles[idx];
+        if (tile == null) { // Should never happen but eh
+            return;
+        }
+
+        tile.setGroundType(groundType);
+    }
+
+    public function setTileObject(mapX:int, mapY:int, objType:int):void{
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
+        if (idx < 0 || idx >= this.tiles.length) {
+            return;
+        }
+        var tile:MapTileSprite = this.tiles[idx];
+        if (tile == null) {
+            return;
+        }
+
+        tile.setObjectType(objType);
+    }
+
+    public function setTileRegion(mapX:int, mapY:int, regType:int):void{
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
+        if (idx < 0 || idx >= this.tiles.length) {
+            return;
+        }
+        var tile:MapTileSprite = this.tiles[idx];
+        if (tile == null) {
+            return;
+        }
+
+        tile.setRegionType(regType);
     }
 
     public function onMapLoadEnd():void {
@@ -171,32 +174,24 @@ public class TileMapView extends Sprite {
         addChild(this.regionMap);
     }
 
-    public function getTileData(x:int, y:int):MapTileData {
-        var idx:int = x + y * this.mapData.mapWidth;
+    public function getTileSprite(mapX:int, mapY:int):MapTileSprite {
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return null;
         }
-        var tile:MapTileSprite = this.tiles[idx];
-        if (tile == null) {
-            return null;
-        }
-        return tile.tileData;
+        return this.tiles[idx];
     }
 
-    public function getTileSprite(x:int, y:int):MapTileSprite {
-        var idx:int = x + y * this.mapData.mapWidth;
+    public function getTileData(mapX:int, mapY:int):MapTileData {
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return null;
         }
-        var tile:MapTileSprite = this.tiles[idx];
-        if (tile == null) {
-            return null;
-        }
-        return tile;
+        return this.tiles[idx].tileData;
     }
 
-    public function clearGround(x:int, y:int):void {
-        var idx:int = x + y * this.mapData.mapWidth;
+    public function clearGround(mapX:int, mapY:int):void {
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
         }
@@ -205,14 +200,12 @@ public class TileMapView extends Sprite {
             return;
         }
 
-        var spriteX:int = x * TILE_SIZE;
-        var spriteY:int = y * TILE_SIZE;
-        this.tileMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
-        this.tiles[idx].tileData.groundType = -1;
+        this.setTileGround(mapX, mapY, -1); // 0 is dark water I think
+        this.drawTile(mapX, mapY);
     }
 
-    public function clearObject(x:int, y:int):void {
-        var idx:int = x + y * this.mapData.mapWidth;
+    public function clearObject(mapX:int, mapY:int):void {
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
         }
@@ -221,14 +214,12 @@ public class TileMapView extends Sprite {
             return;
         }
 
-        var spriteX:int = x * TILE_SIZE;
-        var spriteY:int = y * TILE_SIZE;
-        this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(spriteX, spriteY));
-        this.tiles[idx].tileData.objType = 0;
+        this.setTileObject(mapX, mapY, 0);
+        this.drawTile(mapX, mapY);
     }
 
-    public function clearRegion(x:int, y:int):void {
-        var idx:int = x + y * this.mapData.mapWidth;
+    public function clearRegion(mapX:int, mapY:int):void {
+        var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
         }
@@ -237,8 +228,14 @@ public class TileMapView extends Sprite {
             return;
         }
 
-        this.regionMapTexture.copyPixels(emptyRegionBitmap, new Rectangle(0, 0, emptyRegionBitmap.width, emptyRegionBitmap.height), new Point(x, y));
-        this.tiles[idx].tileData.regType = 0;
+        this.setTileRegion(mapX, mapY, 0);
+        this.drawTile(mapX, mapY);
+    }
+
+    public function clearTile(mapX:int, mapY:int):void {
+        this.clearGround(mapX, mapY);
+        this.clearObject(mapX, mapY);
+        this.clearRegion(mapX, mapY);
     }
 }
 }

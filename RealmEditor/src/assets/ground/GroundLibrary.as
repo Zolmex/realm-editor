@@ -52,25 +52,25 @@ public class GroundLibrary {
     }
 
     public static function parseFromXML(xml:XML):void {
-        if (!xml.hasOwnProperty("Ground")){
+        if (!xml.hasOwnProperty("Ground")) {
             return;
         }
 
-        var groundXML:XML = null;
-        var groundType:int = 0;
-        for each(groundXML in xml.Ground) {
-            groundType = int(groundXML.@type);
-            propsLibrary_[groundType] = new GroundProperties(groundXML);
-            xmlLibrary_[groundType] = groundXML;
-            try {
+        try {
+            var groundXML:XML = null;
+            var groundType:int = 0;
+            for each(groundXML in xml.Ground) {
+                groundType = int(groundXML.@type);
+                propsLibrary_[groundType] = new GroundProperties(groundXML);
+                xmlLibrary_[groundType] = groundXML;
                 typeToTextureData_[groundType] = new TextureData(groundXML);
                 idToType_[String(groundXML.@id)] = groundType;
-            } catch (e:Error) {
-                trace("FAILED LOADING TEXTURE FOR", groundXML.@id);
-                trace(e.getStackTrace());
             }
+            defaultProps_ = propsLibrary_[255];
+        } catch (e:Error) {
+            trace("GROUND ASSET FAILED", groundXML.@id);
+            trace(e.getStackTrace());
         }
-        defaultProps_ = propsLibrary_[255];
     }
 
     public static function getIdFromType(type:int):String {

@@ -33,22 +33,22 @@ public class RegionLibrary {
     }
 
     public static function parseFromXML(xml:XML):void {
-        if (!xml.hasOwnProperty("Region")){
+        if (!xml.hasOwnProperty("Region")) {
             return;
         }
 
-        var regionXML:XML = null;
-        var type:int = 0;
-        for each(regionXML in xml.Region) {
-            type = int(regionXML.@type);
-            xmlLibrary_[type] = regionXML;
-            idToType_[String(regionXML.@id)] = type;
-            try {
+        try {
+            var regionXML:XML = null;
+            var type:int = 0;
+            for each(regionXML in xml.Region) {
+                type = int(regionXML.@type);
+                xmlLibrary_[type] = regionXML;
+                idToType_[String(regionXML.@id)] = type;
                 typeToTextureData_[type] = new TextureData(regionXML, true);
-            } catch (e:Error) {
-                trace("FAILED LOADING TEXTURE FOR", regionXML.@id);
-                trace(e.getStackTrace());
             }
+        } catch (e:Error) {
+            trace("REGION ASSET FAILED", regionXML.@id);
+            trace(e.getStackTrace());
         }
     }
 

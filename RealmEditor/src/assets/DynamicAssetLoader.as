@@ -16,7 +16,11 @@ import flash.utils.ByteArray;
 
 public class DynamicAssetLoader {
 
+    public static var failedAssets:String;
+
     public static function load():void {
+        failedAssets = null;
+
         AssetLibrary.clear();
         AnimatedChars.clear();
         GroundLibrary.clear();
@@ -76,6 +80,12 @@ public class DynamicAssetLoader {
 
             var file:File = new File(assetsDir + "\\" + fileName + ".png");
             if (!file.exists){
+                if (failedAssets == null){
+                    failedAssets = fileName;
+                }
+                else {
+                    failedAssets += ", " + fileName;
+                }
                 continue;
             }
 

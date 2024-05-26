@@ -42,12 +42,12 @@ public class AssetDirectorySlot extends Sprite {
         this.idText.filters = Constants.SHADOW_FILTER_1;
         addChild(this.idText);
 
-        this.dirText = new SimpleText(11, 0xFFFFFF, false, WIDTH - this.idText.width - 10);
+        this.dirText = new SimpleText(11, 0xFFFFFF, false, WIDTH - this.idText.width - 15);
         var cutStart:int = this.assetsDir.length < 35 ? 0 : this.assetsDir.length - 35;
         this.dirText.setText(this.assetsDir.substr(cutStart));
         this.dirText.updateMetrics();
         this.dirText.setItalic(true);
-        this.dirText.x = this.idText.x + this.idText.width;
+        this.dirText.x = this.idText.x + this.idText.width - 2;
         this.dirText.y = this.idText.y + (this.idText.height - this.dirText.height) / 2;
         this.dirText.filters = Constants.SHADOW_FILTER_1;
         addChild(this.dirText);

@@ -59,15 +59,15 @@ public class Parameters {
 
     public static function deleteAssetsDir(dir:String):void { // indexOf returns the index of the first character
         var savedAssets:String = data[ASSET_DIRS_KEY];
-        var extra:int = 0;
+        var deleteDelim:int = 0;
         if (savedAssets.indexOf("$") != -1){ // This indicates that there's more than 1 directory saved
-            extra = 1; // This erases the $ at the end of the directory
+            deleteDelim = 1; // This erases the $ at the beginning of the directory
         }
 
-        var firstCut:String = savedAssets.substr(0, savedAssets.indexOf(dir)); // Cuts from beginning until first index of dir. Minus de $ separator
-        var secondCut:String = savedAssets.substr(savedAssets.indexOf(dir) + dir.length + extra); // Cuts from the end of dir
+        var firstCut:String = savedAssets.substr(0, savedAssets.indexOf(dir) - deleteDelim); // Cuts from beginning until first index of dir. Minus de $ delimiter
+        var secondCut:String = savedAssets.substr(savedAssets.indexOf(dir) + dir.length); // Cuts from the end of dir
         data[ASSET_DIRS_KEY] = firstCut + secondCut;
-        trace("REMOVED ASSETS DIRECTORY", dir, firstCut, secondCut);
+        trace("REMOVED ASSETS DIRECTORY", dir, data[ASSET_DIRS_KEY]);
         save();
     }
 

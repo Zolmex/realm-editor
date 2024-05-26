@@ -138,9 +138,6 @@ public class MainView extends Sprite {
         this.toolBar = new MapToolbar(this);
         addChild(this.toolBar);
 
-        this.notifications = new NotificationView();
-        addChild(this.notifications);
-
         this.exitButton = new SimpleTextButton("Exit");
         this.exitButton.addEventListener(MouseEvent.CLICK, onExitClick);
         addChild(this.exitButton);
@@ -157,7 +154,7 @@ public class MainView extends Sprite {
         this.newButton.addEventListener(MouseEvent.CLICK, this.onNewClick);
         addChild(this.newButton);
 
-        this.saveButton = new SimpleTextButton("Save");
+        this.saveButton = new SimpleTextButton("Save JSON");
         this.saveButton.addEventListener(MouseEvent.CLICK, this.onSaveClick);
         addChild(this.saveButton);
 
@@ -173,10 +170,17 @@ public class MainView extends Sprite {
         this.objectFilterView = new ObjectFilterOptionsView(this.drawElementsList);
         addChild(this.objectFilterView);
 
+        this.notifications = new NotificationView();
+        addChild(this.notifications);
+
         Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.STAGE.addEventListener(Event.RESIZE, this.onStageResize);
         this.updateScale();
         this.updatePositions();
+
+        if (DynamicAssetLoader.failedAssets != null) {
+            this.notifications.showNotification("Failed to load asset files: " + DynamicAssetLoader.failedAssets, 14, 5);
+        }
     }
 
     private function setupInput():void {
@@ -207,6 +211,8 @@ public class MainView extends Sprite {
     }
 
     public function updatePositions():void {
+        this.notifications.updatePosition();
+
         this.exitButton.x = Main.StageWidth - this.exitButton.width - 15;
         this.exitButton.y = 15;
 
@@ -314,6 +320,13 @@ public class MainView extends Sprite {
     private function onAssetsDirectorySelected(e:Event):void {
         DynamicAssetLoader.load(); // Reload asset library
 
+        if (DynamicAssetLoader.failedAssets != null) {
+            this.notifications.showNotification("Failed to load asset files: " + DynamicAssetLoader.failedAssets, 14, 5);
+        }
+        else {
+            this.notifications.showNotification("Successfully loaded asset files!");
+        }
+
         this.drawElementsList.resetFilters();
         this.drawElementsList.setContent(this.userBrush.drawType);
     }
@@ -379,12 +392,14 @@ public class MainView extends Sprite {
     private function onSaveClick(e:Event):void {
         if (this.mapData != null) {
             this.mapData.save(false);
+            this.notifications.showNotification("Map saved in JSON format!");
         }
     }
 
     private function onSaveWmapClick(e:Event):void {
         if (this.mapData != null) {
             this.mapData.save(true);
+            this.notifications.showNotification("Map saved in WMap format!");
         }
     }
 
@@ -522,15 +537,15 @@ public class MainView extends Sprite {
                 this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
                 break;
             case METool.EDIT_ID:
-                var tileData:MapTileData = this.mapData.getTile(tilePos.x_, tilePos.y_);
+                var tileData:MapTileData = this.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
                 if (tileData == null || tileData.objType == 0) {
                     return;
                 }
 
-                this.showEditNameView(tilePos.x_, tilePos.y_, tileData.objName);
+                this.showEditNameView(tilePos.x_, tilePos.y_, tileData.objCfg);
                 break;
             case METool.PICKER_ID:
-                tileData = this.mapData.getTile(tilePos.x_, tilePos.y_);
+                tileData = this.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
                 if (tileData == null) {
                     return;
                 }
@@ -573,7 +588,7 @@ public class MainView extends Sprite {
     }
 
     private function onEditName(e:Event):void {
-        this.mapView.editTileName(this.editNameView.tileX, this.editNameView.tileY, this.editNameView.objName);
+        this.mapView.editTileObjCfg(this.editNameView.tileX, this.editNameView.tileY, this.editNameView.objName);
     }
 
     private function onMouseMoved(e:Event):void {

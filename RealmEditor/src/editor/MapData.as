@@ -43,7 +43,7 @@ public class MapData extends EventDispatcher {
         this.tileDict = new Dictionary();
         for (var yi:int = 0; yi < height; yi++) {
             for (var xi:int = 0; xi < width; xi++) {
-                tileMap.drawTile(null, xi, yi); // Empty tiles
+                tileMap.loadTileFromMap(null, xi, yi); // Empty tiles
             }
         }
 
@@ -113,7 +113,7 @@ public class MapData extends EventDispatcher {
                 var entry:Object = dict[byteArray.readShort()];
                 if (entry == null) {
                     trace("NULL ENTRY");
-                    this.tileMap.drawTile(null, xi, yi);
+                    this.tileMap.loadTileFromMap(null, xi, yi);
                     continue;
                 }
                 if (entry.hasOwnProperty("ground")) {
@@ -143,7 +143,7 @@ public class MapData extends EventDispatcher {
                 }
 //                trace("TILE DATA X:", xi, "Y:", yi);
 
-                this.tileMap.drawTile(getTile(xi, yi), xi, yi);
+                this.tileMap.loadTileFromMap(getTile(xi, yi), xi, yi);
             }
         }
         this.dispatchEvent(new Event(MEEvent.MAP_LOAD_END));
@@ -185,7 +185,7 @@ public class MapData extends EventDispatcher {
                 var objType:int = ObjectLibrary.idToType_[objId];
                 tile.objType = objType;
             }
-            tile.objName = objCfg;
+            tile.objCfg = objCfg;
             tile.terrainType = terrainType;
             tile.regType = regionType;
             tile.elevation = elevation;
@@ -210,7 +210,7 @@ public class MapData extends EventDispatcher {
                 }
 
                 this.tileDict[x + y * this.mapWidth] = tile;
-                this.tileMap.drawTile(tile, x, y);
+                this.tileMap.loadTileFromMap(tile, x, y);
             }
         }
         this.dispatchEvent(new Event(MEEvent.MAP_LOAD_END));
@@ -245,7 +245,7 @@ public class MapData extends EventDispatcher {
 
     private function updateTileObjectName(x:int, y:int, objName:String):void {
         var tile:MapTileData = this.getTile(x, y) || createTile(x, y);
-        tile.objName = objName;
+        tile.objCfg = objName;
     }
 
     private function updateTileRegion(x:int, y:int, regType:int):void {
@@ -270,7 +270,7 @@ public class MapData extends EventDispatcher {
                     if (tiles[i].groundType == tile.groundType &&
                             tiles[i].objType == tile.objType &&
                             tiles[i].regType == tile.regType &&
-                            tiles[i].objName == tile.objName &&
+                            tiles[i].objCfg == tile.objCfg &&
                             tiles[i].terrainType == tile.terrainType &&
                             tiles[i].elevation == tile.elevation) {
                         idx = i;
@@ -302,7 +302,7 @@ public class MapData extends EventDispatcher {
             var objId:String = ObjectLibrary.getIdFromType(tile.objType);
             BinaryUtils.Write7BitEncodedInt(mapData, objId ? objId.length : 0);
             mapData.writeMultiByte(objId ? objId : "", "utf-8");
-            var objCfg:String = tile.objName;
+            var objCfg:String = tile.objCfg;
             BinaryUtils.Write7BitEncodedInt(mapData, objCfg ? objCfg.length : 0);
             mapData.writeMultiByte(objCfg ? objCfg : "", "utf-8");
             mapData.writeByte(tile.terrainType);
@@ -366,8 +366,8 @@ public class MapData extends EventDispatcher {
         }
         if (tileData.objType != 0) {
             var obj:Object = {"id": ObjectLibrary.getIdFromType(tileData.objType)};
-            if (tileData.objName != null) {
-                obj["name"] = tileData.objName;
+            if (tileData.objCfg != null) {
+                obj["name"] = tileData.objCfg;
             }
             ret["objs"] = [obj];
         }
