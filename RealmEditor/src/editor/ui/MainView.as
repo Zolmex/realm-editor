@@ -286,6 +286,16 @@ public class MainView extends Sprite {
             return;
         }
 
+        if (e.ctrlKey && this.selectedTool == METool.PENCIL_ID) { // We're increasing/decreasing the brush size
+            this.userBrush.size += int(Math.ceil(e.delta));
+            if (this.userBrush.size < 0) {
+                this.userBrush.size = 0;
+            }
+
+            this.onBrushSizeChanged();
+            return;
+        }
+
         this.mapView.zoomLevel += this.mapView.zoomLevel / e.delta + 1; // + 1 for divisions that result in less than 1
         this.mapView.zoomLevel = Math.max(1, Math.min(this.mapView.zoomLevel, MAX_ZOOM));
 
@@ -322,8 +332,7 @@ public class MainView extends Sprite {
 
         if (DynamicAssetLoader.failedAssets != null) {
             this.notifications.showNotification("Failed to load asset files: " + DynamicAssetLoader.failedAssets, 14, 5);
-        }
-        else {
+        } else {
             this.notifications.showNotification("Successfully loaded asset files!");
         }
 
@@ -485,7 +494,19 @@ public class MainView extends Sprite {
                 break;
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
-                this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
+                var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
+                for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
+                    for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
+                        var dx:int = mapX - tilePos.x_;
+                        var dy:int = mapY - tilePos.y_;
+                        var distSq:int = dx * dx + dy * dy;
+                        if (distSq > this.userBrush.size * this.userBrush.size){
+                            continue;
+                        }
+
+                        this.mapView.useTool(this.selectedTool, mapX, mapY);
+                    }
+                }
                 break;
         }
     }
@@ -534,7 +555,19 @@ public class MainView extends Sprite {
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
             case METool.BUCKET_ID:
-                this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
+                var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
+                for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
+                    for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
+                        var dx:int = mapX - tilePos.x_;
+                        var dy:int = mapY - tilePos.y_;
+                        var distSq:int = dx * dx + dy * dy;
+                        if (distSq > this.userBrush.size * this.userBrush.size){
+                            continue;
+                        }
+
+                        this.mapView.useTool(this.selectedTool, mapX, mapY);
+                    }
+                }
                 break;
             case METool.EDIT_ID:
                 var tileData:MapTileData = this.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
@@ -600,11 +633,17 @@ public class MainView extends Sprite {
 
         this.updateTileInfoPanel(tilePos);
 
-        this.mapView.highlightTile(-1, -1); // Clear the highlight in case we switched tools
+        this.mapView.highlightTile(-1, -1);
+        this.mapView.hideBrushTiles();
         switch (this.selectedTool) {
             case METool.SELECT_ID:
                 if (!this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
                     this.mapView.highlightTile(tilePos.x_, tilePos.y_);
+                }
+                break;
+            case METool.PENCIL_ID:
+                if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
+                    this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
                 }
                 break;
         }
@@ -623,6 +662,10 @@ public class MainView extends Sprite {
     }
 
     private function getMouseTilePosition():IntPoint {
+        if (this.mapView == null) {
+            return null;
+        }
+
         var mouseX:Number = Main.STAGE.mouseX;
         var mouseY:Number = Main.STAGE.mouseY;
         var x:int = (mouseX - this.mapView.x) / (TileMapView.TILE_SIZE * this.mapView.scaleX);
@@ -643,6 +686,29 @@ public class MainView extends Sprite {
         this.selectionStart = null;
 
         this.selectedTool = toolId;
+
+        if (toolId != METool.SELECT_ID) { // Clear highlighted tile
+            this.mapView.highlightTile(-1, -1);
+        }
+
+        var tilePos:IntPoint = getMouseTilePosition();
+        if (tilePos == null) {
+            return;
+        }
+
+        this.mapView.hideBrushTiles();
+        switch (toolId) {
+            case METool.SELECT_ID:
+                if (!this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
+                    this.mapView.highlightTile(tilePos.x_, tilePos.y_);
+                }
+                break;
+            case METool.PENCIL_ID:
+                if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
+                    this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
+                }
+                break;
+        }
     }
 
     private function onUndoAction(e:Event):void {
@@ -688,6 +754,13 @@ public class MainView extends Sprite {
                 this.userBrush.regType = elementType;
                 break;
         }
+
+        var tilePos:IntPoint = getMouseTilePosition();
+        if (tilePos == null) {
+            return;
+        }
+
+        this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
     }
 
     private function onCopy(e:Event):void {
@@ -732,6 +805,15 @@ public class MainView extends Sprite {
 
     private function onMoveSelectionRight(e:Event):void {
         this.mapView.moveSelection(1, 0);
+    }
+
+    private function onBrushSizeChanged():void {
+        var tilePos:IntPoint = getMouseTilePosition();
+        if (tilePos == null) {
+            return;
+        }
+
+        this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
     }
 }
 }

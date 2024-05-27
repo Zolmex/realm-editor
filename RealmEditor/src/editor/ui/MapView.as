@@ -1,4 +1,8 @@
 package editor.ui {
+import assets.ground.GroundLibrary;
+import assets.objects.ObjectLibrary;
+import assets.regions.RegionLibrary;
+
 import editor.MEAction;
 import editor.MEBrush;
 import editor.MEClipboard;
@@ -20,6 +24,7 @@ import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.Shape;
 import flash.display.Sprite;
+import flash.geom.Point;
 import flash.geom.Rectangle;
 import flash.utils.Dictionary;
 
@@ -38,6 +43,7 @@ public class MapView extends Sprite {
     private var selectionSize:IntPoint;
     private var selectionRect:Shape;
     private var highlightRect:Shape;
+    private var brushPencil:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
 
     private var userHistory:Vector.<MapActionDesc>; // Used for undoing. Contains user actions
     private var undoHistory:Vector.<MapActionDesc>; // Used for redoing. Contains undone actions
@@ -66,6 +72,10 @@ public class MapView extends Sprite {
         this.selectionSize = new IntPoint(0, 0);
         this.selectionRect = new Shape();
         addChild(this.selectionRect);
+
+        this.brushPencil = new Bitmap();
+        this.brushPencil.alpha = 0.9;
+        addChild(this.brushPencil);
     }
 
     private function drawGrid():void {
@@ -167,6 +177,68 @@ public class MapView extends Sprite {
         g.lineStyle(1, 0xFFFFFF, 0.5);
         g.drawRect(x, y, width, height);
         g.lineStyle();
+    }
+
+    public function hideBrushTiles():void {
+        this.brushPencil.visible = false;
+    }
+
+    public function moveBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
+        this.brushPencil.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
+        this.brushPencil.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
+        this.brushPencil.visible = true;
+    }
+
+    public function drawBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
+        var regColor:uint;
+        var groundTexture:BitmapData;
+        var objectTexture:BitmapData;
+        switch (brush.drawType){
+            case MEDrawType.GROUND:
+                groundTexture = GroundLibrary.getBitmapData(brush.groundType);
+                break;
+            case MEDrawType.OBJECTS:
+                objectTexture = ObjectLibrary.getTextureFromType(brush.objType);
+                break;
+            case MEDrawType.REGIONS:
+                regColor = RegionLibrary.getColor(brush.regType);
+                break;
+        }
+
+        var diameter:int = (1 + (brush.size * 2)); // Times 2 because we have tiles on the front and on the back
+        var center:int = diameter / 2;
+        var bitmapSize:int = diameter * TileMapView.TILE_SIZE;
+        var brushTexture:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
+        for (var yi:int = 0; yi <= diameter; yi++) { // The brush size represents the amount of tiles from the center we will render
+            for (var xi:int = 0; xi <= diameter; xi++) {
+                var dx:int = xi - center;
+                var dy:int = yi - center;
+                var distSq:int = dx * dx + dy * dy;
+                if (distSq > brush.size * brush.size){
+                    continue;
+                }
+
+                if (groundTexture != null){
+                    brushTexture.copyPixels(groundTexture, new Rectangle(0, 0, groundTexture.width, groundTexture.height), new Point(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE));
+                }
+                else if (objectTexture != null){
+                    brushTexture.copyPixels(objectTexture, new Rectangle(0, 0, objectTexture.width, objectTexture.height), new Point(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE));
+                }
+                else { // Must mean we're rendering a region
+                    brushTexture.fillRect(new Rectangle(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE, 1, 1), 1593835520 | regColor);
+                }
+            }
+        }
+
+        if (this.brushPencil.bitmapData != null){ // Make sure to clear our previous textures before we start drawing again
+            this.brushPencil.bitmapData.dispose();
+            this.brushPencil.bitmapData = null;
+        }
+
+        this.brushPencil.bitmapData = brushTexture;
+        this.brushPencil.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
+        this.brushPencil.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
+        this.brushPencil.visible = true;
     }
 
     private function drawTileSelection(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void {
@@ -629,7 +701,7 @@ public class MapView extends Sprite {
             for (var mapX:int = toX; mapX < toX + this.selectionSize.x_; mapX++) {
                 idx = (mapX - toX) + (mapY - toY) * this.selectionSize.x_;
                 var tile:MapTileData = this.tilesMoved[idx];
-                if (tile == null){
+                if (tile == null) {
                     continue;
                 }
 
