@@ -496,7 +496,7 @@ public class MainView extends Sprite {
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
                 var first:Boolean = true;
-                var action:MapActionDesc = null;
+                var prevAction:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
                 for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
                     for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
@@ -507,16 +507,19 @@ public class MainView extends Sprite {
                             continue;
                         }
 
-                        action = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
+                        var action:MapActionDesc = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
 
-                        if (first) {
-                            first = false;
+                        if (action != null) {
+                            if (first) {
+                                first = false;
+                            }
+                            prevAction  = action; // Make sure we know what the last action was
                         }
                     }
                 }
 
-                if (action != null) {
-                    action.finalRedoNode = true;
+                if (prevAction != null) {
+                    prevAction.finalRedoNode = true;
                 }
                 break;
         }
@@ -569,7 +572,7 @@ public class MainView extends Sprite {
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
                 var first:Boolean = true;
-                var action:MapActionDesc = null;
+                var prevAction:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
                 for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
                     for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
@@ -580,16 +583,19 @@ public class MainView extends Sprite {
                             continue;
                         }
 
-                        action = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
+                        var action:MapActionDesc = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
 
-                        if (first) {
-                            first = false;
+                        if (action != null) {
+                            if (first) {
+                                first = false;
+                            }
+                            prevAction  = action; // Make sure we know what the last action was
                         }
                     }
                 }
 
-                if (action != null) {
-                    action.finalRedoNode = true;
+                if (prevAction != null) {
+                    prevAction.finalRedoNode = true;
                 }
                 break;
             case METool.EDIT_ID:

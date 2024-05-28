@@ -39,6 +39,8 @@ public class MapView extends Sprite {
     private var selectionRect:Shape;
     private var highlightRect:Shape;
     private var brushPencil:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
+    private var brushDrawType:int;
+    private var brushTextureType:int;
 
     private var userHistory:Vector.<MapActionDesc>; // Used for undoing. Contains user actions
     private var undoHistory:Vector.<MapActionDesc>; // Used for redoing. Contains undone actions
@@ -174,6 +176,32 @@ public class MapView extends Sprite {
     }
 
     public function moveBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
+        if (brush.drawType != this.brushDrawType) { // Re-draw if the draw type has changed
+            this.drawBrushTiles(mapX, mapY, brush);
+            return;
+        }
+
+        switch (brush.drawType) { // If draw type matces,re-draw if the texture we're drawing also has changed
+            case MEDrawType.GROUND:
+                if (brush.groundType != this.brushTextureType) {
+                    this.drawBrushTiles(mapX, mapY, brush);
+                    return;
+                }
+                break;
+            case MEDrawType.OBJECTS:
+                if (brush.objType != this.brushTextureType) {
+                    this.drawBrushTiles(mapX, mapY, brush);
+                    return;
+                }
+                break;
+            case MEDrawType.REGIONS:
+                if (brush.regType != this.brushTextureType) {
+                    this.drawBrushTiles(mapX, mapY, brush);
+                    return;
+                }
+                break;
+        }
+
         this.brushPencil.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
         this.brushPencil.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
         this.brushPencil.visible = true;
@@ -183,15 +211,20 @@ public class MapView extends Sprite {
         var regColor:uint;
         var groundTexture:BitmapData;
         var objectTexture:BitmapData;
+
+        this.brushDrawType = brush.drawType;
         switch (brush.drawType) {
             case MEDrawType.GROUND:
                 groundTexture = GroundLibrary.getBitmapData(brush.groundType);
+                this.brushTextureType = brush.groundType;
                 break;
             case MEDrawType.OBJECTS:
                 objectTexture = ObjectLibrary.getTextureFromType(brush.objType);
+                this.brushTextureType = brush.objType;
                 break;
             case MEDrawType.REGIONS:
                 regColor = RegionLibrary.getColor(brush.regType);
+                this.brushTextureType = brush.regType;
                 break;
         }
 
@@ -543,7 +576,7 @@ public class MapView extends Sprite {
         this.drawTileSelection(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1); // Make the new pasted tiles the new selection
 
         var first:Boolean = true;
-        var action:MapActionDesc;
+        var prevAction:MapActionDesc;
         for (var tileY:int = mapY; tileY < mapY + clipboard.height; tileY++) { // Draw tile by tile from clipboard
             for (var tileX:int = mapX; tileX < mapX + clipboard.width; tileX++) {
                 var tileData:MapTileData = clipboard.getTile(tileX - mapX, tileY - mapY);
@@ -555,18 +588,21 @@ public class MapView extends Sprite {
                 this.tileMap.setTileData(tileX, tileY, tileData);
                 this.tileMap.drawTile(tileX, tileY);
 
-                action = new MapActionDesc(MEAction.PASTE, tileX, tileY, prevData, tileData, first, false);
+                var action:MapActionDesc = new MapActionDesc(MEAction.PASTE, tileX, tileY, prevData, tileData, first, false);
 
-                if (first) {
-                    first = false;
+                if (action != null) {
+                    if (first) {
+                        first = false;
+                    }
+                    prevAction = action; // Make sure we know what the last action was
                 }
 
-                this.userHistory.push(action);
+                this.userHistory.push(prevAction);
             }
         }
 
-        if (action != null) {
-            action.finalRedoNode = true;
+        if (prevAction != null) {
+            prevAction.finalRedoNode = true;
         }
     }
 
@@ -577,7 +613,7 @@ public class MapView extends Sprite {
         var height:int = this.selectionSize.y_;
 
         var first:Boolean = true;
-        var action:MapActionDesc;
+        var prevAction:MapActionDesc;
         for (var mapY:int = startY; mapY < startY + height; mapY++) {
             for (var mapX:int = startX; mapX < startX + width; mapX++) {
                 var prevData:MapTileData = this.tileMap.getTileData(mapX, mapY);
@@ -606,20 +642,21 @@ public class MapView extends Sprite {
                 }
                 this.tileMap.drawTile(mapX, mapY);
 
-                action = new MapActionDesc(actId, mapX, mapY, prevValue, newValue);
-                action.finalRedoNode = false;
-                action.finalUndoNode = first;
+                var action:MapActionDesc = new MapActionDesc(actId, mapX, mapY, prevValue, newValue, first, false);
 
-                if (first) {
-                    first = false;
+                if (action != null) {
+                    if (first) {
+                        first = false;
+                    }
+                    prevAction = action; // Make sure we know what the last action was
                 }
 
-                this.userHistory.push(action);
+                this.userHistory.push(prevAction);
             }
         }
 
-        if (action != null) {
-            action.finalRedoNode = true;
+        if (prevAction != null) {
+            prevAction.finalRedoNode = true;
         }
     }
 
