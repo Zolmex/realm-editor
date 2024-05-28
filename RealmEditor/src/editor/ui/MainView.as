@@ -478,7 +478,7 @@ public class MainView extends Sprite {
                 if (this.selectionStart == null) {
                     if (this.draggingSelection || this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
                         this.draggingSelection = true;
-                        this.mapView.dragSelection(tilePos);
+                        this.mapView.moveSelectionTo(tilePos);
                         return;
                     }
 
@@ -820,19 +820,19 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionUp(e:Event):void {
-        this.mapView.moveSelection(0, -1);
+        this.mapView.dragSelection(0, -1);
     }
 
     private function onMoveSelectionDown(e:Event):void {
-        this.mapView.moveSelection(0, 1);
+        this.mapView.dragSelection(0, 1);
     }
 
     private function onMoveSelectionLeft(e:Event):void {
-        this.mapView.moveSelection(-1, 0);
+        this.mapView.dragSelection(-1, 0);
     }
 
     private function onMoveSelectionRight(e:Event):void {
-        this.mapView.moveSelection(1, 0);
+        this.mapView.dragSelection(1, 0);
     }
 
     private function onBrushSizeChanged():void {

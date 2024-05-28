@@ -11,11 +11,6 @@ import editor.METool;
 import editor.MapActionDesc;
 import editor.MapData;
 import editor.MapTileData;
-import editor.ui.MapTileSprite;
-import editor.ui.MapTileSprite;
-import editor.ui.MapTileSprite;
-import editor.ui.MapTileSprite;
-import editor.ui.MapTileSprite;
 
 import flash.display.Bitmap;
 
@@ -49,15 +44,12 @@ public class MapView extends Sprite {
     private var undoHistory:Vector.<MapActionDesc>; // Used for redoing. Contains undone actions
 
     public var lastDragPos:IntPoint;
-    private var tilesMoved:Dictionary;
-    private var moveActions:Vector.<MapActionDesc>;
 
     public function MapView(mapData:MapData) {
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
         this.userHistory = new Vector.<MapActionDesc>();
         this.undoHistory = new Vector.<MapActionDesc>();
-        this.moveActions = new Vector.<MapActionDesc>();
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;
@@ -130,9 +122,7 @@ public class MapView extends Sprite {
         this.selectionSize.x_ = 0;
         this.selectionSize.y_ = 0;
         this.selectionRect.graphics.clear();
-        this.tilesMoved = null;
         this.lastDragPos = null;
-        this.moveActions.splice(0, this.moveActions.length);
     }
 
     public function selectSingleTile(mapX:int, mapY:int):void { // If user clicks on just one tile, clear selection and add tile to the new selection
@@ -512,23 +502,6 @@ public class MapView extends Sprite {
             case MEAction.FILL_REGION:
                 this.tileMap.setTileRegion(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
-            case MEAction.TILE_REPLACED:
-                var data:MapTileData = (undo ? action.prevValue : action.newValue) as MapTileData;
-                this.tileMap.setTileData(action.mapX, action.mapY, data);
-
-                if (userAction) {
-                    if (undo) {
-                        var moveIdx:int = this.moveActions.indexOf(action);
-                        if (moveIdx != -1) {
-                            this.moveActions.splice(moveIdx, 1);
-                        }
-                    }
-
-                    if (this.moveActions.length == 0) {
-                        this.clearTileSelection();
-                    }
-                }
-                break;
         }
         this.tileMap.drawTile(action.mapX, action.mapY);
         return undo ? action.finalUndoNode : action.finalRedoNode;
@@ -646,7 +619,7 @@ public class MapView extends Sprite {
         }
     }
 
-    public function moveSelection(diffX:int, diffY:int):void {
+    public function dragSelection(diffX:int, diffY:int):void {
         var fromX:int = this.selectionRect.x / TileMapView.TILE_SIZE;
         var fromY:int = this.selectionRect.y / TileMapView.TILE_SIZE;
         var toX:int = fromX + diffX;
@@ -658,49 +631,10 @@ public class MapView extends Sprite {
             return;
         }
 
-        if (this.tilesMoved == null) { // Save original tile data into tilesMoved
-            this.saveSelectionTiles();
-        }
-
-        this.undoHistory.splice(0, this.undoHistory.length);
-        this.undoMoveActions(); // Revert last move changes
-
-        this.moveSelectedTiles(fromX, fromY, toX, toY);
         this.selectTileArea(toX, toY, endX, endY);
     }
 
-    private function saveSelectionTiles():void {
-        var fromX:int = this.selectionRect.x / TileMapView.TILE_SIZE;
-        var fromY:int = this.selectionRect.y / TileMapView.TILE_SIZE;
-
-        var first:Boolean = true;
-        var action:MapActionDesc;
-        this.tilesMoved = new Dictionary();
-        for (var ogY:int = fromY; ogY < fromY + this.selectionSize.y_; ogY++) {
-            for (var ogX:int = fromX; ogX < fromX + this.selectionSize.x_; ogX++) {
-                var idx:int = (ogX - fromX) + (ogY - fromY) * this.selectionSize.x_;
-                var ogTile:MapTileData = this.tileMap.getTileData(ogX, ogY).clone();
-
-                this.tilesMoved[idx] = ogTile; // Clone the tile data
-                this.tileMap.clearTile(ogX, ogY);
-                this.tileMap.drawTile(ogX, ogY); // Draws the empty tile
-
-                action = new MapActionDesc(MEAction.TILE_REPLACED, ogX, ogY, ogTile.clone(), null, first, false);
-
-                if (first) {
-                    first = false;
-                }
-
-                this.userHistory.push(action);
-            }
-        }
-
-        if (action != null) {
-            action.finalRedoNode = true;
-        }
-    }
-
-    public function dragSelection(toPos:IntPoint):void {
+    public function moveSelectionTo(toPos:IntPoint):void {
         if (this.lastDragPos == null) {
             this.lastDragPos = toPos;
         }
@@ -708,45 +642,9 @@ public class MapView extends Sprite {
         var diffX:int = toPos.x_ - this.lastDragPos.x_;
         var diffY:int = toPos.y_ - this.lastDragPos.y_;
 
-        this.moveSelection(diffX, diffY);
+        this.dragSelection(diffX, diffY);
 
         this.lastDragPos = toPos;
-    }
-
-    private function moveSelectedTiles(fromX:int, fromY:int, toX:int, toY:int):void { // Rewrite this
-        var first:Boolean = true;
-        var action:MapActionDesc;
-        for (var mapY:int = toY; mapY < toY + this.selectionSize.y_; mapY++) { // Draw moved tiles where they're supposed to be
-            for (var mapX:int = toX; mapX < toX + this.selectionSize.x_; mapX++) {
-                var idx:int = (mapX - toX) + (mapY - toY) * this.selectionSize.x_;
-                var tile:MapTileData = this.tilesMoved[idx];
-                var prevTile:MapTileData = this.tileMap.getTileData(mapX, mapY).clone();
-
-                this.tileMap.setTileData(mapX, mapY, tile);
-                this.tileMap.drawTile(mapX, mapY);
-
-                action = new MapActionDesc(MEAction.TILE_REPLACED, mapX, mapY, prevTile, tile, first, false);
-
-                if (first) {
-                    first = false;
-                }
-
-                this.moveActions.push(action); // Push the change to moveActions
-                this.userHistory.push(action);
-            }
-        }
-
-        if (action != null) {
-            action.finalRedoNode = true;
-        }
-    }
-
-    private function undoMoveActions():void {
-        for (var i:int = 0; i < this.moveActions.length; i++) {
-            var action:MapActionDesc = this.moveActions[i];
-            this.handleAction(action, true, false, true);
-        }
-        this.moveActions.splice(0, this.moveActions.length);
     }
 }
 }

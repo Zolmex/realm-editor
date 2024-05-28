@@ -13,6 +13,5 @@ public class MEAction {
     public static const FILL_GROUND:int = 8;
     public static const FILL_OBJECT:int = 9;
     public static const FILL_REGION:int = 10;
-    public static const TILE_REPLACED:int = 11;
 }
 }
