@@ -12,12 +12,15 @@ public class MapActionDesc {
     public var finalUndoNode:Boolean = true;
     public var finalRedoNode:Boolean = true;
 
-    public function MapActionDesc(actionId:int, x:int, y:int, prevValue:*, newValue:*) {
+    public function MapActionDesc(actionId:int, x:int, y:int, prevValue:*, newValue:*, finalUndo:Boolean = true, finalRedo:Boolean = true) {
         this.actionId = actionId;
         this.mapX = x;
         this.mapY = y;
         this.prevValue = prevValue; // Tile information before performing this action
         this.newValue = newValue;
+
+        this.finalUndoNode = finalUndo;
+        this.finalRedoNode = finalRedo;
     }
 }
 }

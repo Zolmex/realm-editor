@@ -12,6 +12,7 @@ import editor.MEDrawType;
 
 import editor.MEEvent;
 import editor.METool;
+import editor.MapActionDesc;
 import editor.MapData;
 import editor.MapTileData;
 import editor.ToolSwitchEvent;
@@ -494,18 +495,28 @@ public class MainView extends Sprite {
                 break;
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
+                var first:Boolean = true;
+                var action:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
                 for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
                     for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
                         var dx:int = mapX - tilePos.x_;
                         var dy:int = mapY - tilePos.y_;
                         var distSq:int = dx * dx + dy * dy;
-                        if (distSq > this.userBrush.size * this.userBrush.size){
+                        if (distSq > this.userBrush.size * this.userBrush.size) {
                             continue;
                         }
 
-                        this.mapView.useTool(this.selectedTool, mapX, mapY);
+                        action = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
+
+                        if (first) {
+                            first = false;
+                        }
                     }
+                }
+
+                if (action != null) {
+                    action.finalRedoNode = true;
                 }
                 break;
         }
@@ -552,21 +563,33 @@ public class MainView extends Sprite {
 
                 this.mapView.selectSingleTile(tilePos.x_, tilePos.y_);
                 break;
+            case METool.BUCKET_ID:
+                this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
+                break;
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
-            case METool.BUCKET_ID:
+                var first:Boolean = true;
+                var action:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
                 for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
                     for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
                         var dx:int = mapX - tilePos.x_;
                         var dy:int = mapY - tilePos.y_;
                         var distSq:int = dx * dx + dy * dy;
-                        if (distSq > this.userBrush.size * this.userBrush.size){
+                        if (distSq > this.userBrush.size * this.userBrush.size) {
                             continue;
                         }
 
-                        this.mapView.useTool(this.selectedTool, mapX, mapY);
+                        action = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
+
+                        if (first) {
+                            first = false;
+                        }
                     }
+                }
+
+                if (action != null) {
+                    action.finalRedoNode = true;
                 }
                 break;
             case METool.EDIT_ID:
@@ -642,6 +665,11 @@ public class MainView extends Sprite {
                 }
                 break;
             case METool.PENCIL_ID:
+                if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
+                    this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
+                }
+                break;
+            case METool.ERASER_ID:
                 if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
                     this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
                 }

@@ -51,12 +51,12 @@ public class MapTileSprite { // Contains the texture information for each tile s
     }
 
     public function setTileData(tileData:MapTileData):void{ // Copy the values of a MapTileData object to our own tile data
-        this.setGroundType(tileData.groundType);
-        this.setObjectType(tileData.objType);
-        this.setObjectCfg(tileData.objCfg);
-        this.setRegionType(tileData.regType);
-        this.tileData.elevation = tileData.elevation;
-        this.tileData.terrainType = tileData.terrainType;
+        this.setGroundType(tileData == null ? -1 : tileData.groundType);
+        this.setObjectType(tileData == null ? 0 : tileData.objType);
+        this.setObjectCfg(tileData == null ? null : tileData.objCfg);
+        this.setRegionType(tileData == null ? 0 : tileData.regType);
+        this.tileData.elevation = tileData == null ? 0 : tileData.elevation;
+        this.tileData.terrainType = tileData == null ? 0 : tileData.terrainType;
     }
 }
 }
