@@ -491,6 +491,10 @@ public class MapView extends Sprite {
                 this.editTileObjCfg(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
             case MEAction.PASTE:
+                if (action.finalUndoNode) { // Clear selection only on the last tile when undoing
+                    this.clearTileSelection();
+                }
+
                 this.tileMap.setTileData(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
             case MEAction.FILL_GROUND:
