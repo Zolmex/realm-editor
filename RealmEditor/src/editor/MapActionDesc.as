@@ -9,8 +9,8 @@ public class MapActionDesc {
     public var prevValue:*;
     public var newValue:*;
 
-    public var finalUndoNode:Boolean = true;
-    public var finalRedoNode:Boolean = true;
+    public var firstNode:Boolean = true;
+    public var lastNode:Boolean = true;
 
     public function MapActionDesc(actionId:int, x:int, y:int, prevValue:*, newValue:*, finalUndo:Boolean = true, finalRedo:Boolean = true) {
         this.actionId = actionId;
@@ -19,8 +19,8 @@ public class MapActionDesc {
         this.prevValue = prevValue; // Tile information before performing this action
         this.newValue = newValue;
 
-        this.finalUndoNode = finalUndo;
-        this.finalRedoNode = finalRedo;
+        this.firstNode = finalUndo;
+        this.lastNode = finalRedo;
     }
 }
 }

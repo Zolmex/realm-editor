@@ -48,8 +48,8 @@ public class MapView extends Sprite {
 
     public var lastDragPos:IntPoint;
     private var tilesMoved:Dictionary;
-    private var recentMoveHistory:Vector.<MapActionDesc>; // This one works as queue, so use .push() to enqueue and .removeAt(0) to dequeue
-    private var revertMoveHistory:Vector.<MapActionDesc>; // This one works as a stack, use .push() and .pop()
+    private var recentMoveHistory:Vector.<MapActionDesc>; // The last node in this collection is the last node to be done
+    private var revertMoveHistory:Vector.<MapActionDesc>; // The last node in this collection is the first node to be done
     private var selectionHistory:Vector.<IntPoint>; // Keeps track of where the selection area is
     private var undoSelectionHistory:Vector.<IntPoint>;
 
@@ -162,11 +162,15 @@ public class MapView extends Sprite {
         this.drawTileSelection(mapX, mapY, mapX, mapY); // Redraw the tile selection rectangle
     }
 
-    public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
+    public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int, internalCall:Boolean = false):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
         var beginX:int = mapStartX < mapEndX ? mapStartX : mapEndX;
         var beginY:int = mapStartY < mapEndY ? mapStartY : mapEndY;
         var endX:int = mapStartX < mapEndX ? mapEndX : mapStartX;
         var endY:int = mapStartY < mapEndY ? mapEndY : mapStartY;
+
+        if (!internalCall){ // Clear tile movement if the user has selected a new tile area
+            this.resetSelectionMovement();
+        }
 
         this.drawTileSelection(beginX, beginY, endX, endY); // Redraw the tile selection rectangle
     }
@@ -530,7 +534,7 @@ public class MapView extends Sprite {
                 this.editTileObjCfg(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
             case MEAction.PASTE:
-                if (action.finalUndoNode) { // Clear selection only on the last tile when undoing
+                if (action.firstNode) { // Clear selection only on the last tile when undoing
                     this.clearTileSelection();
                 }
 
@@ -548,30 +552,33 @@ public class MapView extends Sprite {
             case MEAction.TILE_REPLACED: // For moving selected tiles
                 if (userAction) {
                     if (undo) {
-                        if (action.finalRedoNode) { // First node to be undone
+                        if (action.lastNode) { // First node to be undone
                             var from:IntPoint = this.selectionHistory.pop();
                             if (from != null) {
                                 var toX:int = from.x_ + this.selectionSize.x_ - 1;
                                 var toY:int = from.y_ + this.selectionSize.y_ - 1;
                                 this.undoSelectionHistory.push(new IntPoint(this.selectionRect.x / TileMapView.TILE_SIZE, this.selectionRect.y / TileMapView.TILE_SIZE)); // Save new selection position for redoing
-                                this.selectTileArea(from.x_, from.y_, toX, toY);
+                                this.selectTileArea(from.x_, from.y_, toX, toY, true);
                             }
 
                             while (this.recentMoveHistory.length > 0) {
-                                var recentAction:MapActionDesc = this.recentMoveHistory.removeAt(0) as MapActionDesc; // Undo+Clear recent history
+                                var recentAction:MapActionDesc = this.recentMoveHistory.pop(); // Undo+Clear recent history
                                 this.handleAction(recentAction, true, false);
+
+                                if (recentAction.firstNode){
+                                    break;
+                                }
                             }
 
-                            this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
-                        } else if (action.finalUndoNode) { // Last node to be undone
+                        } else if (action.firstNode) { // Last node to be undone
                             this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
 
-                            while (this.revertMoveHistory.length > 0) {
+                            while (this.revertMoveHistory.length > 0) { // Draw the previous tiles back
                                 var revertAction:MapActionDesc = this.revertMoveHistory.pop(); // Redo reverted action
                                 this.handleAction(revertAction, false, false);
                                 this.recentMoveHistory.push(revertAction);
 
-                                if (revertAction.finalUndoNode) {
+                                if (revertAction.lastNode) {
                                     break;
                                 }
                             }
@@ -580,21 +587,25 @@ public class MapView extends Sprite {
                             this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
                         }
                     } else {
-                        if (action.finalRedoNode){ // Just so we do this once
+                        if (action.lastNode){ // Just so we do this once
                             from = this.undoSelectionHistory.pop();
                             if (from != null) {
                                 toX = from.x_ + this.selectionSize.x_ - 1;
                                 toY = from.y_ + this.selectionSize.y_ - 1;
                                 this.selectionHistory.push(new IntPoint(this.selectionRect.x / TileMapView.TILE_SIZE, this.selectionRect.y / TileMapView.TILE_SIZE));
-                                this.selectTileArea(from.x_, from.y_, toX, toY);
+                                this.selectTileArea(from.x_, from.y_, toX, toY, true);
                             }
                         }
 
-                        if (action.finalUndoNode) { // First action to be redone
+                        if (action.firstNode) { // First action to be redone
                             while (this.recentMoveHistory.length > 0) {
-                                recentAction = this.recentMoveHistory.removeAt(0) as MapActionDesc; // Undo+Clear recent history
+                                recentAction = this.recentMoveHistory.pop(); // Undo+Clear recent history
                                 this.handleAction(recentAction, true, false);
                                 this.revertMoveHistory.push(recentAction);
+
+                                if (recentAction.firstNode){
+                                    break;
+                                }
                             }
                         }
                         this.tileMap.setTileData(action.mapX, action.mapY, action.newValue); // Redo current action, bla bla bla...
@@ -607,7 +618,7 @@ public class MapView extends Sprite {
         }
         this.tileMap.drawTile(action.mapX, action.mapY);
 
-        return undo ? action.finalUndoNode : action.finalRedoNode;
+        return undo ? action.firstNode : action.lastNode;
     }
 
     public function copySelectionToClipboard(clipboard:MEClipboard):void {
@@ -667,7 +678,7 @@ public class MapView extends Sprite {
         }
 
         if (prevAction != null) {
-            prevAction.finalRedoNode = true;
+            prevAction.lastNode = true;
         }
     }
 
@@ -720,7 +731,7 @@ public class MapView extends Sprite {
         }
 
         if (prevAction != null) {
-            prevAction.finalRedoNode = true;
+            prevAction.lastNode = true;
         }
     }
 
@@ -761,7 +772,7 @@ public class MapView extends Sprite {
 
         this.selectionHistory.push(new IntPoint(this.selectionRect.x / TileMapView.TILE_SIZE, this.selectionRect.y / TileMapView.TILE_SIZE)); // Push old selection position to history
 
-        this.selectTileArea(toX, toY, endX, endY);
+        this.selectTileArea(toX, toY, endX, endY, true);
     }
 
     public function moveSelectionTo(toPos:IntPoint):void {
@@ -842,15 +853,19 @@ public class MapView extends Sprite {
         }
 
         if (action != null) { // This will only be the final node if it's the first time we're moving the selection
-            action.finalRedoNode = true;
+            action.lastNode = true;
         }
     }
 
     private function undoTileMovement():void {
         while (this.recentMoveHistory.length > 0) {
-            var action:MapActionDesc = this.recentMoveHistory.removeAt(0) as MapActionDesc;
+            var action:MapActionDesc = this.recentMoveHistory.pop(); // Start from last node
             this.handleAction(action, true, false);
             this.revertMoveHistory.push(action);
+
+            if (action.firstNode) { // Stop when we reach the first node
+                break;
+            }
         }
     }
 }

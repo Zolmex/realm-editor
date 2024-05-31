@@ -519,7 +519,7 @@ public class MainView extends Sprite {
                 }
 
                 if (prevAction != null) {
-                    prevAction.finalRedoNode = true;
+                    prevAction.lastNode = true;
                 }
                 break;
         }
@@ -595,7 +595,7 @@ public class MainView extends Sprite {
                 }
 
                 if (prevAction != null) {
-                    prevAction.finalRedoNode = true;
+                    prevAction.lastNode = true;
                 }
                 break;
             case METool.EDIT_ID:
