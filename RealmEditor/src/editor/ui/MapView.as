@@ -369,7 +369,7 @@ public class MapView extends Sprite {
             return null;
         }
 
-        this.undoHistory.splice(0, this.undoHistory.length); // Clear undo history since we just made new changes
+        this.undoHistory.length = 0; // Clear undo history since we just made new changes
         var prevTileData:MapTileData = this.tileMap.getTileData(mapX, mapY);
 
         var actionId:int; // Put these here just to make switch less annoying in this language
@@ -635,7 +635,7 @@ public class MapView extends Sprite {
             return;
         }
 
-        this.undoHistory.splice(0, this.undoHistory.length);
+        this.undoHistory.length = 0;
 
         // Select pasted tiles
         this.clearTileSelection();
@@ -743,6 +743,8 @@ public class MapView extends Sprite {
         if (diffX == 0 && diffY == 0) {
             return;
         }
+
+        this.undoHistory.length = 0;
 
         var firstMove:Boolean = false;
         if (this.tilesMoved == null) {
