@@ -561,7 +561,15 @@ public class MapView extends Sprite {
                                 this.selectTileArea(from.x_, from.y_, toX, toY, true);
                             }
 
-                            this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
+                            while (this.recentMoveHistory.length > 0) {
+                                var recentAction:MapActionDesc = this.recentMoveHistory.pop(); // Undo+Clear recent history
+                                this.handleAction(recentAction, true, false);
+
+                                if (recentAction.firstNode){
+                                    break;
+                                }
+                            }
+
                         } else if (action.firstNode) { // Last node to be undone
                             this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
 
@@ -591,7 +599,7 @@ public class MapView extends Sprite {
 
                         if (action.firstNode) { // First action to be redone
                             while (this.recentMoveHistory.length > 0) {
-                                var recentAction:MapActionDesc = this.recentMoveHistory.pop(); // Undo+Clear recent history
+                                recentAction = this.recentMoveHistory.pop(); // Undo+Clear recent history
                                 this.handleAction(recentAction, true, false);
                                 this.revertMoveHistory.push(recentAction);
 
