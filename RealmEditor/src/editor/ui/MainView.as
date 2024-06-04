@@ -513,7 +513,7 @@ public class MainView extends Sprite {
                             if (first) {
                                 first = false;
                             }
-                            prevAction  = action; // Make sure we know what the last action was
+                            prevAction = action; // Make sure we know what the last action was
                         }
                     }
                 }
@@ -571,6 +571,11 @@ public class MainView extends Sprite {
                 break;
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
+                if (this.userBrush.size == 0) {
+                    this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_, true, true);
+                    break;
+                }
+
                 var first:Boolean = true;
                 var prevAction:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
@@ -589,7 +594,7 @@ public class MainView extends Sprite {
                             if (first) {
                                 first = false;
                             }
-                            prevAction  = action; // Make sure we know what the last action was
+                            prevAction = action; // Make sure we know what the last action was
                         }
                     }
                 }

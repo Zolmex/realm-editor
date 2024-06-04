@@ -561,8 +561,8 @@ public class MapView extends Sprite {
                                 this.selectTileArea(from.x_, from.y_, toX, toY, true);
                             }
 
-                            while (this.recentMoveHistory.length > 0) {
-                                var recentAction:MapActionDesc = this.recentMoveHistory.pop(); // Undo+Clear recent history
+                            while (this.recentMoveHistory.length > 0) { // Undo+Clear recent history
+                                var recentAction:MapActionDesc = this.recentMoveHistory.pop();
                                 this.handleAction(recentAction, true, false);
 
                                 if (recentAction.firstNode){
