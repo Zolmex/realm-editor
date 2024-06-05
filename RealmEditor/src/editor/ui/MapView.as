@@ -49,9 +49,6 @@ public class MapView extends Sprite {
     public var lastDragPos:IntPoint;
     private var tilesMoved:Dictionary;
     private var recentMoveHistory:Vector.<MapActionDesc>; // The last node in this collection is the last node to be done
-    private var revertMoveHistory:Vector.<MapActionDesc>; // The last node in this collection is the first node to be done
-    private var selectionHistory:Vector.<IntPoint>; // Keeps track of where the selection area is
-    private var undoSelectionHistory:Vector.<IntPoint>;
 
     public function MapView(mapData:MapData) {
         this.mapData = mapData;
@@ -59,10 +56,6 @@ public class MapView extends Sprite {
         this.userHistory = new Vector.<MapActionDesc>();
         this.undoHistory = new Vector.<MapActionDesc>();
         this.recentMoveHistory = new Vector.<MapActionDesc>();
-        this.revertMoveHistory = new Vector.<MapActionDesc>();
-
-        this.selectionHistory = new Vector.<IntPoint>();
-        this.undoSelectionHistory = new Vector.<IntPoint>();
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;
@@ -162,13 +155,19 @@ public class MapView extends Sprite {
         this.drawTileSelection(mapX, mapY, mapX, mapY); // Redraw the tile selection rectangle
     }
 
-    public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int, internalCall:Boolean = false):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
+    public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int, movementCall:Boolean = false, userAction:Boolean = true, firstAction:Boolean = true, lastAction:Boolean = true):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
         var beginX:int = mapStartX < mapEndX ? mapStartX : mapEndX;
         var beginY:int = mapStartY < mapEndY ? mapStartY : mapEndY;
         var endX:int = mapStartX < mapEndX ? mapEndX : mapStartX;
         var endY:int = mapStartY < mapEndY ? mapEndY : mapStartY;
 
-        if (!internalCall) { // Clear tile movement if the user has selected a new tile area
+        if (movementCall) {
+            var prevSelection:Rectangle = new Rectangle(this.selectionRect.x, this.selectionRect.y, this.selectionSize.x_ * TileMapView.TILE_SIZE, this.selectionSize.y_ * TileMapView.TILE_SIZE);
+            var newSelection:Rectangle = new Rectangle(beginX * TileMapView.TILE_SIZE, beginY * TileMapView.TILE_SIZE, (endX - beginX + 1) * TileMapView.TILE_SIZE, (endY - beginY + 1) * TileMapView.TILE_SIZE);
+            var action:MapActionDesc = new MapActionDesc(MEAction.SELECT_AREA, 0, 0, prevSelection, newSelection, firstAction, lastAction);
+            this.userHistory.push(action);
+        }
+        else if (userAction) { // Clear tile movement if the user has selected a new tile area
             this.resetSelectionMovement();
         }
 
@@ -552,6 +551,14 @@ public class MapView extends Sprite {
             case MEAction.TILE_REPLACED: // For moving selected tiles
                 this.tileMap.setTileData(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
+            case MEAction.SELECT_AREA:
+                var rect:Rectangle = undo ? action.prevValue : action.newValue;
+                var beginX:int = rect.x / TileMapView.TILE_SIZE;
+                var beginY:int = rect.y / TileMapView.TILE_SIZE;
+                var endX:int = beginX + (rect.width / TileMapView.TILE_SIZE) - 1;
+                var endY:int = beginY + (rect.height / TileMapView.TILE_SIZE) - 1;
+                this.selectTileArea(beginX, beginY, endX, endY, false, false);
+                break;
         }
         this.tileMap.drawTile(action.mapX, action.mapY);
 
@@ -707,9 +714,7 @@ public class MapView extends Sprite {
 
         this.drawSelectedTiles(fromX, fromY, toX, toY, firstMove);
 
-        this.selectionHistory.push(new IntPoint(this.selectionRect.x / TileMapView.TILE_SIZE, this.selectionRect.y / TileMapView.TILE_SIZE)); // Push old selection position to history
-
-        this.selectTileArea(toX, toY, endX, endY, true);
+        this.selectTileArea(toX, toY, endX, endY, true, false, false, true);
     }
 
     public function moveSelectionTo(toPos:IntPoint):void {
@@ -789,9 +794,10 @@ public class MapView extends Sprite {
             }
         }
 
-        if (action != null) { // This will always be the final node
-            action.lastNode = true;
-        }
+        // These actions are also not the last ones, the last action is the selection action
+//        if (action != null) { // This will always be the final node
+//            action.lastNode = true;
+//        }
     }
 
     private function undoTileMovement():void {
