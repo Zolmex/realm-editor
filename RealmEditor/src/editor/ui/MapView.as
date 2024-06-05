@@ -168,7 +168,7 @@ public class MapView extends Sprite {
         var endX:int = mapStartX < mapEndX ? mapEndX : mapStartX;
         var endY:int = mapStartY < mapEndY ? mapEndY : mapStartY;
 
-        if (!internalCall){ // Clear tile movement if the user has selected a new tile area
+        if (!internalCall) { // Clear tile movement if the user has selected a new tile area
             this.resetSelectionMovement();
         }
 
@@ -474,7 +474,7 @@ public class MapView extends Sprite {
         return action;
     }
 
-    private function handleAction(action:MapActionDesc, undo:Boolean, userAction:Boolean = true):Boolean { // forcePushBack forces the action to go to the undoHistory action list
+    private function handleAction(action:MapActionDesc, undo:Boolean):Boolean {
         switch (action.actionId) {
             case MEAction.DRAW_TILE:
                 if (undo) {
@@ -550,70 +550,7 @@ public class MapView extends Sprite {
                 this.tileMap.setTileRegion(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
             case MEAction.TILE_REPLACED: // For moving selected tiles
-                if (userAction) {
-                    if (undo) {
-                        if (action.lastNode) { // First node to be undone
-                            var from:IntPoint = this.selectionHistory.pop();
-                            if (from != null) {
-                                var toX:int = from.x_ + this.selectionSize.x_ - 1;
-                                var toY:int = from.y_ + this.selectionSize.y_ - 1;
-                                this.undoSelectionHistory.push(new IntPoint(this.selectionRect.x / TileMapView.TILE_SIZE, this.selectionRect.y / TileMapView.TILE_SIZE)); // Save new selection position for redoing
-                                this.selectTileArea(from.x_, from.y_, toX, toY, true);
-                            }
-
-                            while (this.recentMoveHistory.length > 0) { // Undo+Clear recent history
-                                var recentAction:MapActionDesc = this.recentMoveHistory.pop();
-                                this.handleAction(recentAction, true, false);
-
-                                if (recentAction.firstNode){
-                                    break;
-                                }
-                            }
-
-                        } else if (action.firstNode) { // Last node to be undone
-                            this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
-
-                            while (this.revertMoveHistory.length > 0) { // Draw the previous tiles back
-                                var revertAction:MapActionDesc = this.revertMoveHistory.pop(); // Redo reverted action
-                                this.handleAction(revertAction, false, false);
-                                this.recentMoveHistory.push(revertAction);
-
-                                if (revertAction.lastNode) {
-                                    break;
-                                }
-                            }
-                        }
-                        else {
-                            this.tileMap.setTileData(action.mapX, action.mapY, action.prevValue);
-                        }
-                    } else {
-                        if (action.lastNode){ // Just so we do this once
-                            from = this.undoSelectionHistory.pop();
-                            if (from != null) {
-                                toX = from.x_ + this.selectionSize.x_ - 1;
-                                toY = from.y_ + this.selectionSize.y_ - 1;
-                                this.selectionHistory.push(new IntPoint(this.selectionRect.x / TileMapView.TILE_SIZE, this.selectionRect.y / TileMapView.TILE_SIZE));
-                                this.selectTileArea(from.x_, from.y_, toX, toY, true);
-                            }
-                        }
-
-                        if (action.firstNode) { // First action to be redone
-                            while (this.recentMoveHistory.length > 0) {
-                                recentAction = this.recentMoveHistory.pop(); // Undo+Clear recent history
-                                this.handleAction(recentAction, true, false);
-                                this.revertMoveHistory.push(recentAction);
-
-                                if (recentAction.firstNode){
-                                    break;
-                                }
-                            }
-                        }
-                        this.tileMap.setTileData(action.mapX, action.mapY, action.newValue); // Redo current action, bla bla bla...
-                        this.recentMoveHistory.push(action); // Push this action to the end of recent history. In redo the order of actions is in reverse as undo
-                    }
-                } else {
-                    this.tileMap.setTileData(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                }
+                this.tileMap.setTileData(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
                 break;
         }
         this.tileMap.drawTile(action.mapX, action.mapY);
@@ -830,7 +767,7 @@ public class MapView extends Sprite {
     }
 
     private function drawSelectedTiles(fromX:int, fromY:int, toX:int, toY:int, firstMove:Boolean):void {
-        var first:Boolean = !firstMove;
+        var first:Boolean = false; // The last node to be undone will either be from cleared selection tiles or reverted moved tiles
         var action:MapActionDesc;
         for (var mapY:int = toY; mapY < toY + this.selectionSize.y_; mapY++) { // Draw moved tiles where they're supposed to be
             for (var mapX:int = toX; mapX < toX + this.selectionSize.x_; mapX++) {
@@ -852,20 +789,27 @@ public class MapView extends Sprite {
             }
         }
 
-        if (action != null) { // This will only be the final node if it's the first time we're moving the selection
+        if (action != null) { // This will always be the final node
             action.lastNode = true;
         }
     }
 
     private function undoTileMovement():void {
+        var first:Boolean = true;
+        var action:MapActionDesc;
         while (this.recentMoveHistory.length > 0) {
-            var action:MapActionDesc = this.recentMoveHistory.pop(); // Start from last node
-            this.handleAction(action, true, false);
-            this.revertMoveHistory.push(action);
+            var prevAction:MapActionDesc = this.recentMoveHistory.removeAt(0) as MapActionDesc; // Start from first node (maintain order)
 
-            if (action.firstNode) { // Stop when we reach the first node
-                break;
+            this.tileMap.setTileData(prevAction.mapX, prevAction.mapY, prevAction.prevValue); // Draw previous tile back
+            this.tileMap.drawTile(prevAction.mapX, prevAction.mapY);
+
+            action = new MapActionDesc(MEAction.TILE_REPLACED, prevAction.mapX, prevAction.mapY, prevAction.newValue, prevAction.prevValue, first, false);
+
+            if (first) {
+                first = false;
             }
+
+            this.userHistory.push(action); // Push this change to userHistory so that it gets redone
         }
     }
 }
