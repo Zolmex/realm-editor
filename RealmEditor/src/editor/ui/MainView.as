@@ -751,11 +751,11 @@ public class MainView extends Sprite {
     }
 
     private function onUndoAction(e:Event):void {
-        this.mapView.undo();
+        // Undo last action
     }
 
     private function onRedoAction(e:Event):void {
-        this.mapView.redo();
+        // Redo last undone action
     }
 
     private function onDrawTypeSwitch(e:Event):void {

@@ -43,9 +43,6 @@ public class MapView extends Sprite {
     private var brushDrawType:int;
     private var brushTextureType:int;
 
-    private var userHistory:Vector.<MapActionDesc>; // Used for undoing. Contains user actions
-    private var undoHistory:Vector.<MapActionDesc>; // Used for redoing. Contains undone actions
-
     public var lastDragPos:IntPoint;
     private var tilesMoved:Dictionary;
     private var recentMoveHistory:Vector.<MapActionDesc>; // The last node in this collection is the last node to be done
@@ -53,9 +50,6 @@ public class MapView extends Sprite {
     public function MapView(mapData:MapData) {
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
-        this.userHistory = new Vector.<MapActionDesc>();
-        this.undoHistory = new Vector.<MapActionDesc>();
-        this.recentMoveHistory = new Vector.<MapActionDesc>();
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;
@@ -96,8 +90,7 @@ public class MapView extends Sprite {
         this.selectionSize.y_ = 0;
         this.selectionRect.graphics.clear();
         this.highlightRect.graphics.clear();
-        this.userHistory.splice(0, this.userHistory.length);
-        this.undoHistory.splice(0, this.undoHistory.length);
+        // Clear user and undo actions
 
         this.tileMap.graphics.clear();
         if (this.gridTexture) {
@@ -162,10 +155,7 @@ public class MapView extends Sprite {
         var endY:int = mapStartY < mapEndY ? mapEndY : mapStartY;
 
         if (movementCall) {
-            var prevSelection:Rectangle = new Rectangle(this.selectionRect.x, this.selectionRect.y, this.selectionSize.x_ * TileMapView.TILE_SIZE, this.selectionSize.y_ * TileMapView.TILE_SIZE);
-            var newSelection:Rectangle = new Rectangle(beginX * TileMapView.TILE_SIZE, beginY * TileMapView.TILE_SIZE, (endX - beginX + 1) * TileMapView.TILE_SIZE, (endY - beginY + 1) * TileMapView.TILE_SIZE);
-            var action:MapActionDesc = new MapActionDesc(MEAction.SELECT_AREA, 0, 0, prevSelection, newSelection, firstAction, lastAction);
-            this.userHistory.push(action);
+             // Push to user history
         }
         else if (userAction) { // Clear tile movement if the user has selected a new tile area
             this.resetSelectionMovement();
@@ -331,39 +321,7 @@ public class MapView extends Sprite {
         var prevName:String = data.objCfg;
         tile.setObjectCfg(cfg);
 
-        this.userHistory.push(new MapActionDesc(MEAction.EDIT_OBJ_NAME, x, y, prevName, data.objCfg));
-    }
-
-    public function undo():void {
-        var finalNode:Boolean = false;
-        while (!finalNode) {
-            var idx:int = this.userHistory.length - 1;
-            if (idx < 0) {
-                return;
-            }
-
-            // Push undone action to undoHistory
-            var action:MapActionDesc = this.userHistory[idx];
-            this.undoHistory.push(action);
-            this.userHistory.splice(idx, 1) // Remove from user history
-            finalNode = this.handleAction(action, true);
-        }
-    }
-
-    public function redo():void {
-        var finalNode:Boolean = false;
-        while (!finalNode) {
-            var idx:int = this.undoHistory.length - 1;
-            if (idx < 0) {
-                return;
-            }
-
-            // Push undone action to undoHistory
-            var action:MapActionDesc = this.undoHistory[idx];
-            this.userHistory.push(action);
-            this.undoHistory.splice(idx, 1) // Remove from user history
-            finalNode = this.handleAction(action, false);
-        }
+        // Push to user history
     }
 
     public function useTool(toolId:int, mapX:int, mapY:int, first:Boolean = true, last:Boolean = true):MapActionDesc {
@@ -372,7 +330,7 @@ public class MapView extends Sprite {
             return null;
         }
 
-        this.undoHistory.length = 0; // Clear undo history since we just made new changes
+        // Clear undo history since we just made new changes
         var prevTileData:MapTileData = this.tileMap.getTileData(mapX, mapY);
 
         var actionId:int; // Put these here just to make switch less annoying in this language
@@ -418,7 +376,7 @@ public class MapView extends Sprite {
                 this.tileMap.drawTile(mapX, mapY); // Draw tile with new data
 
                 action = new MapActionDesc(actionId, mapX, mapY, prevValue, null, first, last);
-                this.userHistory.push(action);
+                // Push to user history
                 break;
             case METool.PENCIL_ID:
                 if (!this.isInsideSelection(mapX, mapY)) {
@@ -460,7 +418,7 @@ public class MapView extends Sprite {
                 this.tileMap.drawTile(mapX, mapY); // Draw tile with new data
 
                 action = new MapActionDesc(actionId, mapX, mapY, prevValue, newValue, first, last);
-                this.userHistory.push(action);
+                // Push to user history
                 break;
             case METool.BUCKET_ID:
                 if (!this.isInsideSelection(mapX, mapY, true)) { // Only use bucket with a selected area
@@ -590,7 +548,7 @@ public class MapView extends Sprite {
             return;
         }
 
-        this.undoHistory.length = 0;
+        // Clear undo history
 
         // Select pasted tiles
         this.clearTileSelection();
@@ -616,7 +574,7 @@ public class MapView extends Sprite {
                         first = false;
                     }
                     prevAction = action; // Make sure we know what the last action was
-                    this.userHistory.push(prevAction);
+                    // Push to user history
                 }
             }
         }
@@ -669,7 +627,7 @@ public class MapView extends Sprite {
                         first = false;
                     }
                     prevAction = action; // Make sure we know what the last action was
-                    this.userHistory.push(prevAction);
+                    // Push to user history
                 }
             }
         }
@@ -699,7 +657,7 @@ public class MapView extends Sprite {
             return;
         }
 
-        this.undoHistory.length = 0;
+        // Clear undo history
 
         var firstMove:Boolean = false;
         if (this.tilesMoved == null) {
@@ -747,9 +705,9 @@ public class MapView extends Sprite {
                     first = false;
                 }
 
-                this.userHistory.push(groundAction);
-                this.userHistory.push(objectAction);
-                this.userHistory.push(regionAction);
+                // Push to user history
+                // Push to user history
+                // Push to user history
             }
         }
 
@@ -790,7 +748,7 @@ public class MapView extends Sprite {
                 }
 
                 this.recentMoveHistory.push(action);
-                this.userHistory.push(action);
+                // Push to user history
             }
         }
 
@@ -815,7 +773,7 @@ public class MapView extends Sprite {
                 first = false;
             }
 
-            this.userHistory.push(action); // Push this change to userHistory so that it gets redone
+            // Push this change to userHistory so that it gets redone
         }
     }
 }
