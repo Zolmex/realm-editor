@@ -12,7 +12,7 @@ import editor.MEDrawType;
 
 import editor.MEEvent;
 import editor.METool;
-import editor.MapActionDesc;
+import editor.actions.MapAction;
 import editor.MapData;
 import editor.MapTileData;
 import editor.ToolSwitchEvent;
@@ -53,6 +53,7 @@ public class MainView extends Sprite {
     public var mapViewContainer:MapViewContainer;
     public var mapView:MapView;
     private var mapData:MapData;
+    private var nextMapId:int;
 
     private var background:Background;
     private var exitButton:SimpleTextButton;
@@ -85,10 +86,12 @@ public class MainView extends Sprite {
     public var selectedTool:int;
 
     private var clipBoard:MEClipboard;
+    private var timeControl:TimeControl; // Controls actions done/undone in each map
 
     public function MainView() {
         this.userBrush = new MEBrush(MEDrawType.GROUND, 0);
         this.clipBoard = new MEClipboard();
+        this.timeControl = new TimeControl();
 
         this.background = new Background();
         addChild(this.background);
@@ -343,7 +346,9 @@ public class MainView extends Sprite {
 
     private function onLoadClick(e:Event):void {
         var newData:MapData = new MapData();
-        var newMap:MapView = new MapView(newData);
+        var newMap:MapView = new MapView(this.nextMapId, newData);
+        this.nextMapId++;
+
         this.mapView = newMap;
         this.mapData = newData;
         this.mapData.addEventListener(MEEvent.MAP_LOAD_BEGIN, this.onMapLoadBegin);
@@ -366,7 +371,9 @@ public class MainView extends Sprite {
 
     private function onCreateMap(e:Event):void {
         var newData:MapData = new MapData();
-        var newMap:MapView = new MapView(newData);
+        var newMap:MapView = new MapView(this.nextMapId, newData);
+        this.nextMapId++;
+
         this.mapView = newMap;
         this.mapData = newData;
         this.mapData.addEventListener(MEEvent.MAP_LOAD_BEGIN, this.onMapLoadBegin);
@@ -385,6 +392,7 @@ public class MainView extends Sprite {
 
     private function onMapClosed(e:MapClosedEvent):void {
         this.mapViewContainer.removeMapView(e.mapId);
+        this.timeControl.eraseHistory(e.mapId);
 
         var nextId:int = this.mapSelector.selectedMap - 1 < 0 ? 0 : this.mapSelector.selectedMap - 1;
         this.mapSelector.selectMap(nextId);
@@ -494,9 +502,8 @@ public class MainView extends Sprite {
                 this.mapView.selectTileArea(this.selectionStart.x_, this.selectionStart.y_, tilePos.x_, tilePos.y_);
                 break;
             case METool.ERASER_ID:
+                break;
             case METool.PENCIL_ID:
-                var first:Boolean = true;
-                var prevAction:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
                 for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
                     for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
@@ -507,19 +514,8 @@ public class MainView extends Sprite {
                             continue;
                         }
 
-                        var action:MapActionDesc = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
-
-                        if (action != null) {
-                            if (first) {
-                                first = false;
-                            }
-                            prevAction = action; // Make sure we know what the last action was
-                        }
+                        this.mapView.useTool(this.selectedTool, mapX, mapY);
                     }
-                }
-
-                if (prevAction != null) {
-                    prevAction.lastNode = true;
                 }
                 break;
         }
@@ -572,12 +568,10 @@ public class MainView extends Sprite {
             case METool.ERASER_ID:
             case METool.PENCIL_ID:
                 if (this.userBrush.size == 0) {
-                    this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_, true, true);
+                    this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
                     break;
                 }
 
-                var first:Boolean = true;
-                var prevAction:MapActionDesc = null;
                 var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
                 for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
                     for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
@@ -588,19 +582,8 @@ public class MainView extends Sprite {
                             continue;
                         }
 
-                        var action:MapActionDesc = this.mapView.useTool(this.selectedTool, mapX, mapY, first, false);
-
-                        if (action != null) {
-                            if (first) {
-                                first = false;
-                            }
-                            prevAction = action; // Make sure we know what the last action was
-                        }
+                        this.mapView.useTool(this.selectedTool, mapX, mapY);
                     }
-                }
-
-                if (prevAction != null) {
-                    prevAction.lastNode = true;
                 }
                 break;
             case METool.EDIT_ID:
@@ -751,11 +734,11 @@ public class MainView extends Sprite {
     }
 
     private function onUndoAction(e:Event):void {
-        // Undo last action
+        this.timeControl.undoLastAction(this.mapView.id); // Undo last action done in the current map
     }
 
     private function onRedoAction(e:Event):void {
-        // Redo last undone action
+        this.timeControl.redoLastUndoneAction(this.mapView.id); // Redo last undone action in the current map
     }
 
     private function onDrawTypeSwitch(e:Event):void {

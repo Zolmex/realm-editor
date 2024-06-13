@@ -1,6 +1,6 @@
-package editor {
+package editor.actions {
 
-public class MEAction {
+public class MapAction {
 
     public static const DRAW_TILE:int = 0;
     public static const DRAW_OBJECT:int = 1;
@@ -15,5 +15,16 @@ public class MEAction {
     public static const FILL_REGION:int = 10;
     public static const TILE_REPLACED:int = 11;
     public static const SELECT_AREA:int = 12;
+
+    public var mapX:int;
+    public var mapY:int;
+
+    public function MapAction(x:int, y:int) {
+        this.mapX = x;
+        this.mapY = y;
+    }
+
+    public virtual function doAction():void { }
+    public virtual function undoAction():void { }
 }
 }

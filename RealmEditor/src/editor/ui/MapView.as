@@ -3,13 +3,13 @@ import assets.ground.GroundLibrary;
 import assets.objects.ObjectLibrary;
 import assets.regions.RegionLibrary;
 
-import editor.MEAction;
+import editor.actions.MapAction;
 import editor.MEBrush;
 import editor.MEClipboard;
 import editor.MEDrawType;
 import editor.METool;
-import editor.MapActionDesc;
-import editor.MapActionDesc;
+import editor.actions.MapAction;
+import editor.actions.MapAction;
 import editor.MapData;
 import editor.MapTileData;
 
@@ -28,6 +28,7 @@ import util.IntPoint;
 
 public class MapView extends Sprite {
 
+    public var id:int; // Id of the map (based on load/create order)
     public var mapData:MapData;
     public var tileMap:TileMapView;
     public var mapOffset:IntPoint;
@@ -45,9 +46,10 @@ public class MapView extends Sprite {
 
     public var lastDragPos:IntPoint;
     private var tilesMoved:Dictionary;
-    private var recentMoveHistory:Vector.<MapActionDesc>; // The last node in this collection is the last node to be done
+    private var recentMoveHistory:Vector.<MapAction>; // The last node in this collection is the last node to be done
 
-    public function MapView(mapData:MapData) {
+    public function MapView(id:int, mapData:MapData) {
+        this.id = id;
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
 
@@ -324,203 +326,86 @@ public class MapView extends Sprite {
         // Push to user history
     }
 
-    public function useTool(toolId:int, mapX:int, mapY:int, first:Boolean = true, last:Boolean = true):MapActionDesc {
+    public function useTool(toolId:int, mapX:int, mapY:int):void {
         var brush:MEBrush = Main.View.userBrush;
         if (brush == null) {
-            return null;
+            return;
         }
 
         // Clear undo history since we just made new changes
         var prevTileData:MapTileData = this.tileMap.getTileData(mapX, mapY);
-
-        var actionId:int; // Put these here just to make switch less annoying in this language
-        var prevValue:*;
-        var newValue:*;
-
-        var action:MapActionDesc = null;
         switch (toolId) {
             case METool.ERASER_ID:
                 if (prevTileData == null || !this.isInsideSelection(mapX, mapY)) {
-                    return null;
+                    return;
                 }
 
                 switch (brush.drawType) {
                     case MEDrawType.GROUND:
                         if (prevTileData.groundType == -1) {
-                            return null;
+                            return;
                         }
 
-                        prevValue = prevTileData.groundType;
-                        actionId = MEAction.ERASE_TILE;
                         this.tileMap.clearGround(mapX, mapY);
                         break;
                     case MEDrawType.OBJECTS:
                         if (prevTileData.objType == 0) {
-                            return null;
+                            return;
                         }
 
-                        prevValue = prevTileData.objType;
-                        actionId = MEAction.ERASE_OBJECT;
                         this.tileMap.clearObject(mapX, mapY);
                         break;
                     case MEDrawType.REGIONS:
                         if (prevTileData.regType == 0) {
-                            return null;
+                            return;
                         }
 
-                        prevValue = prevTileData.regType;
-                        actionId = MEAction.ERASE_REGION;
                         this.tileMap.clearRegion(mapX, mapY);
                         break;
                 }
                 this.tileMap.drawTile(mapX, mapY); // Draw tile with new data
-
-                action = new MapActionDesc(actionId, mapX, mapY, prevValue, null, first, last);
-                // Push to user history
                 break;
             case METool.PENCIL_ID:
                 if (!this.isInsideSelection(mapX, mapY)) {
-                    return null;
+                    return;
                 }
 
                 switch (brush.drawType) {
                     case MEDrawType.GROUND:
-                        prevValue = prevTileData != null ? prevTileData.groundType : -1;
-                        if (brush.groundType == -1 || prevValue == brush.groundType) { // Make sure to only save in history if something was actually changed
-                            return null;
+                        var prevGround:int = prevTileData != null ? prevTileData.groundType : -1;
+                        if (brush.groundType == -1 || prevGround == brush.groundType) { // Make sure to only save in history if something was actually changed
+                            return;
                         }
 
-                        actionId = MEAction.DRAW_TILE;
-                        newValue = brush.groundType;
                         this.tileMap.setTileGround(mapX, mapY, brush.groundType);
                         break;
                     case MEDrawType.OBJECTS:
-                        prevValue = prevTileData != null ? prevTileData.objType : -1;
-                        if (brush.objType == -1 || prevValue == brush.objType) {
-                            return null;
+                        var prevObj:int = prevTileData != null ? prevTileData.objType : -1;
+                        if (brush.objType == -1 || prevObj == brush.objType) {
+                            return;
                         }
 
-                        actionId = MEAction.DRAW_OBJECT;
-                        newValue = brush.objType;
                         this.tileMap.setTileObject(mapX, mapY, brush.objType);
                         break;
                     case MEDrawType.REGIONS:
-                        prevValue = prevTileData != null ? prevTileData.regType : -1;
-                        if (brush.regType == -1 || prevValue == brush.regType) {
-                            return null;
+                        var prevRegion:int = prevTileData != null ? prevTileData.regType : -1;
+                        if (brush.regType == -1 || prevRegion == brush.regType) {
+                            return;
                         }
 
-                        actionId = MEAction.DRAW_REGION;
-                        newValue = brush.regType;
                         this.tileMap.setTileRegion(mapX, mapY, brush.regType);
                         break;
                 }
                 this.tileMap.drawTile(mapX, mapY); // Draw tile with new data
-
-                action = new MapActionDesc(actionId, mapX, mapY, prevValue, newValue, first, last);
-                // Push to user history
                 break;
             case METool.BUCKET_ID:
                 if (!this.isInsideSelection(mapX, mapY, true)) { // Only use bucket with a selected area
-                    return null;
+                    return;
                 }
 
                 this.fillSelection(brush);
                 break;
         }
-        return action;
-    }
-
-    private function handleAction(action:MapActionDesc, undo:Boolean):Boolean {
-        switch (action.actionId) {
-            case MEAction.DRAW_TILE:
-                if (undo) {
-                    if (action.prevValue == -1) { // Clear the ground if it was clear before, otherwise, set the ground to previous value
-                        this.tileMap.clearGround(action.mapX, action.mapY);
-                    } else {
-                        this.tileMap.setTileGround(action.mapX, action.mapY, action.prevValue);
-                    }
-                } else {
-                    this.tileMap.setTileGround(action.mapX, action.mapY, action.newValue);
-                }
-                break;
-            case MEAction.ERASE_TILE:
-                if (undo) {
-                    this.tileMap.setTileGround(action.mapX, action.mapY, action.prevValue);
-                } else {
-                    this.tileMap.clearGround(action.mapX, action.mapY);
-                }
-                break;
-            case MEAction.DRAW_OBJECT:
-                if (undo) {
-                    if (action.prevValue == 0) {
-                        this.tileMap.clearObject(action.mapX, action.mapY);
-                    } else {
-                        this.tileMap.setTileObject(action.mapX, action.mapY, action.prevValue);
-                    }
-                } else {
-                    this.tileMap.setTileObject(action.mapX, action.mapY, action.newValue);
-                }
-                break;
-            case MEAction.ERASE_OBJECT:
-                if (undo) {
-                    this.tileMap.setTileObject(action.mapX, action.mapY, action.prevValue);
-                } else {
-                    this.tileMap.clearObject(action.mapX, action.mapY);
-                }
-                break;
-            case MEAction.DRAW_REGION:
-                if (undo) {
-                    if (action.prevValue == 0) {
-                        this.tileMap.clearRegion(action.mapX, action.mapY);
-                    } else {
-                        this.tileMap.setTileRegion(action.mapX, action.mapY, action.prevValue);
-                    }
-                } else {
-                    this.tileMap.setTileRegion(action.mapX, action.mapY, action.newValue);
-                }
-                break;
-            case MEAction.ERASE_REGION:
-                if (undo) {
-                    this.tileMap.setTileRegion(action.mapX, action.mapY, action.prevValue);
-                } else {
-                    this.tileMap.clearRegion(action.mapX, action.mapY);
-                }
-                break;
-            case MEAction.EDIT_OBJ_NAME:
-                this.editTileObjCfg(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                break;
-            case MEAction.PASTE:
-                if (action.firstNode) { // Clear selection only on the last tile when undoing
-                    this.clearTileSelection();
-                }
-
-                this.tileMap.setTileData(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                break;
-            case MEAction.FILL_GROUND:
-                this.tileMap.setTileGround(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                break;
-            case MEAction.FILL_OBJECT:
-                this.tileMap.setTileObject(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                break;
-            case MEAction.FILL_REGION:
-                this.tileMap.setTileRegion(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                break;
-            case MEAction.TILE_REPLACED: // For moving selected tiles
-                this.tileMap.setTileData(action.mapX, action.mapY, undo ? action.prevValue : action.newValue);
-                break;
-            case MEAction.SELECT_AREA:
-                var rect:Rectangle = undo ? action.prevValue : action.newValue;
-                var beginX:int = rect.x / TileMapView.TILE_SIZE;
-                var beginY:int = rect.y / TileMapView.TILE_SIZE;
-                var endX:int = beginX + (rect.width / TileMapView.TILE_SIZE) - 1;
-                var endY:int = beginY + (rect.height / TileMapView.TILE_SIZE) - 1;
-                this.selectTileArea(beginX, beginY, endX, endY, false, false);
-                break;
-        }
-        this.tileMap.drawTile(action.mapX, action.mapY);
-
-        return undo ? action.firstNode : action.lastNode;
     }
 
     public function copySelectionToClipboard(clipboard:MEClipboard):void {
@@ -555,7 +440,7 @@ public class MapView extends Sprite {
         this.drawTileSelection(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1); // Make the new pasted tiles the new selection
 
         var first:Boolean = true;
-        var prevAction:MapActionDesc;
+        var prevAction:MapAction;
         for (var tileY:int = mapY; tileY < mapY + clipboard.height; tileY++) { // Draw tile by tile from clipboard
             for (var tileX:int = mapX; tileX < mapX + clipboard.width; tileX++) {
                 var tileData:MapTileData = clipboard.getTile(tileX - mapX, tileY - mapY);
@@ -567,7 +452,7 @@ public class MapView extends Sprite {
                 this.tileMap.setTileData(tileX, tileY, tileData);
                 this.tileMap.drawTile(tileX, tileY);
 
-                var action:MapActionDesc = new MapActionDesc(MEAction.PASTE, tileX, tileY, prevData, tileData, first, false);
+                var action:MapAction = new MapAction(MapAction.PASTE, tileX, tileY, prevData, tileData, first, false);
 
                 if (action != null) {
                     if (first) {
@@ -591,7 +476,7 @@ public class MapView extends Sprite {
         var height:int = this.selectionSize.y_;
 
         var first:Boolean = true;
-        var prevAction:MapActionDesc;
+        var prevAction:MapAction;
         for (var mapY:int = startY; mapY < startY + height; mapY++) {
             for (var mapX:int = startX; mapX < startX + width; mapX++) {
                 var prevData:MapTileData = this.tileMap.getTileData(mapX, mapY);
@@ -600,19 +485,19 @@ public class MapView extends Sprite {
                 var newValue:int;
                 switch (brush.drawType) {
                     case MEDrawType.GROUND:
-                        actId = MEAction.FILL_GROUND;
+                        actId = MapAction.FILL_GROUND;
                         prevValue = prevData == null ? -1 : prevData.groundType;
                         newValue = brush.groundType;
                         this.tileMap.setTileGround(mapX, mapY, brush.groundType);
                         break;
                     case MEDrawType.OBJECTS:
-                        actId = MEAction.FILL_OBJECT;
+                        actId = MapAction.FILL_OBJECT;
                         prevValue = prevData == null ? 0 : prevData.objType;
                         newValue = brush.objType;
                         this.tileMap.setTileObject(mapX, mapY, brush.objType);
                         break;
                     case MEDrawType.REGIONS:
-                        actId = MEAction.FILL_REGION;
+                        actId = MapAction.FILL_REGION;
                         prevValue = prevData == null ? 0 : prevData.regType;
                         newValue = brush.regType;
                         this.tileMap.setTileRegion(mapX, mapY, brush.regType);
@@ -620,7 +505,7 @@ public class MapView extends Sprite {
                 }
                 this.tileMap.drawTile(mapX, mapY);
 
-                var action:MapActionDesc = new MapActionDesc(actId, mapX, mapY, prevValue, newValue, first, false);
+                var action:MapAction = new MapAction(actId, mapX, mapY, prevValue, newValue, first, false);
 
                 if (action != null) {
                     if (first) {
@@ -697,9 +582,9 @@ public class MapView extends Sprite {
                 this.tileMap.clearTile(ogX, ogY);
                 this.tileMap.drawTile(ogX, ogY); // Draws the empty tile
 
-                var groundAction:MapActionDesc = new MapActionDesc(MEAction.ERASE_TILE, ogX, ogY, ogTile.groundType, null, first, false);
-                var objectAction:MapActionDesc = new MapActionDesc(MEAction.ERASE_OBJECT, ogX, ogY, ogTile.objType, null, false, false);
-                var regionAction:MapActionDesc = new MapActionDesc(MEAction.ERASE_REGION, ogX, ogY, ogTile.regType, null, false, false);
+                var groundAction:MapAction = new MapAction(MapAction.ERASE_TILE, ogX, ogY, ogTile.groundType, null, first, false);
+                var objectAction:MapAction = new MapAction(MapAction.ERASE_OBJECT, ogX, ogY, ogTile.objType, null, false, false);
+                var regionAction:MapAction = new MapAction(MapAction.ERASE_REGION, ogX, ogY, ogTile.regType, null, false, false);
 
                 if (first) {
                     first = false;
@@ -731,7 +616,7 @@ public class MapView extends Sprite {
 
     private function drawSelectedTiles(fromX:int, fromY:int, toX:int, toY:int, firstMove:Boolean):void {
         var first:Boolean = false; // The last node to be undone will either be from cleared selection tiles or reverted moved tiles
-        var action:MapActionDesc;
+        var action:MapAction;
         for (var mapY:int = toY; mapY < toY + this.selectionSize.y_; mapY++) { // Draw moved tiles where they're supposed to be
             for (var mapX:int = toX; mapX < toX + this.selectionSize.x_; mapX++) {
                 var idx:int = (mapX - toX) + (mapY - toY) * this.selectionSize.x_;
@@ -741,7 +626,7 @@ public class MapView extends Sprite {
                 this.tileMap.setTileData(mapX, mapY, tile);
                 this.tileMap.drawTile(mapX, mapY);
 
-                action = new MapActionDesc(MEAction.TILE_REPLACED, mapX, mapY, prevTile, tile, first, false);
+                action = new MapAction(MapAction.TILE_REPLACED, mapX, mapY, prevTile, tile, first, false);
 
                 if (first) {
                     first = false;
@@ -760,14 +645,14 @@ public class MapView extends Sprite {
 
     private function undoTileMovement():void {
         var first:Boolean = true;
-        var action:MapActionDesc;
+        var action:MapAction;
         while (this.recentMoveHistory.length > 0) {
-            var prevAction:MapActionDesc = this.recentMoveHistory.removeAt(0) as MapActionDesc; // Start from first node (maintain order)
+            var prevAction:MapAction = this.recentMoveHistory.removeAt(0) as MapAction; // Start from first node (maintain order)
 
             this.tileMap.setTileData(prevAction.mapX, prevAction.mapY, prevAction.prevValue); // Draw previous tile back
             this.tileMap.drawTile(prevAction.mapX, prevAction.mapY);
 
-            action = new MapActionDesc(MEAction.TILE_REPLACED, prevAction.mapX, prevAction.mapY, prevAction.newValue, prevAction.prevValue, first, false);
+            action = new MapAction(MapAction.TILE_REPLACED, prevAction.mapX, prevAction.mapY, prevAction.newValue, prevAction.prevValue, first, false);
 
             if (first) {
                 first = false;
