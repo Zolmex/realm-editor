@@ -47,36 +47,34 @@ public class METool {
     public static function GetTool(toolId:int, view:MainView):METool{
         var tool:METool = TOOLS[toolId] as METool;
         if (tool == null){
-            switch (toolId){
-                case SELECT_ID:
-                    tool = new MESelectTool(view);
-                    break;
-                case PENCIL_ID:
-                    tool = new MEPencilTool(view);
-                    break;
-                case LINE_ID:
-                    tool = new MELineTool(view);
-                    break;
-                case SHAPE_ID:
-                    tool = new MEShapeTool(view);
-                    break;
-                case BUCKET_ID:
-                    tool = new MEBucketTool(view);
-                    break;
-                case ERASER_ID:
-                    tool = new MEEraserTool(view);
-                    break;
-                case PICKER_ID:
-                    tool = new MEPickerTool(view);
-                    break;
-                case EDIT_ID:
-                    tool = new MEEditTool(view);
-                    break;
-            }
+            tool = CreateTool(toolId, view);
             TOOLS[toolId] = tool;
         }
 
         return tool;
+    }
+
+    private static function CreateTool(toolId:int, view:MainView):METool{
+        switch (toolId){
+            case SELECT_ID:
+                return new MESelectTool(view);
+            case PENCIL_ID:
+                return new MEPencilTool(view);
+            case LINE_ID:
+                return new MELineTool(view);
+            case SHAPE_ID:
+                return new MEShapeTool(view);
+            case BUCKET_ID:
+                return new MEBucketTool(view);
+            case ERASER_ID:
+                return new MEEraserTool(view);
+            case PICKER_ID:
+                return new MEPickerTool(view);
+            case EDIT_ID:
+                return new MEEditTool(view);
+            default:
+                return null;
+        }
     }
 
     public static function ToolEventToId(eventStr:String):int {
