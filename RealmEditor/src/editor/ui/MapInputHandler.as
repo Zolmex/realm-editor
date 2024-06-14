@@ -1,6 +1,6 @@
 package editor.ui {
 import editor.MEEvent;
-import editor.METool;
+import editor.tools.METool;
 import editor.ToolSwitchEvent;
 
 import flash.events.Event;

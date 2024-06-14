@@ -1,4 +1,11 @@
-package editor {
+package editor.tools {
+import editor.*;
+import editor.ui.MainView;
+import editor.ui.MapView;
+
+import flash.utils.Dictionary;
+
+import util.IntPoint;
 
 public class METool {
 
@@ -18,6 +25,59 @@ public class METool {
     public static const PICKER:String = "Picker";
     public static const ERASER:String = "Eraser";
     public static const EDIT:String = "Edit";
+
+    public var id:int;
+    protected var mainView:MainView;
+
+    public function METool(id:int, view:MainView) {
+        this.id = id;
+        this.mainView = view;
+    }
+
+    public virtual function init(tilePos:IntPoint):void { }
+    public virtual function reset():void { }
+
+    public virtual function mouseDrag(tilePos:IntPoint):void { }
+    public virtual function mouseDragEnd(tilePos:IntPoint):void { }
+    public virtual function tileClick(tilePos:IntPoint):void { }
+    public virtual function mouseMoved(tilePos:IntPoint):void { }
+
+    private static const TOOLS:Dictionary = new Dictionary();
+
+    public static function GetTool(toolId:int, view:MainView):METool{
+        var tool:METool = TOOLS[toolId] as METool;
+        if (tool == null){
+            switch (toolId){
+                case SELECT_ID:
+                    tool = new MESelectTool(view);
+                    break;
+                case PENCIL_ID:
+                    tool = new MEPencilTool(view);
+                    break;
+                case LINE_ID:
+                    tool = new MELineTool(view);
+                    break;
+                case SHAPE_ID:
+                    tool = new MEShapeTool(view);
+                    break;
+                case BUCKET_ID:
+                    tool = new MEBucketTool(view);
+                    break;
+                case ERASER_ID:
+                    tool = new MEEraserTool(view);
+                    break;
+                case PICKER_ID:
+                    tool = new MEPickerTool(view);
+                    break;
+                case EDIT_ID:
+                    tool = new MEEditTool(view);
+                    break;
+            }
+            TOOLS[toolId] = tool;
+        }
+
+        return tool;
+    }
 
     public static function ToolEventToId(eventStr:String):int {
         switch (eventStr){

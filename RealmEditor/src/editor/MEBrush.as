@@ -13,5 +13,17 @@ public class MEBrush {
         this.drawType = drawType;
         this.brushType = brushType;
     }
+
+    public function setGroundType(groundType:int):void{
+        this.groundType = groundType;
+    }
+
+    public function setObjectType(objType:int):void{
+        this.objType = objType;
+    }
+
+    public function setRegionType(regType:int):void{
+        this.regType = regType;
+    }
 }
 }

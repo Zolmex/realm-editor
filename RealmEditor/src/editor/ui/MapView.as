@@ -7,7 +7,7 @@ import editor.actions.MapAction;
 import editor.MEBrush;
 import editor.MEClipboard;
 import editor.MEDrawType;
-import editor.METool;
+import editor.tools.METool;
 import editor.actions.MapAction;
 import editor.actions.MapAction;
 import editor.MapData;
@@ -46,7 +46,6 @@ public class MapView extends Sprite {
 
     public var lastDragPos:IntPoint;
     private var tilesMoved:Dictionary;
-    private var recentMoveHistory:Vector.<MapAction>; // The last node in this collection is the last node to be done
 
     public function MapView(id:int, mapData:MapData) {
         this.id = id;
@@ -129,7 +128,6 @@ public class MapView extends Sprite {
     private function resetSelectionMovement():void {
         this.lastDragPos = null;
         this.tilesMoved = null;
-        this.recentMoveHistory.length = 0;
         // Don't reset revertMoveHistory, we need to be able to undo previous movements too ;)
     }
 
@@ -439,8 +437,6 @@ public class MapView extends Sprite {
         this.clearTileSelection();
         this.drawTileSelection(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1); // Make the new pasted tiles the new selection
 
-        var first:Boolean = true;
-        var prevAction:MapAction;
         for (var tileY:int = mapY; tileY < mapY + clipboard.height; tileY++) { // Draw tile by tile from clipboard
             for (var tileX:int = mapX; tileX < mapX + clipboard.width; tileX++) {
                 var tileData:MapTileData = clipboard.getTile(tileX - mapX, tileY - mapY);
@@ -451,21 +447,7 @@ public class MapView extends Sprite {
 
                 this.tileMap.setTileData(tileX, tileY, tileData);
                 this.tileMap.drawTile(tileX, tileY);
-
-                var action:MapAction = new MapAction(MapAction.PASTE, tileX, tileY, prevData, tileData, first, false);
-
-                if (action != null) {
-                    if (first) {
-                        first = false;
-                    }
-                    prevAction = action; // Make sure we know what the last action was
-                    // Push to user history
-                }
             }
-        }
-
-        if (prevAction != null) {
-            prevAction.lastNode = true;
         }
     }
 
@@ -475,8 +457,6 @@ public class MapView extends Sprite {
         var width:int = this.selectionSize.x_;
         var height:int = this.selectionSize.y_;
 
-        var first:Boolean = true;
-        var prevAction:MapAction;
         for (var mapY:int = startY; mapY < startY + height; mapY++) {
             for (var mapX:int = startX; mapX < startX + width; mapX++) {
                 var prevData:MapTileData = this.tileMap.getTileData(mapX, mapY);
@@ -504,21 +484,7 @@ public class MapView extends Sprite {
                         break;
                 }
                 this.tileMap.drawTile(mapX, mapY);
-
-                var action:MapAction = new MapAction(actId, mapX, mapY, prevValue, newValue, first, false);
-
-                if (action != null) {
-                    if (first) {
-                        first = false;
-                    }
-                    prevAction = action; // Make sure we know what the last action was
-                    // Push to user history
-                }
             }
-        }
-
-        if (prevAction != null) {
-            prevAction.lastNode = true;
         }
     }
 
@@ -544,9 +510,7 @@ public class MapView extends Sprite {
 
         // Clear undo history
 
-        var firstMove:Boolean = false;
         if (this.tilesMoved == null) {
-            firstMove = true;
             this.saveSelectedTiles(fromX, fromY); // First we copy the selected tiles into a dictionary
             this.clearSelectedTiles(fromX, fromY); // Then we clear the space selected
         } else {
@@ -555,7 +519,7 @@ public class MapView extends Sprite {
 
         this.undoTileMovement(); // Revert recent move changes
 
-        this.drawSelectedTiles(fromX, fromY, toX, toY, firstMove);
+        this.drawSelectedTiles(fromX, fromY, toX, toY);
 
         this.selectTileArea(toX, toY, endX, endY, true, false, false, true);
     }
@@ -574,32 +538,12 @@ public class MapView extends Sprite {
     }
 
     private function clearSelectedTiles(fromX:int, fromY:int):void {
-        var first:Boolean = true;
         for (var ogY:int = fromY; ogY < fromY + this.selectionSize.y_; ogY++) { // Iterate through the selection
             for (var ogX:int = fromX; ogX < fromX + this.selectionSize.x_; ogX++) {
-                var ogTile:MapTileData = this.tileMap.getTileData(ogX, ogY).clone();
-
                 this.tileMap.clearTile(ogX, ogY);
                 this.tileMap.drawTile(ogX, ogY); // Draws the empty tile
-
-                var groundAction:MapAction = new MapAction(MapAction.ERASE_TILE, ogX, ogY, ogTile.groundType, null, first, false);
-                var objectAction:MapAction = new MapAction(MapAction.ERASE_OBJECT, ogX, ogY, ogTile.objType, null, false, false);
-                var regionAction:MapAction = new MapAction(MapAction.ERASE_REGION, ogX, ogY, ogTile.regType, null, false, false);
-
-                if (first) {
-                    first = false;
-                }
-
-                // Push to user history
-                // Push to user history
-                // Push to user history
             }
         }
-
-        // Don't set this to be the final node as we're also pasting the selected tiles, that needs to be our final action so it's a seamless transition
-//        if (prevAction != null){
-//            prevAction.finalRedoNode = true;
-//        }
     }
 
     private function saveSelectedTiles(fromX:int, fromY:int):void {
@@ -614,52 +558,20 @@ public class MapView extends Sprite {
         }
     }
 
-    private function drawSelectedTiles(fromX:int, fromY:int, toX:int, toY:int, firstMove:Boolean):void {
-        var first:Boolean = false; // The last node to be undone will either be from cleared selection tiles or reverted moved tiles
-        var action:MapAction;
+    private function drawSelectedTiles(fromX:int, fromY:int, toX:int, toY:int):void {
         for (var mapY:int = toY; mapY < toY + this.selectionSize.y_; mapY++) { // Draw moved tiles where they're supposed to be
             for (var mapX:int = toX; mapX < toX + this.selectionSize.x_; mapX++) {
                 var idx:int = (mapX - toX) + (mapY - toY) * this.selectionSize.x_;
                 var tile:MapTileData = this.tilesMoved[idx];
-                var prevTile:MapTileData = this.tileMap.getTileData(mapX, mapY).clone(); // The previous tile will be the original tile in the map
 
                 this.tileMap.setTileData(mapX, mapY, tile);
                 this.tileMap.drawTile(mapX, mapY);
-
-                action = new MapAction(MapAction.TILE_REPLACED, mapX, mapY, prevTile, tile, first, false);
-
-                if (first) {
-                    first = false;
-                }
-
-                this.recentMoveHistory.push(action);
-                // Push to user history
             }
         }
-
-        // These actions are also not the last ones, the last action is the selection action
-//        if (action != null) { // This will always be the final node
-//            action.lastNode = true;
-//        }
     }
 
     private function undoTileMovement():void {
-        var first:Boolean = true;
-        var action:MapAction;
-        while (this.recentMoveHistory.length > 0) {
-            var prevAction:MapAction = this.recentMoveHistory.removeAt(0) as MapAction; // Start from first node (maintain order)
 
-            this.tileMap.setTileData(prevAction.mapX, prevAction.mapY, prevAction.prevValue); // Draw previous tile back
-            this.tileMap.drawTile(prevAction.mapX, prevAction.mapY);
-
-            action = new MapAction(MapAction.TILE_REPLACED, prevAction.mapX, prevAction.mapY, prevAction.newValue, prevAction.prevValue, first, false);
-
-            if (first) {
-                first = false;
-            }
-
-            // Push this change to userHistory so that it gets redone
-        }
     }
 }
 }

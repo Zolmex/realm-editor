@@ -1,7 +1,7 @@
 package editor.ui {
 import assets.AssetLibrary;
 
-import editor.METool;
+import editor.tools.METool;
 
 import flash.display.Bitmap;
 import flash.display.Graphics;
@@ -107,7 +107,7 @@ public class MapToolbar extends Sprite {
 
 import assets.AssetLibrary;
 
-import editor.METool;
+import editor.tools.METool;
 
 import editor.ui.elements.TextTooltip;
 

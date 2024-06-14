@@ -15,6 +15,7 @@ public class TimeControl {
         var mapHistory:MapHistory = this.history[mapId] as MapHistory;
         if (mapHistory == null){
             mapHistory = new MapHistory();
+            this.history[mapId] = mapHistory;
         }
 
         mapHistory.record(action);

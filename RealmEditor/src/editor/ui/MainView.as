@@ -11,7 +11,8 @@ import editor.MEClipboard;
 import editor.MEDrawType;
 
 import editor.MEEvent;
-import editor.METool;
+import editor.tools.MESelectTool;
+import editor.tools.METool;
 import editor.actions.MapAction;
 import editor.MapData;
 import editor.MapTileData;
@@ -78,13 +79,9 @@ public class MainView extends Sprite {
     private var drawElementsList:MapDrawElementListView;
     private var toolBar:MapToolbar;
 
-    private var lastMousePos:Point;
-    private var selectionStart:IntPoint;
-    private var draggingSelection:Boolean;
-
     public var userBrush:MEBrush;
-    public var selectedTool:int;
-
+    public var selectedTool:METool;
+    private var lastMousePos:Point;
     private var clipBoard:MEClipboard;
     private var timeControl:TimeControl; // Controls actions done/undone in each map
 
@@ -92,6 +89,7 @@ public class MainView extends Sprite {
         this.userBrush = new MEBrush(MEDrawType.GROUND, 0);
         this.clipBoard = new MEClipboard();
         this.timeControl = new TimeControl();
+        this.selectedTool = new MESelectTool(this);
 
         this.background = new Background();
         addChild(this.background);
@@ -192,8 +190,8 @@ public class MainView extends Sprite {
         this.inputHandler.addEventListener(MEEvent.GRID_ENABLE, this.onGridEnable);
         this.inputHandler.addEventListener(MEEvent.TILE_CLICK, this.onTileClick);
         this.inputHandler.addEventListener(MEEvent.MOUSE_DRAG, this.onMouseDrag);
-        this.inputHandler.addEventListener(MEEvent.MIDDLE_MOUSE_DRAG, this.onMiddleMouseDrag);
         this.inputHandler.addEventListener(MEEvent.MOUSE_DRAG_END, this.onMouseDragEnd);
+        this.inputHandler.addEventListener(MEEvent.MIDDLE_MOUSE_DRAG, this.onMiddleMouseDrag);
         this.inputHandler.addEventListener(MEEvent.MIDDLE_MOUSE_DRAG_END, this.onMiddleMouseDragEnd);
         this.inputHandler.addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMoved);
         this.inputHandler.addEventListener(MEEvent.TOOL_SWITCH, this.onToolSwitch);
@@ -290,7 +288,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        if (e.ctrlKey && this.selectedTool == METool.PENCIL_ID) { // We're increasing/decreasing the brush size
+        if (e.ctrlKey && this.selectedTool.id == METool.PENCIL_ID) { // We're increasing/decreasing the brush size
             this.userBrush.size += int(Math.ceil(e.delta));
             if (this.userBrush.size < 0) {
                 this.userBrush.size = 0;
@@ -481,44 +479,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        switch (this.selectedTool) {
-            case METool.SELECT_ID:
-                if (this.selectionStart == null) {
-                    if (this.draggingSelection || this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-                        this.draggingSelection = true;
-                        this.mapView.moveSelectionTo(tilePos);
-                        return;
-                    }
-
-                    if (!this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-                        this.draggingSelection = false;
-                        this.selectionStart = null;
-                        this.mapView.clearTileSelection();
-                    }
-
-                    this.selectionStart = tilePos;
-                }
-
-                this.mapView.selectTileArea(this.selectionStart.x_, this.selectionStart.y_, tilePos.x_, tilePos.y_);
-                break;
-            case METool.ERASER_ID:
-                break;
-            case METool.PENCIL_ID:
-                var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
-                for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
-                    for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
-                        var dx:int = mapX - tilePos.x_;
-                        var dy:int = mapY - tilePos.y_;
-                        var distSq:int = dx * dx + dy * dy;
-                        if (distSq > this.userBrush.size * this.userBrush.size) {
-                            continue;
-                        }
-
-                        this.mapView.useTool(this.selectedTool, mapX, mapY);
-                    }
-                }
-                break;
-        }
+        this.selectedTool.mouseDrag(tilePos);
     }
 
     private function onMiddleMouseDrag(e:Event):void {
@@ -541,9 +502,12 @@ public class MainView extends Sprite {
     }
 
     private function onMouseDragEnd(e:Event):void {
-        this.draggingSelection = false;
-        this.mapView.lastDragPos = null;
-        this.selectionStart = null;
+        var tilePos:IntPoint = getMouseTilePosition();
+        if (tilePos == null) {
+            return;
+        }
+
+        this.selectedTool.mouseDragEnd(tilePos);
     }
 
     private function onMiddleMouseDragEnd(e:Event):void {
@@ -556,76 +520,10 @@ public class MainView extends Sprite {
             return;
         }
 
-        switch (this.selectedTool) {
-            case METool.SELECT_ID:
-                this.mapView.clearTileSelection();
-
-                this.mapView.selectSingleTile(tilePos.x_, tilePos.y_);
-                break;
-            case METool.BUCKET_ID:
-                this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
-                break;
-            case METool.ERASER_ID:
-            case METool.PENCIL_ID:
-                if (this.userBrush.size == 0) {
-                    this.mapView.useTool(this.selectedTool, tilePos.x_, tilePos.y_);
-                    break;
-                }
-
-                var brushRadius:int = (1 + (this.userBrush.size * 2)) / 2;
-                for (var mapY:int = tilePos.y_ - brushRadius; mapY <= tilePos.y_ + brushRadius; mapY++) {
-                    for (var mapX:int = tilePos.x_ - brushRadius; mapX <= tilePos.x_ + brushRadius; mapX++) {
-                        var dx:int = mapX - tilePos.x_;
-                        var dy:int = mapY - tilePos.y_;
-                        var distSq:int = dx * dx + dy * dy;
-                        if (distSq > this.userBrush.size * this.userBrush.size) {
-                            continue;
-                        }
-
-                        this.mapView.useTool(this.selectedTool, mapX, mapY);
-                    }
-                }
-                break;
-            case METool.EDIT_ID:
-                var tileData:MapTileData = this.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
-                if (tileData == null || tileData.objType == 0) {
-                    return;
-                }
-
-                this.showEditNameView(tilePos.x_, tilePos.y_, tileData.objCfg);
-                break;
-            case METool.PICKER_ID:
-                tileData = this.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
-                if (tileData == null) {
-                    return;
-                }
-
-                if (tileData.groundType != -1) {
-                    this.userBrush.groundType = tileData.groundType;
-                }
-                if (tileData.objType != 0) {
-                    this.userBrush.objType = tileData.objType;
-                }
-                if (tileData.regType != 0) {
-                    this.userBrush.regType = tileData.regType;
-                }
-
-                switch (this.userBrush.drawType) {
-                    case MEDrawType.GROUND:
-                        this.drawElementsList.setSelected(this.userBrush.groundType);
-                        break;
-                    case MEDrawType.OBJECTS:
-                        this.drawElementsList.setSelected(this.userBrush.objType);
-                        break;
-                    case MEDrawType.REGIONS:
-                        this.drawElementsList.setSelected(this.userBrush.regType);
-                        break;
-                }
-                break;
-        }
+        this.selectedTool.tileClick(tilePos);
     }
 
-    private function showEditNameView(x:int, y:int, objName:String):void {
+    public function showEditNameView(x:int, y:int, objName:String):void {
         if (this.editNameView == null) {
             this.editNameView = new EditTileNameView(x, y, objName);
             this.editNameView.x = (Main.StageWidth - this.editNameView.width) / 2;
@@ -652,23 +550,7 @@ public class MainView extends Sprite {
 
         this.mapView.highlightTile(-1, -1);
         this.mapView.hideBrushTiles();
-        switch (this.selectedTool) {
-            case METool.SELECT_ID:
-                if (!this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-                    this.mapView.highlightTile(tilePos.x_, tilePos.y_);
-                }
-                break;
-            case METool.PENCIL_ID:
-                if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
-                    this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
-                }
-                break;
-            case METool.ERASER_ID:
-                if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
-                    this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
-                }
-                break;
-        }
+        this.selectedTool.mouseMoved(tilePos);
     }
 
     private function updateTileInfoPanel(tilePos:IntPoint):void {
@@ -699,15 +581,23 @@ public class MainView extends Sprite {
     }
 
     private function onToolSwitch(e:ToolSwitchEvent):void {
+        if (e.toolId == this.selectedTool.id){
+            return;
+        }
+
         this.setSelectedTool(e.toolId);
         this.toolBar.setSelected(e.toolId);
     }
 
     public function setSelectedTool(toolId:int):void {
         this.lastMousePos = null;
-        this.selectionStart = null;
 
-        this.selectedTool = toolId;
+        this.selectedTool.reset(); // Reset tool data
+        this.selectedTool = METool.GetTool(toolId, this);
+
+        if (this.mapView == null){
+            return;
+        }
 
         if (toolId != METool.SELECT_ID) { // Clear highlighted tile
             this.mapView.highlightTile(-1, -1);
@@ -719,18 +609,7 @@ public class MainView extends Sprite {
         }
 
         this.mapView.hideBrushTiles();
-        switch (toolId) {
-            case METool.SELECT_ID:
-                if (!this.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-                    this.mapView.highlightTile(tilePos.x_, tilePos.y_);
-                }
-                break;
-            case METool.PENCIL_ID:
-                if (this.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
-                    this.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
-                }
-                break;
-        }
+        this.selectedTool.init(tilePos);
     }
 
     private function onUndoAction(e:Event):void {
@@ -746,6 +625,10 @@ public class MainView extends Sprite {
 
         this.drawElementsList.resetFilters();
         this.drawElementsList.setContent(this.userBrush.drawType);
+        this.updateDrawElements();
+    }
+
+    public function updateDrawElements():void {
         switch (this.userBrush.drawType) {
             case MEDrawType.GROUND:
                 this.drawElementsList.setSelected(this.userBrush.groundType);
@@ -767,13 +650,13 @@ public class MainView extends Sprite {
         var elementType:int = this.drawElementsList.selectedElement == null ? -1 : this.drawElementsList.selectedElement.elementType;
         switch (this.userBrush.drawType) {
             case MEDrawType.GROUND:
-                this.userBrush.groundType = elementType;
+                this.userBrush.setGroundType(elementType);
                 break;
             case MEDrawType.OBJECTS:
-                this.userBrush.objType = elementType;
+                this.userBrush.setObjectType(elementType);
                 break;
             case MEDrawType.REGIONS:
-                this.userBrush.regType = elementType;
+                this.userBrush.setRegionType(elementType);
                 break;
         }
 
@@ -808,8 +691,10 @@ public class MainView extends Sprite {
     }
 
     private function onClearSelection(e:Event):void {
-        this.draggingSelection = false;
-        this.selectionStart = null;
+        if (this.selectedTool.id == METool.SELECT_ID){
+            this.selectedTool.reset();
+        }
+
         this.mapView.clearTileSelection();
     }
 
