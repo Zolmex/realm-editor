@@ -64,7 +64,7 @@ public class MEPencilTool extends METool {
 
     public override function mouseMoved(tilePos:IntPoint):void {
         if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-            this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
+            this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
         }
     }
 }

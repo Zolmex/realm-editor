@@ -11,6 +11,12 @@ public class MEEraserTool extends METool {
         super(METool.ERASER_ID, view);
     }
 
+    public override function init(tilePos:IntPoint):void {
+        if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
+            this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
+        }
+    }
+
     public override function mouseDrag(tilePos:IntPoint):void {
         var userBrush:MEBrush = this.mainView.userBrush;
         var mapX:int = tilePos.x_;
@@ -58,7 +64,7 @@ public class MEEraserTool extends METool {
 
     public override function mouseMoved(tilePos:IntPoint):void {
         if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-            this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
+            this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
         }
     }
 }
