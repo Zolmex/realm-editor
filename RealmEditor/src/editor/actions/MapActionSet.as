@@ -11,8 +11,8 @@ public class MapActionSet {
     }
 
     public function push(action:MapAction):void {
-        this.normal.push(action);
-        this.reversed.insertAt(0, action);
+        this.normal.insertAt(0, action); // Start undoing from last action to first
+        this.reversed.push(action); // Start redoing from first to last
     }
 
     public function undoAll():void {

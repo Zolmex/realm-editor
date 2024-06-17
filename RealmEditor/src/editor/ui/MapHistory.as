@@ -14,7 +14,16 @@ public class MapHistory {
     }
 
     public function record(action:MapAction):void { // This is the actual present, things that aren't being redone
+        var actionSet:MapActionSet = new MapActionSet();
+        actionSet.push(action);
+        this.present.push(actionSet);
+
+        this.erased.length = 0; // Clear erased events, they're now forgotten, forever
+    }
+
+    public function recordSet(action:MapActionSet):void {
         this.present.push(action);
+        this.erased.length = 0;
     }
 
     public function undo():void {

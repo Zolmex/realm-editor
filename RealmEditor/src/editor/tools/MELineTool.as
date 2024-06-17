@@ -2,6 +2,7 @@ package editor.tools {
 import editor.MEBrush;
 import editor.MapTileData;
 import editor.ui.MainView;
+import editor.ui.MapHistory;
 import editor.ui.MapView;
 
 import util.IntPoint;

@@ -16,12 +16,7 @@ public class MapAction {
     public static const TILE_REPLACED:int = 11;
     public static const SELECT_AREA:int = 12;
 
-    public var mapX:int;
-    public var mapY:int;
-
-    public function MapAction(x:int, y:int) {
-        this.mapX = x;
-        this.mapY = y;
+    public function MapAction() {
     }
 
     public virtual function doAction():void { }

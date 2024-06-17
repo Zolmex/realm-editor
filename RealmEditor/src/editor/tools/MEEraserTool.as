@@ -1,6 +1,7 @@
 package editor.tools {
 import editor.MEBrush;
 import editor.ui.MainView;
+import editor.ui.MapHistory;
 import editor.ui.MapView;
 
 import util.IntPoint;
@@ -11,13 +12,13 @@ public class MEEraserTool extends METool {
         super(METool.ERASER_ID, view);
     }
 
-    public override function init(tilePos:IntPoint):void {
+    public override function init(tilePos:IntPoint, history:MapHistory):void {
         if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
             this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
         }
     }
 
-    public override function mouseDrag(tilePos:IntPoint):void {
+    public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
         var userBrush:MEBrush = this.mainView.userBrush;
         var mapX:int = tilePos.x_;
         var mapY:int = tilePos.y_;
@@ -37,7 +38,7 @@ public class MEEraserTool extends METool {
         }
     }
 
-    public override function tileClick(tilePos:IntPoint):void {
+    public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
         var userBrush:MEBrush = this.mainView.userBrush;
         var mapX:int = tilePos.x_;
         var mapY:int = tilePos.y_;
@@ -62,7 +63,7 @@ public class MEEraserTool extends METool {
         }
     }
 
-    public override function mouseMoved(tilePos:IntPoint):void {
+    public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
         if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
             this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
         }

@@ -438,6 +438,7 @@ public class MainView extends Sprite {
         this.mapSelector.selectMap(id);
 
         this.mapViewContainer.viewMap(id);
+        this.timeControl.createHistory(this.mapView.id);
     }
 
     private function onGridClick(e:Event):void {
@@ -479,7 +480,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.selectedTool.mouseDrag(tilePos);
+        this.selectedTool.mouseDrag(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMiddleMouseDrag(e:Event):void {
@@ -507,7 +508,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.selectedTool.mouseDragEnd(tilePos);
+        this.selectedTool.mouseDragEnd(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMiddleMouseDragEnd(e:Event):void {
@@ -520,7 +521,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.selectedTool.tileClick(tilePos);
+        this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
     public function showEditNameView(x:int, y:int, objName:String):void {
@@ -550,7 +551,7 @@ public class MainView extends Sprite {
 
         this.mapView.highlightTile(-1, -1);
         this.mapView.hideBrushTiles();
-        this.selectedTool.mouseMoved(tilePos);
+        this.selectedTool.mouseMoved(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function updateTileInfoPanel(tilePos:IntPoint):void {
@@ -609,14 +610,22 @@ public class MainView extends Sprite {
         }
 
         this.mapView.hideBrushTiles();
-        this.selectedTool.init(tilePos);
+        this.selectedTool.init(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onUndoAction(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         this.timeControl.undoLastAction(this.mapView.id); // Undo last action done in the current map
     }
 
     private function onRedoAction(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         this.timeControl.redoLastUndoneAction(this.mapView.id); // Redo last undone action in the current map
     }
 

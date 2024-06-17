@@ -11,14 +11,12 @@ public class TimeControl {
         this.history = new Dictionary(); // Key: map id, Value: MapTimeHistory.as
     }
 
-    public function recordAction(mapId:int, action:MapAction):void {
-        var mapHistory:MapHistory = this.history[mapId] as MapHistory;
-        if (mapHistory == null){
-            mapHistory = new MapHistory();
-            this.history[mapId] = mapHistory;
-        }
+    public function createHistory(mapId:int):void { // Note: this method will rewrite history if it already exists
+        this.history[mapId] = new MapHistory();
+    }
 
-        mapHistory.record(action);
+    public function getHistory(mapId:int):MapHistory {
+        return this.history[mapId] as MapHistory;
     }
 
     public function eraseHistory(mapId:int):void {

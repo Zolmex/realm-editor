@@ -3,6 +3,7 @@ import editor.MEBrush;
 import editor.MEDrawType;
 import editor.MapTileData;
 import editor.ui.MainView;
+import editor.ui.MapHistory;
 import editor.ui.MapView;
 
 import util.IntPoint;
@@ -13,7 +14,7 @@ public class MEPickerTool extends METool {
         super(METool.PICKER_ID, view);
     }
 
-    public override function tileClick(tilePos:IntPoint):void {
+    public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
         var userBrush:MEBrush = this.mainView.userBrush;
         var tileData:MapTileData = this.mainView.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
         if (tileData == null) {

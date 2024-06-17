@@ -1,6 +1,7 @@
 package editor.tools {
 import editor.*;
 import editor.ui.MainView;
+import editor.ui.MapHistory;
 import editor.ui.MapView;
 
 import flash.utils.Dictionary;
@@ -34,13 +35,13 @@ public class METool {
         this.mainView = view;
     }
 
-    public virtual function init(tilePos:IntPoint):void { }
+    public virtual function init(tilePos:IntPoint, history:MapHistory):void { }
     public virtual function reset():void { }
 
-    public virtual function mouseDrag(tilePos:IntPoint):void { }
-    public virtual function mouseDragEnd(tilePos:IntPoint):void { }
-    public virtual function tileClick(tilePos:IntPoint):void { }
-    public virtual function mouseMoved(tilePos:IntPoint):void { }
+    public virtual function mouseDrag(tilePos:IntPoint, history:MapHistory):void { }
+    public virtual function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void { }
+    public virtual function tileClick(tilePos:IntPoint, history:MapHistory):void { }
+    public virtual function mouseMoved(tilePos:IntPoint, history:MapHistory):void { }
 
     private static const TOOLS:Dictionary = new Dictionary();
 
