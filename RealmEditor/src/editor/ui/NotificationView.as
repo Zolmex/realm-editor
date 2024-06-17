@@ -40,12 +40,12 @@ public class NotificationView extends Sprite {
         this.text.text = text;
         this.text.multiline = true;
         this.text.wordWrap = true;
-        this.text.useTextDimensions();
+        this.text.updateMetrics();
 
         var g:Graphics = this.background.graphics;
         g.clear();
         g.beginFill(Constants.BACK_COLOR_1, 0.8);
-        g.drawRoundRect(-2, 0, this.text.width + 6, this.text.height + 4, 5, 5);
+        g.drawRoundRect(-2, 0, this.text.actualWidth_ + 6, this.text.actualHeight_ + 4, 5, 5);
         g.endFill();
 
         this.updatePosition();
@@ -54,7 +54,7 @@ public class NotificationView extends Sprite {
     }
 
     public function updatePosition():void {
-        this.x = (Main.StageWidth - this.width) / 2;
+        this.x = (Main.StageWidth - this.background.width) / 2;
         this.y = 60;
     }
 

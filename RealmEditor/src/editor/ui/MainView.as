@@ -619,6 +619,7 @@ public class MainView extends Sprite {
         }
 
         this.timeControl.undoLastAction(this.mapView.id); // Undo last action done in the current map
+        this.notifications.showNotification("Undone", 18, 1);
     }
 
     private function onRedoAction(e:Event):void {
@@ -627,6 +628,7 @@ public class MainView extends Sprite {
         }
 
         this.timeControl.redoLastUndoneAction(this.mapView.id); // Redo last undone action in the current map
+        this.notifications.showNotification("Redone", 18, 1);
     }
 
     private function onDrawTypeSwitch(e:Event):void {
