@@ -11,7 +11,7 @@ public class MapActionSet {
         this.reversed = new Vector.<MapAction>();
     }
 
-    public function push(action:MapAction):void {
+    public function push(action:MapAction):void { // Make sure you don't accidentally push null actions
         this.normal.insertAt(0, action); // Start undoing from last action to first
         this.reversed.push(action); // Start redoing from first to last
         this.empty = false;

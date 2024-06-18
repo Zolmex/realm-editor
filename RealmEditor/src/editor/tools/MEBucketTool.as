@@ -4,7 +4,7 @@ import editor.MEDrawType;
 import editor.MapTileData;
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
-import editor.actions.MapBucketAction;
+import editor.actions.MapReplaceTileAction;
 import editor.ui.MainView;
 import editor.ui.MapHistory;
 import editor.ui.MapView;
@@ -70,7 +70,7 @@ public class MEBucketTool extends METool {
 
                 if (changed) {
                     tileMap.drawTile(mapX, mapY);
-                    actions.push(new MapBucketAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
+                    actions.push(new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
                 }
             }
         }
