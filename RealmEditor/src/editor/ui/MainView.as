@@ -11,6 +11,7 @@ import editor.MEClipboard;
 import editor.MEDrawType;
 
 import editor.MEEvent;
+import editor.actions.MapEditAction;
 import editor.tools.MESelectTool;
 import editor.tools.METool;
 import editor.actions.MapAction;
@@ -537,7 +538,16 @@ public class MainView extends Sprite {
     }
 
     private function onEditName(e:Event):void {
-        this.mapView.editTileObjCfg(this.editNameView.tileX, this.editNameView.tileY, this.editNameView.objName);
+        var mapX:int = this.editNameView.tileX;
+        var mapY:int = this.editNameView.tileY;
+        var history:MapHistory = this.timeControl.getHistory(this.mapView.id);
+        var prevData:MapTileData = this.mapView.tileMap.getTileData(mapX, mapY);
+        if (prevData.objType == 0){
+            return;
+        }
+
+        history.record(new MapEditAction(mapX, mapY, prevData.objCfg, this.editNameView.objName));
+        this.mapView.editTileObjCfg(mapX, mapY, this.editNameView.objName);
     }
 
     private function onMouseMoved(e:Event):void {
