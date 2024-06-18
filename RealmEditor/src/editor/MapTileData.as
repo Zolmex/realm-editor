@@ -4,7 +4,7 @@ import flash.events.EventDispatcher;
 
 public class MapTileData {
 
-    public var groundType:int = -1;
+    public var groundType:int = -1; // These are the default values used everywhere
     public var objType:int = 0;
     public var objCfg:String;
     public var regType:int = 0;

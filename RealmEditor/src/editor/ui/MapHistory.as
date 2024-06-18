@@ -21,8 +21,12 @@ public class MapHistory {
         this.erased.length = 0; // Clear erased events, they're now forgotten, forever
     }
 
-    public function recordSet(action:MapActionSet):void {
-        this.present.push(action);
+    public function recordSet(actions:MapActionSet):void {
+        if (actions.empty){ // Let's make sure we don't add empty actions
+            return;
+        }
+
+        this.present.push(actions);
         this.erased.length = 0;
     }
 

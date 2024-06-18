@@ -4,6 +4,7 @@ import editor.MEDrawType;
 import editor.MapTileData;
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
+import editor.actions.MapBucketAction;
 import editor.ui.MainView;
 import editor.ui.MapHistory;
 import editor.ui.MapView;
@@ -19,7 +20,15 @@ public class MEBucketTool extends METool {
         super(METool.BUCKET_ID, view);
     }
 
-    public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
+    public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
+        if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)){
+            return;
+        }
+
+        this.doFill(history);
+    }
+
+    private function doFill(history:MapHistory):void {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
         var selectionPos:Shape = this.mainView.mapView.selectionPos;
@@ -30,31 +39,43 @@ public class MEBucketTool extends METool {
         var width:int = selectionSize.x_;
         var height:int = selectionSize.y_;
 
+        var actions:MapActionSet = new MapActionSet();
         for (var mapY:int = startY; mapY < startY + height; mapY++) {
             for (var mapX:int = startX; mapX < startX + width; mapX++) {
-                var prevData:MapTileData = tileMap.getTileData(mapX, mapY);
-                var prevValue:int;
-                var newValue:int;
+                var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
+                var changed:Boolean = true; // Flag to make sure we updated the tile data
                 switch (brush.drawType) {
                     case MEDrawType.GROUND:
-                        prevValue = prevData == null ? -1 : prevData.groundType;
-                        newValue = brush.groundType;
+                        if (prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same
+                            changed = false;
+                            break;
+                        }
                         tileMap.setTileGround(mapX, mapY, brush.groundType);
                         break;
                     case MEDrawType.OBJECTS:
-                        prevValue = prevData == null ? 0 : prevData.objType;
-                        newValue = brush.objType;
+                        if (prevData.objType == brush.objType) {
+                            changed = false;
+                            break;
+                        }
                         tileMap.setTileObject(mapX, mapY, brush.objType);
                         break;
                     case MEDrawType.REGIONS:
-                        prevValue = prevData == null ? 0 : prevData.regType;
-                        newValue = brush.regType;
+                        if (prevData.regType == brush.regType) {
+                            changed = false;
+                            break;
+                        }
                         tileMap.setTileRegion(mapX, mapY, brush.regType);
                         break;
                 }
-                tileMap.drawTile(mapX, mapY);
+
+                if (changed) {
+                    tileMap.drawTile(mapX, mapY);
+                    actions.push(new MapBucketAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
+                }
             }
         }
+
+        history.recordSet(actions);
     }
 }
 }

@@ -4,8 +4,8 @@ import editor.ui.MapView;
 
 public class MapSelectAction extends MapAction {
 
-    public var prevData:MapSelectData;
-    public var newData:MapSelectData;
+    private var prevData:MapSelectData;
+    private var newData:MapSelectData;
 
     public function MapSelectAction(prevData:MapSelectData, newData:MapSelectData) {
         this.prevData = prevData;

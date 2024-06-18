@@ -109,6 +109,7 @@ public class TileMapView extends Sprite {
         }
     }
 
+    // Note: don't forget to call drawTile() after this method
     public function setTileData(mapX:int, mapY:int, tileData:MapTileData):void{
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
