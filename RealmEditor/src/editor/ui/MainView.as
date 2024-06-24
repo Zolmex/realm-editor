@@ -340,7 +340,7 @@ public class MainView extends Sprite {
         }
 
         this.drawElementsList.resetFilters();
-        this.drawElementsList.setContent(this.userBrush.drawType);
+        this.drawElementsList.setContent(this.userBrush.elementType);
     }
 
     private function onLoadClick(e:Event):void {
@@ -642,15 +642,15 @@ public class MainView extends Sprite {
     }
 
     private function onDrawTypeSwitch(e:Event):void {
-        this.userBrush.drawType = this.drawTypeSwitch.selected;
+        this.userBrush.elementType = this.drawTypeSwitch.selected;
 
         this.drawElementsList.resetFilters();
-        this.drawElementsList.setContent(this.userBrush.drawType);
+        this.drawElementsList.setContent(this.userBrush.elementType);
         this.updateDrawElements();
     }
 
     public function updateDrawElements():void {
-        switch (this.userBrush.drawType) {
+        switch (this.userBrush.elementType) {
             case MEDrawType.GROUND:
                 this.drawElementsList.setSelected(this.userBrush.groundType);
                 break;
@@ -669,7 +669,7 @@ public class MainView extends Sprite {
 
     private function onDrawElementSelected(e:Event):void {
         var elementType:int = this.drawElementsList.selectedElement == null ? -1 : this.drawElementsList.selectedElement.elementType;
-        switch (this.userBrush.drawType) {
+        switch (this.userBrush.elementType) {
             case MEDrawType.GROUND:
                 this.userBrush.setGroundType(elementType);
                 break;

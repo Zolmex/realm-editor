@@ -79,39 +79,30 @@ public class MEPencilTool extends METool {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
         var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
-        var changed:Boolean = true; // Flag to make sure we updated the tile data
 
-        var ret:MapReplaceTileAction = null;
-        switch (brush.drawType) {
+        switch (brush.elementType) {
             case MEDrawType.GROUND:
-                if (prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same
-                    changed = false;
-                    break;
+                if (brush.groundType == -1 || prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same. Also don't draw empty textures
+                    return null;
                 }
                 tileMap.setTileGround(mapX, mapY, brush.groundType);
                 break;
             case MEDrawType.OBJECTS:
-                if (prevData.objType == brush.objType) {
-                    changed = false;
-                    break;
+                if (brush.objType == 0 || prevData.objType == brush.objType) {
+                    return null;
                 }
                 tileMap.setTileObject(mapX, mapY, brush.objType);
                 break;
             case MEDrawType.REGIONS:
-                if (prevData.regType == brush.regType) {
-                    changed = false;
-                    break;
+                if (brush.regType == 0 || prevData.regType == brush.regType) {
+                    return null;
                 }
                 tileMap.setTileRegion(mapX, mapY, brush.regType);
-                break
+                break;
         }
 
-        if (changed){
-            tileMap.drawTile(mapX, mapY);
-            ret = new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone());
-        }
-
-        return ret;
+        tileMap.drawTile(mapX, mapY);
+        return new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone());
     }
 }
 }

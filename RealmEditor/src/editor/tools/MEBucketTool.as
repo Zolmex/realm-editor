@@ -44,7 +44,7 @@ public class MEBucketTool extends METool {
             for (var mapX:int = startX; mapX < startX + width; mapX++) {
                 var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
                 var changed:Boolean = true; // Flag to make sure we updated the tile data
-                switch (brush.drawType) {
+                switch (brush.elementType) {
                     case MEDrawType.GROUND:
                         if (prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same
                             changed = false;

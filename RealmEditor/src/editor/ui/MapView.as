@@ -41,7 +41,7 @@ public class MapView extends Sprite {
     public var selectionPos:Shape;
     private var highlightRect:Shape;
     private var brushPencil:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
-    private var brushDrawType:int;
+    private var brushElementType:int;
     private var brushTextureType:int;
 
     public var lastDragPos:IntPoint;
@@ -167,12 +167,12 @@ public class MapView extends Sprite {
     }
 
     public function moveBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
-        if (brush.drawType != this.brushDrawType) { // Re-draw if the draw type has changed
+        if (brush.elementType != this.brushElementType) { // Re-draw if the draw type has changed
             this.drawBrushTiles(mapX, mapY, brush);
             return;
         }
 
-        switch (brush.drawType) { // If draw type matces,re-draw if the texture we're drawing also has changed
+        switch (brush.elementType) { // If element type matches, re-draw if the texture we're drawing also has changed
             case MEDrawType.GROUND:
                 if (brush.groundType != this.brushTextureType) {
                     this.drawBrushTiles(mapX, mapY, brush);
@@ -203,17 +203,29 @@ public class MapView extends Sprite {
         var groundTexture:BitmapData;
         var objectTexture:BitmapData;
 
-        this.brushDrawType = brush.drawType;
-        switch (brush.drawType) {
+        this.brushElementType = brush.elementType;
+        switch (brush.elementType) {
             case MEDrawType.GROUND:
+                if (brush.groundType == -1) {
+                    return;
+                }
+
                 groundTexture = GroundLibrary.getBitmapData(brush.groundType);
                 this.brushTextureType = brush.groundType;
                 break;
             case MEDrawType.OBJECTS:
+                if (brush.objType == 0) {
+                    return;
+                }
+
                 objectTexture = ObjectLibrary.getTextureFromType(brush.objType);
                 this.brushTextureType = brush.objType;
                 break;
             case MEDrawType.REGIONS:
+                if (brush.regType == 0) {
+                    return;
+                }
+
                 regColor = RegionLibrary.getColor(brush.regType);
                 this.brushTextureType = brush.regType;
                 break;
