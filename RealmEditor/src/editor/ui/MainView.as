@@ -708,7 +708,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.mapView.pasteFromClipboard(this.clipBoard, tilePos.x_, tilePos.y_);
+        this.mapView.pasteFromClipboard(this.clipBoard, tilePos.x_, tilePos.y_, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onClearSelection(e:Event):void {

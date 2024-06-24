@@ -7,6 +7,10 @@ import editor.actions.MapAction;
 import editor.MEBrush;
 import editor.MEClipboard;
 import editor.MEDrawType;
+import editor.actions.MapActionSet;
+import editor.actions.MapReplaceTileAction;
+import editor.actions.MapSelectAction;
+import editor.actions.data.MapSelectData;
 import editor.tools.METool;
 import editor.actions.MapAction;
 import editor.actions.MapAction;
@@ -318,15 +322,25 @@ public class MapView extends Sprite {
         }
     }
 
-    public function pasteFromClipboard(clipboard:MEClipboard, mapX:int, mapY:int):void {
+    public function pasteFromClipboard(clipboard:MEClipboard, mapX:int, mapY:int, history:MapHistory):void {
         if (mapX < 0 || mapX > this.mapData.mapWidth || mapY < 0 || mapY > this.mapData.mapHeight || clipboard.width <= 0 || clipboard.height <= 0 ||
                 mapX + clipboard.width > this.mapData.mapWidth || mapY + clipboard.height > this.mapData.mapHeight) {
             return;
         }
 
+        var actions:MapActionSet = new MapActionSet();
+        var prevSelectionPos:Shape = this.selectionPos;
+        var prevSelectionSize:IntPoint = this.selectionSize;
+        var prevStartX:int = prevSelectionPos.x / TileMapView.TILE_SIZE;
+        var prevStartY:int = prevSelectionPos.y / TileMapView.TILE_SIZE;
+        var prevSelectionData:MapSelectData = new MapSelectData(prevStartX, prevStartY, prevStartX + prevSelectionSize.x_ - 1, prevStartY + prevSelectionSize.y_ - 1);
+
         // Select pasted tiles
         this.clearTileSelection();
         this.drawTileSelection(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1); // Make the new pasted tiles the new selection
+
+        var newSelectionData:MapSelectData = new MapSelectData(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1);
+        actions.push(new MapSelectAction(prevSelectionData, newSelectionData));
 
         for (var tileY:int = mapY; tileY < mapY + clipboard.height; tileY++) { // Draw tile by tile from clipboard
             for (var tileX:int = mapX; tileX < mapX + clipboard.width; tileX++) {
@@ -338,8 +352,12 @@ public class MapView extends Sprite {
 
                 this.tileMap.setTileData(tileX, tileY, tileData);
                 this.tileMap.drawTile(tileX, tileY);
+
+                actions.push(new MapReplaceTileAction(tileX, tileY, prevData, tileData.clone()));
             }
         }
+
+        history.recordSet(actions);
     }
 }
 }
