@@ -720,19 +720,19 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionUp(e:Event):void {
-        this.mapView.dragSelection(0, -1);
+        // Drag selection up
     }
 
     private function onMoveSelectionDown(e:Event):void {
-        this.mapView.dragSelection(0, 1);
+        // Drag selection down
     }
 
     private function onMoveSelectionLeft(e:Event):void {
-        this.mapView.dragSelection(-1, 0);
+        // Drag selection left
     }
 
     private function onMoveSelectionRight(e:Event):void {
-        this.mapView.dragSelection(1, 0);
+        // Drag selection right
     }
 
     private function onBrushSizeChanged():void {

@@ -46,7 +46,7 @@ public class MESelectTool extends METool {
         if (this.selectionStart == null) {
             if (this.draggingSelection || this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) { // Drag selected tiles
                 this.draggingSelection = true;
-                this.mainView.mapView.moveSelectionTo(tilePos);
+                // Drag tiles
                 return;
             }
 
@@ -74,6 +74,11 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void {
+        if (this.selectionStart == null){
+            this.reset(); // Make sure to reset our selecting action
+            return;
+        }
+
         var beginX:int = this.selectionStart.x_ < tilePos.x_ ? this.selectionStart.x_ : tilePos.x_;
         var beginY:int = this.selectionStart.y_ < tilePos.y_ ? this.selectionStart.y_ : tilePos.y_;
         var endX:int = this.selectionStart.x_ < tilePos.x_ ? tilePos.x_ : this.selectionStart.x_;

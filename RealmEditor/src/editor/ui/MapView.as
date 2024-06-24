@@ -44,9 +44,6 @@ public class MapView extends Sprite {
     private var brushElementType:int;
     private var brushTextureType:int;
 
-    public var lastDragPos:IntPoint;
-    private var tilesMoved:Dictionary;
-
     public function MapView(id:int, mapData:MapData) {
         this.id = id;
         this.mapData = mapData;
@@ -122,24 +119,13 @@ public class MapView extends Sprite {
         this.selectionSize.x_ = 0;
         this.selectionSize.y_ = 0;
         this.selectionPos.graphics.clear();
-        this.resetSelectionMovement();
     }
 
-    private function resetSelectionMovement():void {
-        this.lastDragPos = null;
-        this.tilesMoved = null;
-        // Don't reset revertMoveHistory, we need to be able to undo previous movements too ;)
-    }
-
-    public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int, movementCall:Boolean = false, userAction:Boolean = true, firstAction:Boolean = true, lastAction:Boolean = true):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
+    public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
         var beginX:int = mapStartX < mapEndX ? mapStartX : mapEndX;
         var beginY:int = mapStartY < mapEndY ? mapStartY : mapEndY;
         var endX:int = mapStartX < mapEndX ? mapEndX : mapStartX;
         var endY:int = mapStartY < mapEndY ? mapEndY : mapStartY;
-
-        if (userAction) { // Clear tile movement if the user has selected a new tile area
-            this.resetSelectionMovement();
-        }
 
         this.drawTileSelection(beginX, beginY, endX, endY); // Redraw the tile selection rectangle
     }
@@ -354,90 +340,6 @@ public class MapView extends Sprite {
                 this.tileMap.drawTile(tileX, tileY);
             }
         }
-    }
-
-    // This is where we move the selected tiles
-    // Basically works like this:
-    // Step 1: Save tiles in the selected region
-    // (once) Step 2: Clear selected tiles (blank space in the map)
-    // Step 3: Paste the selected tiles wherever we want them to be
-    // (start process again) Step 4: Save tiles in the selected region
-    // Step 5: Revert the changes we made
-    // Step 6: Repeat step 3
-    public function dragSelection(diffX:int, diffY:int):void {
-        var fromX:int = this.selectionPos.x / TileMapView.TILE_SIZE;
-        var fromY:int = this.selectionPos.y / TileMapView.TILE_SIZE;
-        var toX:int = fromX + diffX;
-        var toY:int = fromY + diffY;
-
-        var endX:int = toX + this.selectionSize.x_ - 1;
-        var endY:int = toY + this.selectionSize.y_ - 1;
-        if (diffX == 0 && diffY == 0) {
-            return;
-        }
-
-        if (this.tilesMoved == null) {
-            this.saveSelectedTiles(fromX, fromY); // First we copy the selected tiles into a dictionary
-            this.clearSelectedTiles(fromX, fromY); // Then we clear the space selected
-        } else {
-            this.saveSelectedTiles(fromX, fromY); // Save tiles again in case they were changed
-        }
-
-        this.undoTileMovement(); // Revert recent move changes
-
-        this.drawSelectedTiles(fromX, fromY, toX, toY);
-
-        this.selectTileArea(toX, toY, endX, endY, true, false, false, true);
-    }
-
-    public function moveSelectionTo(toPos:IntPoint):void {
-        if (this.lastDragPos == null) {
-            this.lastDragPos = toPos;
-        }
-
-        var diffX:int = toPos.x_ - this.lastDragPos.x_;
-        var diffY:int = toPos.y_ - this.lastDragPos.y_;
-
-        this.dragSelection(diffX, diffY);
-
-        this.lastDragPos = toPos;
-    }
-
-    private function clearSelectedTiles(fromX:int, fromY:int):void {
-        for (var ogY:int = fromY; ogY < fromY + this.selectionSize.y_; ogY++) { // Iterate through the selection
-            for (var ogX:int = fromX; ogX < fromX + this.selectionSize.x_; ogX++) {
-                this.tileMap.clearTile(ogX, ogY);
-                this.tileMap.drawTile(ogX, ogY); // Draws the empty tile
-            }
-        }
-    }
-
-    private function saveSelectedTiles(fromX:int, fromY:int):void {
-        this.tilesMoved = new Dictionary();
-        for (var ogY:int = fromY; ogY < fromY + this.selectionSize.y_; ogY++) { // Iterate through the selection
-            for (var ogX:int = fromX; ogX < fromX + this.selectionSize.x_; ogX++) {
-                var idx:int = (ogX - fromX) + (ogY - fromY) * this.selectionSize.x_;
-                var ogTile:MapTileData = this.tileMap.getTileData(ogX, ogY).clone();
-
-                this.tilesMoved[idx] = ogTile; // Save the tile data
-            }
-        }
-    }
-
-    private function drawSelectedTiles(fromX:int, fromY:int, toX:int, toY:int):void {
-        for (var mapY:int = toY; mapY < toY + this.selectionSize.y_; mapY++) { // Draw moved tiles where they're supposed to be
-            for (var mapX:int = toX; mapX < toX + this.selectionSize.x_; mapX++) {
-                var idx:int = (mapX - toX) + (mapY - toY) * this.selectionSize.x_;
-                var tile:MapTileData = this.tilesMoved[idx];
-
-                this.tileMap.setTileData(mapX, mapY, tile);
-                this.tileMap.drawTile(mapX, mapY);
-            }
-        }
-    }
-
-    private function undoTileMovement():void {
-
     }
 }
 }
