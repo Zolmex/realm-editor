@@ -12,7 +12,7 @@
           <sdk name="Adobe AIR SDK 50.2" />
         </dependencies>
         <compiler-options />
-        <packaging-air-desktop use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/Main-descriptor.xml" package-file-name="RealmEditor" />
+        <packaging-air-desktop use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/RealmEditor-descriptor.xml" package-file-name="RealmEditor" />
         <packaging-android />
         <packaging-ios />
       </configuration>
