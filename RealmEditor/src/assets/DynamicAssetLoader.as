@@ -16,10 +16,12 @@ import flash.utils.ByteArray;
 
 public class DynamicAssetLoader {
 
-    public static var failedAssets:String;
+    public static var FailedAssets:String;
+    public static var PendingNotifs:String;
 
     public static function load():void {
-        failedAssets = null;
+        FailedAssets = null;
+        PendingNotifs = null;
 
         AssetLibrary.clear();
         AnimatedChars.clear();
@@ -35,13 +37,22 @@ public class DynamicAssetLoader {
             return;
         }
 
+        AddNecessaryAssets(); // Make sure we load assets the editor needs first
+
         var assetsDir:String = Parameters.data.selectedAssetsDir.split("?")[1];
         var assetsCfgFile:File = new File(assetsDir + "\\assetsConfig.cfg");
         var assetsCfgData:ByteArray = ReadFileBytes(assetsCfgFile); // Load assetsConfig.cfg file
-        var assetsCfg:String = assetsCfgData.readUTFBytes(assetsCfgData.length);
+        if (assetsCfgData == null){ // Failed to load directory
+            PendingNotifs += "|Failed to load assets directory: missing cfg file.";
+            return;
+        }
 
-        AddNecessaryAssets();
+        var assetsCfg:String = assetsCfgData.readUTFBytes(assetsCfgData.length);
         ReadAssetsCfg(assetsCfg, assetsDir);
+
+        if (FailedAssets != null){
+            PendingNotifs += "|Failed to load asset files: " + DynamicAssetLoader.FailedAssets;
+        }
 
         var directory:File = new File(assetsDir);
         var files:Array = directory.getDirectoryListing();
@@ -59,7 +70,7 @@ public class DynamicAssetLoader {
 
     private static function AddNecessaryAssets():void {
         AssetLibrary.addImageSet("invisible", new BitmapData(8, 8, true, 0), 8, 8);
-        AssetLibrary.addImageSet("cursorsEmbed", new EmbeddedAssets.cursorsEmbed_().bitmapData, 32, 32); // Edtior assets
+        AssetLibrary.addImageSet("cursorsEmbed", new EmbeddedAssets.cursorsEmbed_().bitmapData, 32, 32); // Editor assets
         AssetLibrary.addImageSet("editorTools", new EmbeddedAssets.editorToolsEmbed_().bitmapData, 16, 16);
     }
 
@@ -80,11 +91,11 @@ public class DynamicAssetLoader {
 
             var file:File = new File(assetsDir + "\\" + fileName + ".png");
             if (!file.exists){
-                if (failedAssets == null){
-                    failedAssets = fileName;
+                if (FailedAssets == null){
+                    FailedAssets = fileName;
                 }
                 else {
-                    failedAssets += ", " + fileName;
+                    FailedAssets += ", " + fileName;
                 }
                 continue;
             }

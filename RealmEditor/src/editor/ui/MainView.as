@@ -181,9 +181,7 @@ public class MainView extends Sprite {
         this.updateScale();
         this.updatePositions();
 
-        if (DynamicAssetLoader.failedAssets != null) {
-            this.notifications.showNotification("Failed to load asset files: " + DynamicAssetLoader.failedAssets, 14, 5);
-        }
+        this.showAssetLoaderNotifs();
     }
 
     private function setupInput():void {
@@ -328,13 +326,14 @@ public class MainView extends Sprite {
             this.assetsWindow.resetOriginal();
             this.assetsWindow.visible = true;
         }
+        this.updatePositions();
     }
 
     private function onAssetsDirectorySelected(e:Event):void {
         DynamicAssetLoader.load(); // Reload asset library
 
-        if (DynamicAssetLoader.failedAssets != null) {
-            this.notifications.showNotification("Failed to load asset files: " + DynamicAssetLoader.failedAssets, 14, 5);
+        if (DynamicAssetLoader.PendingNotifs != null) {
+            this.showAssetLoaderNotifs();
         } else {
             this.notifications.showNotification("Successfully loaded asset files!");
         }
@@ -361,14 +360,15 @@ public class MainView extends Sprite {
             this.mapCreateWindow = new MapCreateWindow(); // Window where user inputs name, width and height of the map
             this.mapCreateWindow.x = (Main.StageWidth - this.mapCreateWindow.width) / 2;
             this.mapCreateWindow.y = (Main.StageHeight - this.mapCreateWindow.height) / 2;
-            this.mapCreateWindow.addEventListener(MEEvent.MAP_CREATE, this.onCreateMap); // Dispatched when user clicks OK
+            this.mapCreateWindow.addEventListener(MEEvent.MAP_CREATE, this.onMapCreate); // Dispatched when user clicks OK
             addChild(this.mapCreateWindow);
         } else {
             this.mapCreateWindow.visible = true;
         }
+        this.updatePositions();
     }
 
-    private function onCreateMap(e:Event):void {
+    private function onMapCreate(e:Event):void {
         var newData:MapData = new MapData();
         var newMap:MapView = new MapView(this.nextMapId, newData);
         this.nextMapId++;
@@ -535,6 +535,7 @@ public class MainView extends Sprite {
         } else {
             this.editNameView.showNew(x, y, objName);
         }
+        this.updatePositions();
     }
 
     private function onEditName(e:Event):void {
@@ -742,6 +743,18 @@ public class MainView extends Sprite {
         }
 
         this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
+    }
+
+    private function showAssetLoaderNotifs():void {
+        if (DynamicAssetLoader.PendingNotifs != null){
+            var messages:Array = DynamicAssetLoader.PendingNotifs.split("|");
+            for each (var message:String in messages){
+                if (message == null || message == ""){
+                    continue;
+                }
+                this.notifications.showNotification(message, 14, 5);
+            }
+        }
     }
 }
 }

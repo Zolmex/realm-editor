@@ -64,8 +64,8 @@ public class Parameters {
             deleteDelim = 1; // This erases the $ at the beginning of the directory
         }
 
-        var firstCut:String = savedAssets.substr(0, savedAssets.indexOf(dir) - deleteDelim); // Cuts from beginning until first index of dir. Minus de $ delimiter
-        var secondCut:String = savedAssets.substr(savedAssets.indexOf(dir) + dir.length); // Cuts from the end of dir
+        var firstCut:String = savedAssets.substr(0, savedAssets.indexOf(dir)); // Cuts from beginning until first index of dir. Minus de $ delimiter
+        var secondCut:String = savedAssets.substr(savedAssets.indexOf(dir) + dir.length + deleteDelim); // Cuts from the end of dir to the end of the string
         data[ASSET_DIRS_KEY] = firstCut + secondCut;
         trace("REMOVED ASSETS DIRECTORY", dir, data[ASSET_DIRS_KEY]);
         save();

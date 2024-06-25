@@ -43,6 +43,11 @@ public class MapDrawElement extends Sprite {
                 xml = RegionLibrary.xmlLibrary_[this.elementType];
                 break;
         }
+
+        if (xml == null){
+            return;
+        }
+
         this.tooltip = new DrawListTooltip(this, this.texture, xml, this.drawType);
         Main.STAGE.addChild(this.tooltip);
     }

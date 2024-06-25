@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="RealmEditor">
     <configurations>
-      <configuration name="RealmEditor" target-platform="Desktop" pure-as="true" main-class="Main" output-file="Main.swf" output-folder="$MODULE_DIR$/out">
+      <configuration name="RealmEditor" target-platform="Desktop" pure-as="true" main-class="Main" output-file="RealmEditor.swf" output-folder="$MODULE_DIR$/out">
         <dependencies>
           <entries>
             <entry library-name="libs1" library-level="application">
