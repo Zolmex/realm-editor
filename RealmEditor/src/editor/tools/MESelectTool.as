@@ -20,7 +20,7 @@ import util.IntPoint;
 
 public class MESelectTool extends METool {
 
-    private static const CLEARED_DATA:MapSelectData = new MapSelectData(-1, -1, -1, -1);
+    public static const CLEARED_DATA:MapSelectData = new MapSelectData(-1, -1, -1, -1);
 
     private var selectionStart:IntPoint;
     private var prevSelection:MapSelectData;
@@ -92,7 +92,7 @@ public class MESelectTool extends METool {
         var startX:int = tilePos.x_ * TileMapView.TILE_SIZE;
         var startY:int = tilePos.y_ * TileMapView.TILE_SIZE;
         if (selectionPos.x == startX && selectionPos.y == startY) { // Clear selection if we selected the same one-tile area
-            history.record(getAction(selectionPos, selectionSize, CLEARED_DATA));
+            this.mainView.mapView.recordSelectionClear(history);
             this.mainView.mapView.clearTileSelection();
             return;
         }

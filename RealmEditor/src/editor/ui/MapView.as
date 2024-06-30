@@ -11,6 +11,7 @@ import editor.actions.MapActionSet;
 import editor.actions.MapReplaceTileAction;
 import editor.actions.MapSelectAction;
 import editor.actions.data.MapSelectData;
+import editor.tools.MESelectTool;
 import editor.tools.METool;
 import editor.actions.MapAction;
 import editor.actions.MapAction;
@@ -117,6 +118,15 @@ public class MapView extends Sprite {
         var val:Boolean = this.grid.visible = !this.grid.visible;
         this.gridEnabled = val;
         return val;
+    }
+
+    public function recordSelectionClear(history:MapHistory):void{
+        var prevSelectionPos:Shape = this.selectionPos;
+        var prevSelectionSize:IntPoint = this.selectionSize;
+        var prevStartX:int = prevSelectionPos.x / TileMapView.TILE_SIZE;
+        var prevStartY:int = prevSelectionPos.y / TileMapView.TILE_SIZE;
+        var prevSelectionData:MapSelectData = new MapSelectData(prevStartX, prevStartY, prevStartX + prevSelectionSize.x_ - 1, prevStartY + prevSelectionSize.y_ - 1);
+        history.record(new MapSelectAction(prevSelectionData, MESelectTool.CLEARED_DATA));
     }
 
     public function clearTileSelection():void {

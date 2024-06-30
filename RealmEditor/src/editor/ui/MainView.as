@@ -12,6 +12,8 @@ import editor.MEDrawType;
 
 import editor.MEEvent;
 import editor.actions.MapEditAction;
+import editor.actions.MapSelectAction;
+import editor.actions.data.MapSelectData;
 import editor.tools.MESelectTool;
 import editor.tools.METool;
 import editor.actions.MapAction;
@@ -717,6 +719,8 @@ public class MainView extends Sprite {
             this.selectedTool.reset();
         }
 
+        var history:MapHistory = this.timeControl.getHistory(this.mapView.id);
+        this.mapView.recordSelectionClear(history);
         this.mapView.clearTileSelection();
     }
 
