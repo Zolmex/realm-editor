@@ -16,6 +16,7 @@ import editor.actions.MapSelectAction;
 import editor.actions.data.MapSelectData;
 import editor.tools.MESelectTool;
 import editor.tools.METool;
+import editor.tools.METool;
 import editor.actions.MapAction;
 import editor.MapData;
 import editor.MapTileData;
@@ -725,19 +726,23 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionUp(e:Event):void {
-        // Drag selection up
+        var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
+        selectTool.dragSelection(0, -1, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionDown(e:Event):void {
-        // Drag selection down
+        var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
+        selectTool.dragSelection(0, 1, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionLeft(e:Event):void {
-        // Drag selection left
+        var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
+        selectTool.dragSelection(-1, 0, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionRight(e:Event):void {
-        // Drag selection right
+        var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
+        selectTool.dragSelection(1, 0, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onBrushSizeChanged():void {
