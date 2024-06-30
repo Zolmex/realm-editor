@@ -30,26 +30,28 @@ public class MapHistory {
         this.erased.length = 0;
     }
 
-    public function undo():void {
+    public function undo():MapActionSet {
         if (this.present.length == 0){
-            return;
+            return null;
         }
 
         var lastActions:MapActionSet = this.present.pop();
         lastActions.undoAll();
 
         this.erased.push(lastActions); // Here's where we change the past, and erase it
+        return lastActions;
     }
 
-    public function redo():void {
+    public function redo():MapActionSet {
         if (this.erased.length == 0){
-            return;
+            return null;
         }
 
         var erasedActions:MapActionSet = this.erased.pop();
         erasedActions.redoAll();
 
         this.present.push(erasedActions); // Here's where we go back to the present
+        return erasedActions;
     }
 }
 }

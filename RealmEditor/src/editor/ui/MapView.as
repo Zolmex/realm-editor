@@ -49,10 +49,14 @@ public class MapView extends Sprite {
     private var brushElementType:int;
     private var brushTextureType:int;
 
+    public var tilesMoved:Vector.<MapTileData>;
+    public var moveHistory:MapHistory;
+
     public function MapView(id:int, mapData:MapData) {
         this.id = id;
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
+        this.moveHistory = new MapHistory();
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;
@@ -133,6 +137,10 @@ public class MapView extends Sprite {
         this.selectionSize.x_ = 0;
         this.selectionSize.y_ = 0;
         this.selectionPos.graphics.clear();
+    }
+
+    public function resetTileMovement():void {
+        this.tilesMoved = null;
     }
 
     public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void { // Use this for selecting a rectangle area of tiles by holding left mouse button

@@ -1,12 +1,16 @@
 package editor.tools {
 import editor.MEBrush;
+import editor.MapTileData;
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
+import editor.actions.MapActionSet;
+import editor.actions.MapReplaceTileAction;
 import editor.actions.MapSelectAction;
 import editor.actions.MapSelectAction;
 import editor.actions.data.MapSelectData;
 import editor.ui.MainView;
 import editor.ui.MapHistory;
+import editor.ui.MapInputHandler;
 import editor.ui.MapTileSprite;
 import editor.ui.MapView;
 import editor.ui.TileMapView;
@@ -24,6 +28,7 @@ public class MESelectTool extends METool {
 
     private var selectionStart:IntPoint;
     private var prevSelection:MapSelectData;
+
     private var draggingSelection:Boolean;
     private var lastDragPos:IntPoint;
 
@@ -58,6 +63,7 @@ public class MESelectTool extends METool {
 
                 this.savePreviousSelection();
                 this.mainView.mapView.clearTileSelection();
+                this.mainView.mapView.resetTileMovement();
             }
         }
 
@@ -124,8 +130,9 @@ public class MESelectTool extends METool {
             return;
         }
 
-        history.record(new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY)));
-        this.mainView.mapView.selectTileArea(beginX, beginY, endX, endY);
+        this.moveSelectedTiles(beginX, beginY, endX, endY, history);
+
+        this.mainView.mapView.selectTileArea(beginX, beginY, endX, endY); // The select action is already recorder inside moveSelectedTiles
     }
 
     public function dragSelectionTo(mapX:int, mapY:int, history:MapHistory):void {
@@ -139,6 +146,58 @@ public class MESelectTool extends METool {
         this.dragSelection(diffX, diffY, history);
 
         this.lastDragPos = new IntPoint(mapX, mapY);
+    }
+
+    private function moveSelectedTiles(beginX:int, beginY:int, endX:int, endY:int, history:MapHistory):void {
+        if (this.mainView.mapView.tilesMoved == null){
+            this.copySelectedTiles();
+        }
+
+        var idx:int = 0;
+        var tileMap:TileMapView = this.mainView.mapView.tileMap;
+        var newActions:MapActionSet = new MapActionSet();
+        newActions.push(new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY))); // Push first our new selection
+
+        var undoneActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
+//        if (undoneActions != null) {
+//            undoneActions.swap(true); // Swap these so that they're redone when user undoes them
+//            newActions.pushSet(undoneActions);
+//        }
+
+        for (var y:int = beginY; y <= endY; y++){
+            for (var x:int = beginX; x <= endX; x++){
+                var prevTile:MapTileData = tileMap.getTileData(x, y).clone();
+                var newTile:MapTileData = this.mainView.mapView.tilesMoved[idx];
+
+                tileMap.setTileData(x, y, newTile);
+                tileMap.drawTile(x, y);
+
+                newActions.push(new MapReplaceTileAction(x, y, prevTile, newTile.clone()));
+                idx++;
+            }
+        }
+
+        history.recordSet(newActions);
+        this.mainView.mapView.moveHistory.recordSet(newActions); // Also record these actions into our own move history so we can undo these, without undoing the history on the actual map
+    }
+
+    private function copySelectedTiles():void {
+        this.mainView.mapView.tilesMoved = new Vector.<MapTileData>();
+
+        var startX:int = this.mainView.mapView.selectionPos.x / TileMapView.TILE_SIZE;
+        var startY:int = this.mainView.mapView.selectionPos.y / TileMapView.TILE_SIZE;
+        var endX:int = startX + this.mainView.mapView.selectionSize.x_;
+        var endY:int = startY + this.mainView.mapView.selectionSize.y_;
+
+        var idx:int = 0;
+        var tileMap:TileMapView = this.mainView.mapView.tileMap;
+        for (var y:int = startY; y < endY; y++){
+            for (var x:int = startX; x < endX; x++){
+                var tile:MapTileData = tileMap.getTileData(x, y);
+                this.mainView.mapView.tilesMoved[idx] = tile.clone();
+                idx++;
+            }
+        }
     }
 
     private function savePreviousSelection():void {

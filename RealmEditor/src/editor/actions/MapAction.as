@@ -16,6 +16,8 @@ public class MapAction {
     public static const TILE_REPLACED:int = 11;
     public static const SELECT_AREA:int = 12;
 
+    public var swapped:Boolean = false; // This makes the action redo when undoAction is called and viceversa
+
     public function MapAction() {
     }
 
