@@ -10,6 +10,8 @@ import flash.utils.ByteArray;
 
 public class AssetLoader {
 
+    private static var loadedModels:Boolean = false;
+
     public static function load():void {
         addImages();
         addAnimatedCharacters();
@@ -86,6 +88,10 @@ public class AssetLoader {
     }
 
     private static function parse3DModels():void {
+        if (loadedModels){
+            return;
+        }
+
         var name:* = null;
         var ba:ByteArray = null;
         var model:String = null;
@@ -95,6 +101,8 @@ public class AssetLoader {
             Model3D.parse3DOBJ(name, ba);
             Model3D.parseFromOBJ(name, model);
         }
+
+        loadedModels = true;
     }
 
     private static function parseGroundFiles():void {

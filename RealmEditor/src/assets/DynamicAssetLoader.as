@@ -28,11 +28,17 @@ public class DynamicAssetLoader {
         GroundLibrary.clear();
         ObjectLibrary.clear();
         RegionLibrary.clear();
-        EmbeddedData.groundFiles = new Array();
-        EmbeddedData.objectFiles = new Array();
-        EmbeddedData.regionFiles = new Array();
 
-        if (Parameters.data.selectedAssetsDir == null){
+        if (Parameters.data.selectedAssetsDir != null){
+            if (Parameters.getAssetDirs().length == 0) { // Check if there even are any asset directories
+                Parameters.data.selectedAssetsDir = null;
+                Parameters.save();
+
+                AssetLoader.load(); // Load from embedded assets if there are no asset directories
+                return;
+            }
+        }
+        else {
             AssetLoader.load();
             return;
         }

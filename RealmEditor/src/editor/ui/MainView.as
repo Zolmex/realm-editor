@@ -287,7 +287,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        if (e.ctrlKey && this.selectedTool.id == METool.PENCIL_ID) { // We're increasing/decreasing the brush size
+        if (e.ctrlKey && (this.selectedTool.id == METool.PENCIL_ID || this.selectedTool.id == METool.ERASER_ID)) { // We're increasing/decreasing the brush size
             this.userBrush.size += int(Math.ceil(e.delta));
             if (this.userBrush.size < 0) {
                 this.userBrush.size = 0;
