@@ -59,6 +59,7 @@ public class MapActionSet {
                 action.undoAction();
             }
             else {
+                trace("REDO");
                 action.doAction();
             }
         }
