@@ -25,5 +25,9 @@ public class MapEditAction extends MapAction {
         var mapView:MapView = Main.View.mapView;
         mapView.editTileObjCfg(mapX, mapY, this.prevCfg);
     }
+
+    public override function clone():MapAction {
+        return new MapEditAction(this.mapX, this.mapY, this.prevCfg, this.newCfg);
+    }
 }
 }

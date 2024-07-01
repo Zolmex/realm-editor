@@ -155,30 +155,34 @@ public class MESelectTool extends METool {
 
         var idx:int = 0;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var newActions:MapActionSet = new MapActionSet();
-        newActions.push(new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY))); // Push first our new selection
+
+        var selectAction:MapSelectAction = new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY));
+        var actions:MapActionSet = new MapActionSet();
+        actions.push(selectAction); // Push first our new selection to map history
 
         var undoneActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
-//        if (undoneActions != null) {
-//            undoneActions.swap(true); // Swap these so that they're redone when user undoes them
-//            newActions.pushSet(undoneActions);
-//        }
+        if (undoneActions != null){
+            undoneActions.swap(true); // Swap so that when user undoes these actions are redone
+            actions.pushSet(undoneActions);
+        }
 
-        for (var y:int = beginY; y <= endY; y++){
+        var newActions:MapActionSet = new MapActionSet();
+        for (var y:int = beginY; y <= endY; y++){ // Draw the saved tiles
             for (var x:int = beginX; x <= endX; x++){
                 var prevTile:MapTileData = tileMap.getTileData(x, y).clone();
-                var newTile:MapTileData = this.mainView.mapView.tilesMoved[idx];
+                var newTile:MapTileData = this.mainView.mapView.tilesMoved[idx].clone();
 
                 tileMap.setTileData(x, y, newTile);
                 tileMap.drawTile(x, y);
 
-                newActions.push(new MapReplaceTileAction(x, y, prevTile, newTile.clone()));
+                newActions.push(new MapReplaceTileAction(x, y, prevTile, newTile)); // Push these new tiles into newActions
+                actions.push(new MapReplaceTileAction(x, y, prevTile, newTile));
                 idx++;
             }
         }
 
-        history.recordSet(newActions);
-        this.mainView.mapView.moveHistory.recordSet(newActions); // Also record these actions into our own move history so we can undo these, without undoing the history on the actual map
+        history.recordSet(actions);
+        this.mainView.mapView.moveHistory.recordSet(newActions); // Record these actions into our own move history so we can undo these, without undoing the history on the actual map
     }
 
     private function copySelectedTiles():void {

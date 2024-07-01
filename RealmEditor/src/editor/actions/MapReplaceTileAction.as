@@ -27,5 +27,9 @@ public class MapReplaceTileAction extends MapAction {
         mapView.tileMap.setTileData(this.mapX, this.mapY, this.prevTileData);
         mapView.tileMap.drawTile(this.mapX, this.mapY);
     }
+
+    public override function clone():MapAction {
+        return new MapReplaceTileAction(this.mapX, this.mapY, this.prevTileData, this.newTileData);
+    }
 }
 }

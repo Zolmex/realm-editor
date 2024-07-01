@@ -23,5 +23,6 @@ public class MapAction {
 
     public virtual function doAction():void { }
     public virtual function undoAction():void { }
+    public virtual function clone():MapAction { return null; }
 }
 }

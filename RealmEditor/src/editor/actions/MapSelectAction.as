@@ -31,5 +31,9 @@ public class MapSelectAction extends MapAction {
 
         mapView.drawTileSelection(this.prevData.startX, this.prevData.startY, this.prevData.endX, this.prevData.endY);
     }
+
+    public override function clone():MapAction {
+        return new MapSelectAction(this.prevData, this.newData);
+    }
 }
 }
