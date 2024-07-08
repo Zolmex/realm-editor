@@ -137,6 +137,7 @@ public class MapView extends Sprite {
         this.selectionSize.x_ = 0;
         this.selectionSize.y_ = 0;
         this.selectionPos.graphics.clear();
+        this.resetTileMovement();
     }
 
     public function resetTileMovement():void {

@@ -68,7 +68,6 @@ public class MESelectTool extends METool {
 
                 this.savePreviousSelection();
                 this.mainView.mapView.clearTileSelection();
-                this.mainView.mapView.resetTileMovement();
             }
         }
 
