@@ -1,5 +1,4 @@
 package editor.tools {
-import editor.HistoryEvent;
 import editor.MEBrush;
 import editor.MEEvent;
 import editor.MapTileData;
@@ -35,7 +34,6 @@ public class MESelectTool extends METool {
 
     private var draggingSelection:Boolean;
     private var lastDragPos:IntPoint;
-    private var listenHistory:Boolean;
 
     public function MESelectTool(view:MainView) {
         super(METool.SELECT_ID, view);
@@ -157,12 +155,6 @@ public class MESelectTool extends METool {
             this.copySelectedTiles();
         }
 
-        if (!this.listenHistory){
-            this.listenHistory = true;
-            history.addEventListener(HistoryEvent.UNDO_END, this.onUndo);
-            history.addEventListener(HistoryEvent.REDO_START, this.onRedo);
-        }
-
         var idx:int = 0;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
 
@@ -170,7 +162,11 @@ public class MESelectTool extends METool {
         var actions:MapActionSet = new MapActionSet();
         actions.push(selectAction); // Push first our new selection to map history
 
-        this.mainView.mapView.moveHistory.undo();
+        var undoneActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
+        if (undoneActions != null){
+            undoneActions.swap(true); // Swap so that when user undoes these actions are redone
+            actions.pushSet(undoneActions);
+        }
 
         var newActions:MapActionSet = new MapActionSet();
         for (var y:int = beginY; y <= endY; y++){ // Draw the saved tiles
@@ -189,14 +185,6 @@ public class MESelectTool extends METool {
 
         history.recordSet(actions);
         this.mainView.mapView.moveHistory.recordSet(newActions); // Record these actions into our own move history so we can undo these, without undoing the history on the actual map
-    }
-
-    private function onUndo(e:Event):void {
-        this.mainView.mapView.moveHistory.redo();
-    }
-
-    private function onRedo(e:Event):void {
-        this.mainView.mapView.moveHistory.undo();
     }
 
     private function copySelectedTiles():void {

@@ -56,7 +56,7 @@ public class MapView extends Sprite {
         this.id = id;
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
-        this.moveHistory = new MapHistory(false);
+        this.moveHistory = new MapHistory();
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;
