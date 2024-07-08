@@ -151,7 +151,9 @@ public class MESelectTool extends METool {
     }
 
     private function moveSelectedTiles(beginX:int, beginY:int, endX:int, endY:int, history:MapHistory):void {
+        var firstMove:Boolean = false;
         if (this.mainView.mapView.tilesMoved == null){
+            firstMove = true;
             this.copySelectedTiles();
         }
 
@@ -162,10 +164,12 @@ public class MESelectTool extends METool {
         var actions:MapActionSet = new MapActionSet();
         actions.push(selectAction); // Push first our new selection to map history
 
-        var undoneActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
-        if (undoneActions != null){
-            undoneActions.swap(true); // Swap so that when user undoes these actions are redone
-            actions.pushSet(undoneActions);
+        if (!firstMove) {
+            var undoneActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
+            if (undoneActions != null) {
+                undoneActions.swap(true); // Swap so that when user undoes these actions are redone
+                actions.pushSet(undoneActions);
+            }
         }
 
         var newActions:MapActionSet = new MapActionSet();
