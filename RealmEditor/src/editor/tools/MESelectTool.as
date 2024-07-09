@@ -2,6 +2,7 @@ package editor.tools {
 import editor.MEBrush;
 import editor.MEEvent;
 import editor.MapTileData;
+import editor.MapTileData;
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
 import editor.actions.MapActionSet;
@@ -73,7 +74,7 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void {
-        if (this.selectionStart == null){
+        if (this.selectionStart == null) {
             this.reset(); // Make sure to reset our selecting action, unless we're selecting an area
             return;
         }
@@ -128,7 +129,7 @@ public class MESelectTool extends METool {
         var endX:int = beginX + this.mainView.mapView.selectionSize.x_ - 1;
         var endY:int = beginY + this.mainView.mapView.selectionSize.y_ - 1;
 
-        if (diffX == 0 && diffY == 0){ // Prevent from re-selecting in the same place
+        if (diffX == 0 && diffY == 0) { // Prevent from re-selecting in the same place
             return;
         }
 
@@ -138,7 +139,7 @@ public class MESelectTool extends METool {
     }
 
     public function dragSelectionTo(mapX:int, mapY:int, history:MapHistory):void {
-        if (this.lastDragPos == null){
+        if (this.lastDragPos == null) {
             this.lastDragPos = new IntPoint(mapX, mapY);
         }
 
@@ -152,12 +153,11 @@ public class MESelectTool extends METool {
 
     private function moveSelectedTiles(beginX:int, beginY:int, endX:int, endY:int, history:MapHistory):void {
         var firstMove:Boolean = false;
-        if (this.mainView.mapView.tilesMoved == null){
+        if (this.mainView.mapView.tilesMoved == null) {
             firstMove = true;
             this.copySelectedTiles();
         }
 
-        var idx:int = 0;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
 
         var selectAction:MapSelectAction = new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY));
@@ -170,11 +170,14 @@ public class MESelectTool extends METool {
                 undoneActions.swap(true); // Swap so that when user undoes these actions are redone
                 actions.pushSet(undoneActions);
             }
+        } else { // Clear selected tile area the first time we move
+            this.clearSelectedArea(actions);
         }
 
+        var idx:int = 0;
         var newActions:MapActionSet = new MapActionSet();
-        for (var y:int = beginY; y <= endY; y++){ // Draw the saved tiles
-            for (var x:int = beginX; x <= endX; x++){
+        for (var y:int = beginY; y <= endY; y++) { // Draw the saved tiles
+            for (var x:int = beginX; x <= endX; x++) {
                 var prevTile:MapTileData = tileMap.getTileData(x, y).clone();
                 var newTile:MapTileData = this.mainView.mapView.tilesMoved[idx].clone();
 
@@ -201,11 +204,28 @@ public class MESelectTool extends METool {
 
         var idx:int = 0;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        for (var y:int = startY; y < endY; y++){
-            for (var x:int = startX; x < endX; x++){
+        for (var y:int = startY; y < endY; y++) {
+            for (var x:int = startX; x < endX; x++) {
                 var tile:MapTileData = tileMap.getTileData(x, y);
                 this.mainView.mapView.tilesMoved[idx] = tile.clone();
                 idx++;
+            }
+        }
+    }
+
+    private function clearSelectedArea(actions:MapActionSet):void {
+        var startX:int = this.mainView.mapView.selectionPos.x / TileMapView.TILE_SIZE;
+        var startY:int = this.mainView.mapView.selectionPos.y / TileMapView.TILE_SIZE;
+        var endX:int = startX + this.mainView.mapView.selectionSize.x_;
+        var endY:int = startY + this.mainView.mapView.selectionSize.y_;
+
+        var tileMap:TileMapView = this.mainView.mapView.tileMap;
+        for (var y:int = startY; y < endY; y++) {
+            for (var x:int = startX; x < endX; x++) {
+                var prevData:MapTileData = tileMap.getTileData(x, y).clone();
+                tileMap.clearTile(x, y);
+
+                actions.push(new MapReplaceTileAction(x, y, prevData, tileMap.getTileData(x, y).clone()));
             }
         }
     }
@@ -215,10 +235,9 @@ public class MESelectTool extends METool {
         var selectionSize:IntPoint = this.mainView.mapView.selectionSize;
         var startX:int = selectionPos.x / TileMapView.TILE_SIZE; // Save previous selection data
         var startY:int = selectionPos.y / TileMapView.TILE_SIZE;
-        if (selectionSize.x_ == 0 && selectionSize.y_ == 0){
+        if (selectionSize.x_ == 0 && selectionSize.y_ == 0) {
             this.prevSelection = CLEARED_DATA;
-        }
-        else {
+        } else {
             this.prevSelection = new MapSelectData(startX, startY, startX + selectionSize.x_ - 1, startY + selectionSize.y_ - 1);
         }
     }
