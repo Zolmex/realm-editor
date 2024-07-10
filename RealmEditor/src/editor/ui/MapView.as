@@ -56,7 +56,7 @@ public class MapView extends Sprite {
         this.id = id;
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
-        this.moveHistory = new MapHistory();
+        this.moveHistory = new MapHistory(false); // Marking linear as false lets us access undone actions even after pushing new actions
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;

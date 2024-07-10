@@ -5,10 +5,12 @@ import editor.actions.MapActionSet;
 public class MapHistory {
 
     // We can change the present, we can revert actions from it and erase them (they are now the past), or we can make the erased actions come back (they are now the present, again)
-    private var present:Vector.<MapActionSet>; // MapActionSet has all of the actions in normal and in reverse order
-    private var erased:Vector.<MapActionSet>;
+    public var present:Vector.<MapActionSet>; // MapActionSet has all of the actions in normal and in reverse order
+    public var erased:Vector.<MapActionSet>;
+    public var linear:Boolean;
 
-    public function MapHistory() {
+    public function MapHistory(linear:Boolean = true) {
+        this.linear = linear;
         this.present = new Vector.<MapActionSet>();
         this.erased = new Vector.<MapActionSet>();
     }
@@ -18,7 +20,9 @@ public class MapHistory {
         actionSet.push(action);
         this.present.push(actionSet);
 
-        this.erased.length = 0; // Clear erased events, they're now forgotten, forever
+        if (this.linear) {
+            this.erased.length = 0; // Clear erased events, they're now forgotten, forever
+        }
     }
 
     public function recordSet(actions:MapActionSet):void {
@@ -27,7 +31,9 @@ public class MapHistory {
         }
 
         this.present.push(actions);
-        this.erased.length = 0;
+        if (this.linear) {
+            this.erased.length = 0;
+        }
     }
 
     public function undo():MapActionSet {

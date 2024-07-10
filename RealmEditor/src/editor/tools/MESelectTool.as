@@ -158,17 +158,19 @@ public class MESelectTool extends METool {
             this.copySelectedTiles();
         }
 
-        var tileMap:TileMapView = this.mainView.mapView.tileMap;
-
         var selectAction:MapSelectAction = new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY));
         var actions:MapActionSet = new MapActionSet();
         actions.push(selectAction); // Push first our new selection to map history
 
         if (!firstMove) {
-            var undoneActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
-            if (undoneActions != null) {
-                undoneActions.swap(true); // Swap so that when user undoes these actions are redone
-                actions.pushSet(undoneActions);
+            var lastActions:MapActionSet = this.mainView.mapView.moveHistory.undo(); // Undo last moved tiles
+            if (lastActions != null) {
+                lastActions.swap(true); // Swap so that when user undoes these actions are redone
+                actions.pushSet(lastActions);
+            }
+
+            for each (var undoneActions:MapActionSet in this.mainView.mapView.moveHistory.erased){
+                undoneActions.redoAll();
             }
         } else { // Clear selected tile area the first time we move
             this.clearSelectedArea(actions);
@@ -176,6 +178,7 @@ public class MESelectTool extends METool {
 
         var idx:int = 0;
         var newActions:MapActionSet = new MapActionSet();
+        var tileMap:TileMapView = this.mainView.mapView.tileMap;
         for (var y:int = beginY; y <= endY; y++) { // Draw the saved tiles
             for (var x:int = beginX; x <= endX; x++) {
                 var prevTile:MapTileData = tileMap.getTileData(x, y).clone();
@@ -196,6 +199,12 @@ public class MESelectTool extends METool {
 
     private function copySelectedTiles():void {
         this.mainView.mapView.tilesMoved = new Vector.<MapTileData>();
+
+        var lastActions:MapActionSet = this.mainView.mapView.moveHistory.present.pop(); // When we're moving a new set of tiles, make sure to add the last moved tiles to erased
+        while (lastActions != null){
+            this.mainView.mapView.moveHistory.erased.push(lastActions);
+            lastActions = this.mainView.mapView.moveHistory.present.pop();
+        }
 
         var startX:int = this.mainView.mapView.selectionPos.x / TileMapView.TILE_SIZE;
         var startY:int = this.mainView.mapView.selectionPos.y / TileMapView.TILE_SIZE;
