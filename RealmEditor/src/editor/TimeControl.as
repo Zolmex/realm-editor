@@ -1,4 +1,5 @@
-package editor.ui {
+package editor {
+import editor.ui.*;
 import editor.actions.MapAction;
 
 import flash.utils.Dictionary;

@@ -5,8 +5,9 @@ import editor.MapTileData;
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
 import editor.actions.MapReplaceTileAction;
+import editor.actions.data.MapSelectData;
 import editor.ui.MainView;
-import editor.ui.MapHistory;
+import editor.MapHistory;
 import editor.ui.MapView;
 import editor.ui.TileMapView;
 
@@ -31,17 +32,16 @@ public class MEBucketTool extends METool {
     private function doFill(history:MapHistory):void {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var selectionPos:Shape = this.mainView.mapView.selectionPos;
-        var selectionSize:IntPoint = this.mainView.mapView.selectionSize;
+        var selection:MapSelectData = this.mainView.mapView.selection;
 
-        var startX:int = selectionPos.x / TileMapView.TILE_SIZE;
-        var startY:int = selectionPos.y / TileMapView.TILE_SIZE;
-        var width:int = selectionSize.x_;
-        var height:int = selectionSize.y_;
+        var startX:int = selection.startX;
+        var startY:int = selection.startY;
+        var endX:int = selection.endX;
+        var endY:int = selection.endY;
 
         var actions:MapActionSet = new MapActionSet();
-        for (var mapY:int = startY; mapY < startY + height; mapY++) {
-            for (var mapX:int = startX; mapX < startX + width; mapX++) {
+        for (var mapY:int = startY; mapY <= endY; mapY++) {
+            for (var mapX:int = startX; mapX <= endX; mapX++) {
                 var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
                 var changed:Boolean = true; // Flag to make sure we updated the tile data
                 switch (brush.elementType) {

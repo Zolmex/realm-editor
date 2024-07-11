@@ -1,4 +1,4 @@
-package editor.ui {
+package editor {
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
 

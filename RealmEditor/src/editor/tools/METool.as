@@ -1,7 +1,7 @@
 package editor.tools {
 import editor.*;
 import editor.ui.MainView;
-import editor.ui.MapHistory;
+import editor.MapHistory;
 import editor.ui.MapView;
 
 import flash.utils.Dictionary;

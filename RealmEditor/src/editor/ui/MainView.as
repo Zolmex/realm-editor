@@ -11,6 +11,8 @@ import editor.MEClipboard;
 import editor.MEDrawType;
 
 import editor.MEEvent;
+import editor.MapHistory;
+import editor.TimeControl;
 import editor.actions.MapEditAction;
 import editor.actions.MapSelectAction;
 import editor.actions.data.MapSelectData;

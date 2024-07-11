@@ -3,6 +3,8 @@ import assets.ground.GroundLibrary;
 import assets.objects.ObjectLibrary;
 import assets.regions.RegionLibrary;
 
+import editor.MapHistory;
+
 import editor.actions.MapAction;
 import editor.MEBrush;
 import editor.MEClipboard;
@@ -33,6 +35,8 @@ import util.IntPoint;
 
 public class MapView extends Sprite {
 
+    public static const EMPTY_SELECTION:MapSelectData = new MapSelectData(-1, -1, -1, -1);
+
     public var id:int; // Id of the map (based on load/create order)
     public var mapData:MapData;
     public var tileMap:TileMapView;
@@ -42,8 +46,8 @@ public class MapView extends Sprite {
     private var gridTexture:BitmapData;
     private var grid:Bitmap;
 
-    public var selectionSize:IntPoint;
-    public var selectionPos:Shape;
+    public var selection:MapSelectData;
+    public var selectionRect:Shape;
     private var highlightRect:Shape;
     private var brushPencil:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
     private var brushElementType:int;
@@ -68,9 +72,9 @@ public class MapView extends Sprite {
         this.highlightRect = new Shape();
         addChild(this.highlightRect);
 
-        this.selectionSize = new IntPoint(0, 0);
-        this.selectionPos = new Shape();
-        addChild(this.selectionPos);
+        this.selection = EMPTY_SELECTION;
+        this.selectionRect = new Shape();
+        addChild(this.selectionRect);
 
         this.brushPencil = new Bitmap();
         this.brushPencil.alpha = 0.9;
@@ -93,9 +97,8 @@ public class MapView extends Sprite {
     public function onMapLoadBegin():void {
 //        trace("GRAPHICS CLEARED");
 
-        this.selectionSize.x_ = 0;
-        this.selectionSize.y_ = 0;
-        this.selectionPos.graphics.clear();
+        this.selection = EMPTY_SELECTION;
+        this.selectionRect.graphics.clear();
         this.highlightRect.graphics.clear();
         // Clear user and undo actions
 
@@ -125,23 +128,12 @@ public class MapView extends Sprite {
     }
 
     public function recordSelectionClear(history:MapHistory):void{
-        var prevSelectionPos:Shape = this.selectionPos;
-        var prevSelectionSize:IntPoint = this.selectionSize;
-        var prevStartX:int = prevSelectionPos.x / TileMapView.TILE_SIZE;
-        var prevStartY:int = prevSelectionPos.y / TileMapView.TILE_SIZE;
-        var prevSelectionData:MapSelectData = new MapSelectData(prevStartX, prevStartY, prevStartX + prevSelectionSize.x_ - 1, prevStartY + prevSelectionSize.y_ - 1);
-        history.record(new MapSelectAction(prevSelectionData, MESelectTool.CLEARED_DATA));
+        history.record(new MapSelectAction(this.selection.clone(), EMPTY_SELECTION));
     }
 
     public function clearTileSelection():void {
-        this.selectionSize.x_ = 0;
-        this.selectionSize.y_ = 0;
-        this.selectionPos.graphics.clear();
-        this.resetTileMovement();
-    }
-
-    public function resetTileMovement():void {
-        this.tilesMoved = null;
+        this.selection = EMPTY_SELECTION;
+        this.selectionRect.graphics.clear();
     }
 
     public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void { // Use this for selecting a rectangle area of tiles by holding left mouse button
@@ -275,7 +267,7 @@ public class MapView extends Sprite {
     }
 
     public function drawTileSelection(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void {
-        var g:Graphics = this.selectionPos.graphics;
+        var g:Graphics = this.selectionRect.graphics;
         g.clear(); // Always clear first
 
         var startX:int = mapStartX * TileMapView.TILE_SIZE;
@@ -290,22 +282,21 @@ public class MapView extends Sprite {
         g.drawRect(0, 0, width, height);
         g.lineStyle();
 
-        this.selectionSize.x_ = width / TileMapView.TILE_SIZE;
-        this.selectionSize.y_ = height / TileMapView.TILE_SIZE;
-        this.selectionPos.x = startX;
-        this.selectionPos.y = startY;
+        this.selection = new MapSelectData(startX / TileMapView.TILE_SIZE, startY / TileMapView.TILE_SIZE, endX / TileMapView.TILE_SIZE, endY / TileMapView.TILE_SIZE);
+        this.selectionRect.x = startX;
+        this.selectionRect.y = startY;
     }
 
     public function isInsideSelection(mapX:int, mapY:int, needsSelection:Boolean = false):Boolean {
-        if (needsSelection && this.selectionPos.width == 0) {
+        if (needsSelection && this.selectionRect.width == 0) {
             return false;
         }
 
-        if (this.selectionPos.width != 0) {
+        if (this.selectionRect.width != 0) {
             var spriteX:int = mapX * TileMapView.TILE_SIZE;
             var spriteY:int = mapY * TileMapView.TILE_SIZE;
-            if (spriteX < this.selectionPos.x || spriteX >= this.selectionPos.x + this.selectionPos.width || // Check if tile is within selection limits
-                    spriteY < this.selectionPos.y || spriteY >= this.selectionPos.y + this.selectionPos.height) {
+            if (spriteX < this.selectionRect.x || spriteX >= this.selectionRect.x + this.selectionRect.width || // Check if tile is within selection limits
+                    spriteY < this.selectionRect.y || spriteY >= this.selectionRect.y + this.selectionRect.height) {
                 return false;
             }
         }
@@ -323,14 +314,14 @@ public class MapView extends Sprite {
     }
 
     public function copySelectionToClipboard(clipboard:MEClipboard):void {
-        if (this.selectionPos.x == -1 && this.selectionPos.y == -1) {
+        if (this.selectionRect.x == -1 && this.selectionRect.y == -1) {
             return;
         }
 
-        var startX:int = this.selectionPos.x / TileMapView.TILE_SIZE;
-        var startY:int = this.selectionPos.y / TileMapView.TILE_SIZE;
-        var width:int = this.selectionSize.x_;
-        var height:int = this.selectionSize.y_;
+        var startX:int = this.selection.startX;
+        var startY:int = this.selection.startY;
+        var width:int = this.selection.width;
+        var height:int = this.selection.height;
 
         clipboard.setSize(width, height);
         for (var mapY:int = startY; mapY < startY + height; mapY++) {
@@ -348,18 +339,14 @@ public class MapView extends Sprite {
         }
 
         var actions:MapActionSet = new MapActionSet();
-        var prevSelectionPos:Shape = this.selectionPos;
-        var prevSelectionSize:IntPoint = this.selectionSize;
-        var prevStartX:int = prevSelectionPos.x / TileMapView.TILE_SIZE;
-        var prevStartY:int = prevSelectionPos.y / TileMapView.TILE_SIZE;
-        var prevSelectionData:MapSelectData = new MapSelectData(prevStartX, prevStartY, prevStartX + prevSelectionSize.x_ - 1, prevStartY + prevSelectionSize.y_ - 1);
+        var prevSelection:MapSelectData = this.selection.clone();
 
         // Select pasted tiles
         this.clearTileSelection();
         this.drawTileSelection(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1); // Make the new pasted tiles the new selection
 
         var newSelectionData:MapSelectData = new MapSelectData(mapX, mapY, mapX + clipboard.width - 1, mapY + clipboard.height - 1);
-        actions.push(new MapSelectAction(prevSelectionData, newSelectionData));
+        actions.push(new MapSelectAction(prevSelection, newSelectionData));
 
         for (var tileY:int = mapY; tileY < mapY + clipboard.height; tileY++) { // Draw tile by tile from clipboard
             for (var tileX:int = mapX; tileX < mapX + clipboard.width; tileX++) {

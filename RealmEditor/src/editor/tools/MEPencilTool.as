@@ -5,7 +5,7 @@ import editor.MapTileData;
 import editor.actions.MapActionSet;
 import editor.actions.MapReplaceTileAction;
 import editor.ui.MainView;
-import editor.ui.MapHistory;
+import editor.MapHistory;
 import editor.ui.TileMapView;
 
 import util.IntPoint;

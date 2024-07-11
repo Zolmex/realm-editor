@@ -12,7 +12,7 @@ import editor.actions.MapSelectAction;
 import editor.actions.MapSelectAction;
 import editor.actions.data.MapSelectData;
 import editor.ui.MainView;
-import editor.ui.MapHistory;
+import editor.MapHistory;
 import editor.ui.MapInputHandler;
 import editor.ui.MapTileSprite;
 import editor.ui.MapView;
@@ -27,8 +27,6 @@ import flash.net.registerClassAlias;
 import util.IntPoint;
 
 public class MESelectTool extends METool {
-
-    public static const CLEARED_DATA:MapSelectData = new MapSelectData(-1, -1, -1, -1);
 
     private var selectionStart:IntPoint;
     private var prevSelection:MapSelectData;
@@ -91,8 +89,7 @@ public class MESelectTool extends METool {
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var selectionPos:Shape = this.mainView.mapView.selectionPos;
-        var selectionSize:IntPoint = this.mainView.mapView.selectionSize;
+        var selection:MapSelectData = this.mainView.mapView.selection;
         var tile:MapTileSprite = tileMap.getTileSprite(tilePos.x_, tilePos.y_);
         if (tile == null) {
             return;
@@ -100,13 +97,13 @@ public class MESelectTool extends METool {
 
         var startX:int = tilePos.x_ * TileMapView.TILE_SIZE;
         var startY:int = tilePos.y_ * TileMapView.TILE_SIZE;
-        if (selectionPos.x == startX && selectionPos.y == startY) { // Clear selection if we selected the same one-tile area
+        if (selection.startX == startX && selection.startY == startY) { // Clear selection if we selected the same one-tile area
             this.mainView.mapView.recordSelectionClear(history);
             this.mainView.mapView.clearTileSelection();
             return;
         }
 
-        history.record(getAction(selectionPos, selectionSize, new MapSelectData(tilePos.x_, tilePos.y_, tilePos.x_, tilePos.y_)));
+        history.record(new MapSelectAction(selection.clone(), new MapSelectData(tilePos.x_, tilePos.y_, tilePos.x_, tilePos.y_)));
 
         this.mainView.mapView.clearTileSelection();
         this.mainView.mapView.drawTileSelection(tilePos.x_, tilePos.y_, tilePos.x_, tilePos.y_); // Redraw the tile selection rectangle
@@ -122,12 +119,13 @@ public class MESelectTool extends METool {
     public function dragSelection(diffX:int, diffY:int, history:MapHistory):void {
         this.savePreviousSelection();
 
-        var startX:int = this.mainView.mapView.selectionPos.x / TileMapView.TILE_SIZE;
-        var startY:int = this.mainView.mapView.selectionPos.y / TileMapView.TILE_SIZE;
+        var selection:MapSelectData = this.mainView.mapView.selection;
+        var startX:int = selection.startX;
+        var startY:int = selection.startY;
         var beginX:int = startX + diffX;
         var beginY:int = startY + diffY;
-        var endX:int = beginX + this.mainView.mapView.selectionSize.x_ - 1;
-        var endY:int = beginY + this.mainView.mapView.selectionSize.y_ - 1;
+        var endX:int = beginX + this.mainView.mapView.selection.width - 1;
+        var endY:int = beginY + this.mainView.mapView.selection.height - 1;
 
         if (diffX == 0 && diffY == 0) { // Prevent from re-selecting in the same place
             return;
@@ -206,15 +204,15 @@ public class MESelectTool extends METool {
             lastActions = this.mainView.mapView.moveHistory.present.pop();
         }
 
-        var startX:int = this.mainView.mapView.selectionPos.x / TileMapView.TILE_SIZE;
-        var startY:int = this.mainView.mapView.selectionPos.y / TileMapView.TILE_SIZE;
-        var endX:int = startX + this.mainView.mapView.selectionSize.x_;
-        var endY:int = startY + this.mainView.mapView.selectionSize.y_;
+        var startX:int = this.mainView.mapView.selection.startX;
+        var startY:int = this.mainView.mapView.selection.startY;
+        var endX:int = this.mainView.mapView.selection.endX;
+        var endY:int = this.mainView.mapView.selection.endY;
 
         var idx:int = 0;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        for (var y:int = startY; y < endY; y++) {
-            for (var x:int = startX; x < endX; x++) {
+        for (var y:int = startY; y <= endY; y++) {
+            for (var x:int = startX; x <= endX; x++) {
                 var tile:MapTileData = tileMap.getTileData(x, y);
                 this.mainView.mapView.tilesMoved[idx] = tile.clone();
                 idx++;
@@ -223,14 +221,14 @@ public class MESelectTool extends METool {
     }
 
     private function clearSelectedArea(actions:MapActionSet):void {
-        var startX:int = this.mainView.mapView.selectionPos.x / TileMapView.TILE_SIZE;
-        var startY:int = this.mainView.mapView.selectionPos.y / TileMapView.TILE_SIZE;
-        var endX:int = startX + this.mainView.mapView.selectionSize.x_;
-        var endY:int = startY + this.mainView.mapView.selectionSize.y_;
+        var startX:int = this.mainView.mapView.selection.startX;
+        var startY:int = this.mainView.mapView.selection.startY;
+        var endX:int = this.mainView.mapView.selection.endX;
+        var endY:int = this.mainView.mapView.selection.endY;
 
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        for (var y:int = startY; y < endY; y++) {
-            for (var x:int = startX; x < endX; x++) {
+        for (var y:int = startY; y <= endY; y++) {
+            for (var x:int = startX; x <= endX; x++) {
                 var prevData:MapTileData = tileMap.getTileData(x, y).clone();
                 tileMap.clearTile(x, y);
 
@@ -240,22 +238,8 @@ public class MESelectTool extends METool {
     }
 
     private function savePreviousSelection():void {
-        var selectionPos:Shape = this.mainView.mapView.selectionPos;
-        var selectionSize:IntPoint = this.mainView.mapView.selectionSize;
-        var startX:int = selectionPos.x / TileMapView.TILE_SIZE; // Save previous selection data
-        var startY:int = selectionPos.y / TileMapView.TILE_SIZE;
-        if (selectionSize.x_ == 0 && selectionSize.y_ == 0) {
-            this.prevSelection = CLEARED_DATA;
-        } else {
-            this.prevSelection = new MapSelectData(startX, startY, startX + selectionSize.x_ - 1, startY + selectionSize.y_ - 1);
-        }
-    }
-
-    private static function getAction(selectionPos:Shape, selectionSize:IntPoint, newSelection:MapSelectData):MapSelectAction {
-        var startX:int = selectionPos.x / TileMapView.TILE_SIZE;
-        var startY:int = selectionPos.y / TileMapView.TILE_SIZE;
-        var prevSelection:MapSelectData = new MapSelectData(startX, startY, startX + selectionSize.x_ - 1, startY + selectionSize.y_ - 1);
-        return new MapSelectAction(prevSelection, newSelection);
+        var selection:MapSelectData = this.mainView.mapView.selection;
+        this.prevSelection = selection.clone();
     }
 }
 }

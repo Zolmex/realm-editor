@@ -3,7 +3,7 @@ import editor.MEBrush;
 import editor.MEDrawType;
 import editor.MapTileData;
 import editor.ui.MainView;
-import editor.ui.MapHistory;
+import editor.MapHistory;
 import editor.ui.MapView;
 
 import util.IntPoint;
