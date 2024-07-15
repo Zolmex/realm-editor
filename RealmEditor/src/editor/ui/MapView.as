@@ -3,6 +3,8 @@ import assets.ground.GroundLibrary;
 import assets.objects.ObjectLibrary;
 import assets.regions.RegionLibrary;
 
+import editor.MapDragController;
+
 import editor.MapHistory;
 
 import editor.actions.MapAction;
@@ -53,14 +55,13 @@ public class MapView extends Sprite {
     private var brushElementType:int;
     private var brushTextureType:int;
 
-    public var tilesMoved:Vector.<MapTileData>;
-    public var moveHistory:MapHistory;
+    public var dragController:MapDragController;
 
     public function MapView(id:int, mapData:MapData) {
         this.id = id;
         this.mapData = mapData;
         this.mapOffset = new IntPoint();
-        this.moveHistory = new MapHistory(false); // Marking linear as false lets us access undone actions even after pushing new actions
+        this.dragController = new MapDragController(this);
 
         this.grid = new Bitmap(null);
         this.grid.visible = false;
@@ -134,6 +135,7 @@ public class MapView extends Sprite {
     public function clearTileSelection():void {
         this.selection = EMPTY_SELECTION;
         this.selectionRect.graphics.clear();
+        this.dragController.reset();
     }
 
     public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void { // Use this for selecting a rectangle area of tiles by holding left mouse button

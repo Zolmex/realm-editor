@@ -89,7 +89,7 @@ public class MainView extends Sprite {
     public var selectedTool:METool;
     private var lastMousePos:Point;
     private var clipBoard:MEClipboard;
-    private var timeControl:TimeControl; // Controls actions done/undone in each map
+    public var timeControl:TimeControl; // Controls actions done/undone in each map
 
     public function MainView() {
         this.userBrush = new MEBrush(MEDrawType.GROUND, 0);
