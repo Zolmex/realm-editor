@@ -69,7 +69,9 @@ public class MESelectTool extends METool {
             }
         }
 
-        this.mainView.mapView.selectTileArea(this.selectionStart.x_, this.selectionStart.y_, tilePos.x_, tilePos.y_);
+        if (this.selectionStart.x_ != tilePos.x_ || this.selectionStart.y_ != tilePos.y_) {
+            this.mainView.mapView.selectTileArea(this.selectionStart.x_, this.selectionStart.y_, tilePos.x_, tilePos.y_);
+        }
     }
 
     public override function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void {
@@ -82,6 +84,13 @@ public class MESelectTool extends METool {
         var beginY:int = this.selectionStart.y_ < tilePos.y_ ? this.selectionStart.y_ : tilePos.y_;
         var endX:int = this.selectionStart.x_ < tilePos.x_ ? tilePos.x_ : this.selectionStart.x_;
         var endY:int = this.selectionStart.y_ < tilePos.y_ ? tilePos.y_ : this.selectionStart.y_;
+        if (endX == beginX && endY == beginY) { // 1 tile selected = unselect
+            this.mainView.mapView.recordSelectionClear(history);
+            this.mainView.mapView.clearTileSelection();
+            this.reset();
+            return;
+        }
+
         history.record(new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY)));
         this.lastDragPos = new IntPoint(beginX, beginY);
 
@@ -89,26 +98,12 @@ public class MESelectTool extends METool {
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
-        var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var selection:MapSelectData = this.mainView.mapView.selection;
-        var tile:MapTileSprite = tileMap.getTileSprite(tilePos.x_, tilePos.y_);
-        if (tile == null) {
+        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)){ // Don't do anything if user clicked once inside selection
             return;
         }
 
-        var startX:int = tilePos.x_ * TileMapView.TILE_SIZE;
-        var startY:int = tilePos.y_ * TileMapView.TILE_SIZE;
-        if (selection.startX == startX && selection.startY == startY) { // Clear selection if we selected the same one-tile area
-            this.mainView.mapView.recordSelectionClear(history);
-            this.mainView.mapView.clearTileSelection();
-            return;
-        }
-
-        history.record(new MapSelectAction(selection.clone(), new MapSelectData(tilePos.x_, tilePos.y_, tilePos.x_, tilePos.y_)));
-
+        this.mainView.mapView.recordSelectionClear(history);
         this.mainView.mapView.clearTileSelection();
-        this.mainView.mapView.drawTileSelection(tilePos.x_, tilePos.y_, tilePos.x_, tilePos.y_); // Redraw the tile selection rectangle
-        this.lastDragPos = new IntPoint(tilePos.x_, tilePos.y_);
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
