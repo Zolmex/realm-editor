@@ -38,9 +38,21 @@ public class SimpleTextInput extends Sprite {
         this.inputText.updateMetrics();
         addChild(this.inputText);
 
+        this.drawBackground();
+    }
+
+    public function setWidth(newWidth:int):void {
+        this.inputText.inputWidth_ = newWidth;
+        this.inputText.updateMetrics();
+
+        this.drawBackground();
+    }
+
+    private function drawBackground():void {
         var bgWidth:int = width + 5;
         var bgHeight:int = height;
         var bg:Graphics = this.background.graphics;
+        bg.clear();
         bg.beginFill(Constants.BACK_COLOR_1, 0.9);
         bg.drawRoundRect(0, 0, bgWidth, bgHeight, 5, 5);
         bg.endFill();

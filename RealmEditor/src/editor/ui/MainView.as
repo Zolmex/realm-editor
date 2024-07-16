@@ -69,7 +69,7 @@ public class MainView extends Sprite {
     private var newButton:SimpleTextButton;
     private var saveButton:SimpleTextButton;
     private var saveWmapButton:SimpleTextButton;
-    private var mapCreateWindow:MapCreateWindow;
+    private var mapCreateWindow:CreateMapWindow;
     private var assetsWindow:AssetsWindow;
 
     private var inputHandler:MapInputHandler;
@@ -362,7 +362,7 @@ public class MainView extends Sprite {
 
     private function onNewClick(e:Event):void {
         if (this.mapCreateWindow == null) {
-            this.mapCreateWindow = new MapCreateWindow(); // Window where user inputs name, width and height of the map
+            this.mapCreateWindow = new CreateMapWindow(); // Window where user inputs name, width and height of the map
             this.mapCreateWindow.x = (Main.StageWidth - this.mapCreateWindow.width) / 2;
             this.mapCreateWindow.y = (Main.StageHeight - this.mapCreateWindow.height) / 2;
             this.mapCreateWindow.addEventListener(MEEvent.MAP_CREATE, this.onMapCreate); // Dispatched when user clicks OK
