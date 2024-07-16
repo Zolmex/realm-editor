@@ -302,10 +302,25 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.mapView.zoomLevel += this.mapView.zoomLevel / e.delta + 1; // + 1 for divisions that result in less than 1
-        this.mapView.zoomLevel = Math.max(1, Math.min(this.mapView.zoomLevel, MAX_ZOOM));
+        var zoomLevel:int = this.mapView.zoomLevel + (this.mapView.zoomLevel / e.delta + 1); // + 1 for divisions that result in less than 1
+        zoomLevel = Math.max(1, Math.min(zoomLevel, MAX_ZOOM));
 
-        this.updateZoomLevel();
+        if (this.mapView.zoomLevel != zoomLevel){
+            this.mapView.zoomLevel = zoomLevel;
+            var deltaX:Number = Main.StageWidth / 2 - Main.STAGE.mouseX; // Figure out how far from the middle the mouse is
+            var deltaY:Number = Main.StageHeight / 2 - Main.STAGE.mouseY;
+            if (e.delta < 0){ // Invert the order
+                deltaX *= -1;
+                deltaY *= -1;
+            }
+
+            var zoom:Number = Math.max(1, Math.min(MAX_ZOOM, MAX_ZOOM / this.mapView.zoomLevel));
+            this.mapView.mapOffset.x_ += deltaX * (zoom * 0.5);
+            this.mapView.mapOffset.y_ += deltaY * (zoom * 0.5);
+
+            this.updateZoomLevel();
+
+        }
     }
 
     private function onStageResize(e:Event):void {
@@ -461,7 +476,12 @@ public class MainView extends Sprite {
     }
 
     private function onZoomInputChange(e:Event):void {
-        this.mapView.zoomLevel = int(this.zoomInput.inputText.text);
+        var zoomLevel:int = int(this.zoomInput.inputText.text);
+        if (this.mapView.zoomLevel == zoomLevel){
+            return;
+        }
+
+        this.mapView.zoomLevel = zoomLevel;
         this.updateZoomLevel();
     }
 
@@ -509,7 +529,7 @@ public class MainView extends Sprite {
     }
 
     private function onMouseDragEnd(e:Event):void {
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             return;
         }
@@ -522,7 +542,7 @@ public class MainView extends Sprite {
     }
 
     private function onTileClick(e:Event):void { // Perform select/draw/erase actions here
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             return;
         }
@@ -557,7 +577,7 @@ public class MainView extends Sprite {
     }
 
     private function onMouseMoved(e:Event):void {
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             this.tileInfoPanel.visible = false;
             return;
@@ -620,7 +640,7 @@ public class MainView extends Sprite {
             this.mapView.highlightTile(-1, -1);
         }
 
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             return;
         }
@@ -687,7 +707,7 @@ public class MainView extends Sprite {
                 break;
         }
 
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             return;
         }
@@ -709,7 +729,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             return;
         }
@@ -728,27 +748,43 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionUp(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
         selectTool.dragSelection(0, -1, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionDown(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
         selectTool.dragSelection(0, 1, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionLeft(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
         selectTool.dragSelection(-1, 0, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionRight(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
         selectTool.dragSelection(1, 0, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onBrushSizeChanged():void {
-        var tilePos:IntPoint = getMouseTilePosition();
+        var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
             return;
         }
