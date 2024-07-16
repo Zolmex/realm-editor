@@ -101,6 +101,7 @@ public class MainView extends Sprite {
         addChild(this.background);
 
         this.mapViewContainer = new MapViewContainer();
+        this.mapViewContainer.addChild(this.background);
         addChild(this.mapViewContainer);
 
         this.setupInput();
@@ -309,7 +310,7 @@ public class MainView extends Sprite {
             this.mapView.zoomLevel = zoomLevel;
             var deltaX:Number = Main.StageWidth / 2 - Main.STAGE.mouseX; // Figure out how far from the middle the mouse is
             var deltaY:Number = Main.StageHeight / 2 - Main.STAGE.mouseY;
-            if (e.delta < 0){ // Invert the order
+            if (e.delta < 0){ // Invert the order if we're zooming out
                 deltaX *= -1;
                 deltaY *= -1;
             }
