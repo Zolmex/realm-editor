@@ -78,7 +78,13 @@ public class MEPencilTool extends METool {
     private function paintTile(mapX:int, mapY:int):MapReplaceTileAction {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
+        var prevData:MapTileData = tileMap.getTileData(mapX, mapY);
+        if (prevData == null){
+            return null;
+        }
+        else {
+            prevData = prevData.clone();
+        }
 
         switch (brush.elementType) {
             case MEDrawType.GROUND:

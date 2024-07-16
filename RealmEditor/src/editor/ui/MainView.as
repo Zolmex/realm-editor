@@ -266,8 +266,8 @@ public class MainView extends Sprite {
         this.objectFilterView.y = this.drawElementsList.y;
 
         if (this.mapView) {
-            this.mapView.x = (Main.StageWidth - this.mapView.width) / 2;
-            this.mapView.y = (Main.StageHeight - this.mapView.height) / 2;
+            this.mapView.x = (Main.StageWidth - (this.mapData.mapWidth * TileMapView.TILE_SIZE) * this.mapView.scaleX) / 2;
+            this.mapView.y = (Main.StageHeight - (this.mapData.mapHeight * TileMapView.TILE_SIZE) * this.mapView.scaleY) / 2;
             this.mapView.x += this.mapView.mapOffset.x_ * this.mapView.zoomLevel / MAX_ZOOM;
             this.mapView.y += this.mapView.mapOffset.y_ * this.mapView.zoomLevel / MAX_ZOOM;
         }
@@ -320,7 +320,6 @@ public class MainView extends Sprite {
             this.mapView.mapOffset.y_ += deltaY * (zoom * 0.5);
 
             this.updateZoomLevel();
-
         }
     }
 

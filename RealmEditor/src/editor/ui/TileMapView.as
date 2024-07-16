@@ -76,6 +76,10 @@ public class TileMapView extends Sprite {
     }
 
     public function drawTile(mapX:int, mapY:int):void {
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -111,6 +115,10 @@ public class TileMapView extends Sprite {
 
     // Note: don't forget to call drawTile() after this method
     public function setTileData(mapX:int, mapY:int, tileData:MapTileData):void{
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -124,6 +132,10 @@ public class TileMapView extends Sprite {
     }
 
     public function setTileGround(mapX:int, mapY:int, groundType:int):void{ // Modify the tile's data, but don't draw unless we want to, in that case we cal drawTile()
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -137,6 +149,10 @@ public class TileMapView extends Sprite {
     }
 
     public function setTileObject(mapX:int, mapY:int, objType:int):void{
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -150,6 +166,10 @@ public class TileMapView extends Sprite {
     }
 
     public function setTileRegion(mapX:int, mapY:int, regType:int):void{
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -176,6 +196,10 @@ public class TileMapView extends Sprite {
     }
 
     public function getTileSprite(mapX:int, mapY:int):MapTileSprite {
+        if (mapX < 0 || mapY < 0){
+            return null;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return null;
@@ -184,6 +208,10 @@ public class TileMapView extends Sprite {
     }
 
     public function getTileData(mapX:int, mapY:int):MapTileData {
+        if (mapX < 0 || mapY < 0){
+            return null;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return null;
@@ -192,6 +220,10 @@ public class TileMapView extends Sprite {
     }
 
     public function clearGround(mapX:int, mapY:int):void {
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -206,6 +238,10 @@ public class TileMapView extends Sprite {
     }
 
     public function clearObject(mapX:int, mapY:int):void {
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;
@@ -220,6 +256,10 @@ public class TileMapView extends Sprite {
     }
 
     public function clearRegion(mapX:int, mapY:int):void {
+        if (mapX < 0 || mapY < 0){
+            return;
+        }
+
         var idx:int = mapX + mapY * this.mapData.mapWidth;
         if (idx < 0 || idx >= this.tiles.length) {
             return;

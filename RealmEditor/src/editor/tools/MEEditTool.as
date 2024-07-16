@@ -13,6 +13,14 @@ public class MEEditTool extends METool {
         super(METool.EDIT_ID, view);
     }
 
+    public override function init(tilePos:IntPoint, history:MapHistory):void {
+        this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
+    }
+
+    public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
+        this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
+    }
+
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
         var tileData:MapTileData = this.mainView.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
         if (tileData == null || tileData.objType == 0) {

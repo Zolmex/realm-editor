@@ -21,6 +21,14 @@ public class MEBucketTool extends METool {
         super(METool.BUCKET_ID, view);
     }
 
+    public override function init(tilePos:IntPoint, history:MapHistory):void {
+        this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
+    }
+
+    public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
+        this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
+    }
+
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
         if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)){
             return;

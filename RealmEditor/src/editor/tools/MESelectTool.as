@@ -40,9 +40,7 @@ public class MESelectTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
-        if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-            this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
-        }
+        this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
     public override function reset():void {
@@ -107,9 +105,7 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
-        if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) {
-            this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
-        }
+        this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
     public function dragSelectionTo(mapX:int, mapY:int, history:MapHistory):void {
