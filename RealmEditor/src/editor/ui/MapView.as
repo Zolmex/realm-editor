@@ -54,6 +54,8 @@ public class MapView extends Sprite {
     private var brushPencil:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
     private var brushElementType:int;
     private var brushTextureType:int;
+    private var canvasTexture:BitmapData;
+    private var canvasOutline:Bitmap;
 
     public var dragController:MapDragController;
 
@@ -80,6 +82,9 @@ public class MapView extends Sprite {
         this.brushPencil = new Bitmap();
         this.brushPencil.alpha = 0.9;
         addChild(this.brushPencil);
+
+        this.canvasOutline = new Bitmap(null);
+        addChild(this.canvasOutline);
     }
 
     private function drawGrid():void {
@@ -109,7 +114,13 @@ public class MapView extends Sprite {
             this.gridTexture = null;
         }
 
+        if (this.canvasTexture) {
+            this.canvasTexture.dispose();
+            this.canvasTexture = null;
+        }
+
         this.gridTexture = new BitmapData(TileMapView.TILE_SIZE * this.mapData.mapWidth, TileMapView.TILE_SIZE * this.mapData.mapHeight, true, 0);
+        this.canvasTexture = new BitmapData(this.mapData.mapWidth * TileMapView.TILE_SIZE, this.mapData.mapHeight * TileMapView.TILE_SIZE, true, 0);
     }
 
     public function onMapLoadEnd():void {
@@ -117,6 +128,15 @@ public class MapView extends Sprite {
 
         this.tileMap.onMapLoadEnd();
         this.drawGrid();
+        this.drawCanvasOutline();
+    }
+
+    private function drawCanvasOutline():void {
+        this.canvasTexture.fillRect(new Rectangle(0, 0, 1, this.canvasTexture.height), 1593835520 | 0xFFFFFF);
+        this.canvasTexture.fillRect(new Rectangle(0, 0, this.canvasTexture.width, 1), 1593835520 | 0xFFFFFF);
+        this.canvasTexture.fillRect(new Rectangle(this.canvasTexture.width - 1, 0, 1, this.canvasTexture.height), 1593835520 | 0xFFFFFF);
+        this.canvasTexture.fillRect(new Rectangle(0, this.canvasTexture.height - 1, this.canvasTexture.width, 1), 1593835520 | 0xFFFFFF);
+        this.canvasOutline.bitmapData = this.canvasTexture;
     }
 
     public function toggleGrid():Boolean {
