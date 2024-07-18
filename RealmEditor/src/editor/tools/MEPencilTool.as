@@ -17,9 +17,7 @@ public class MEPencilTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
-        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
-            this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
-        }
+        this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
     }
 
     public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
@@ -31,9 +29,7 @@ public class MEPencilTool extends METool {
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
-        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
-            this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
-        }
+        this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
     }
 
     private function usePencil(tilePos:IntPoint, history:MapHistory):void {
