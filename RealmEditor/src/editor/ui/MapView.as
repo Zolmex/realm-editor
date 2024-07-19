@@ -65,12 +65,12 @@ public class MapView extends Sprite {
         this.mapOffset = new IntPoint();
         this.dragController = new MapDragController(this);
 
+        this.tileMap = new TileMapView();
+        addChild(this.tileMap);
+
         this.grid = new Bitmap(null);
         this.grid.visible = false;
         addChild(this.grid);
-
-        this.tileMap = new TileMapView();
-        addChild(this.tileMap);
 
         this.highlightRect = new Shape();
         addChild(this.highlightRect);
