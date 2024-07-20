@@ -66,7 +66,7 @@ public class TileInfoPanel extends Sprite {
     }
 
     public function setInfo(x:int, y:int, tileData:MapTileData):void {
-        if (tileData == null || (tileData.groundType == -1 && tileData.objType == 0 && tileData.regType == 0) || tileData == this.tile) {
+        if (tileData == null || tileData == this.tile) {
             return;
         }
 

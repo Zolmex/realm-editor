@@ -592,7 +592,7 @@ public class MainView extends Sprite {
 
     private function updateTileInfoPanel(tilePos:IntPoint):void {
         var tileData:MapTileData = this.mapView.tileMap.getTileData(tilePos.x_, tilePos.y_);
-        if (tileData == null || (tileData.groundType == -1 && tileData.objType == 0 && tileData.regType == 0)) {
+        if (tileData == null) {
             this.tileInfoPanel.visible = false;
             return;
         }
