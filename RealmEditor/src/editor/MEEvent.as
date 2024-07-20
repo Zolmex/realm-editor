@@ -37,5 +37,6 @@ public class MEEvent {
     public static const ASSETS_DIR_SELECT:String = "AssetsDirSelect";
     public static const ASSETS_DIR_REMOVED:String = "AssetsDirRemoved";
     public static const ASSETS_DIR_ADDED:String = "AssetsDirAdded";
+    public static const TOGGLE_DEBUG:String = "ToggleDebug";
 }
 }

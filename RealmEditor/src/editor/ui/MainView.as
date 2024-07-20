@@ -81,6 +81,7 @@ public class MainView extends Sprite {
     private var drawTypeSwitch:MultiOptionalSwitch;
     private var editNameView:EditTileNameView;
     private var objectFilterView:ObjectFilterOptionsView;
+    private var debugView:DebugView;
 
     private var drawElementsList:MapDrawElementListView;
     private var toolBar:MapToolbar;
@@ -182,6 +183,7 @@ public class MainView extends Sprite {
         this.notifications = new NotificationView();
         addChild(this.notifications);
 
+        Main.STAGE.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
         Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.STAGE.addEventListener(Event.RESIZE, this.onStageResize);
         this.updateScale();
@@ -210,6 +212,7 @@ public class MainView extends Sprite {
         this.inputHandler.addEventListener(MEEvent.MOVE_SELECTION_DOWN, this.onMoveSelectionDown);
         this.inputHandler.addEventListener(MEEvent.MOVE_SELECTION_LEFT, this.onMoveSelectionLeft);
         this.inputHandler.addEventListener(MEEvent.MOVE_SELECTION_RIGHT, this.onMoveSelectionRight);
+        this.inputHandler.addEventListener(MEEvent.TOGGLE_DEBUG, this.onToggleDebug);
     }
 
     private function updateScale():void {
@@ -286,6 +289,11 @@ public class MainView extends Sprite {
             this.editNameView.x = (Main.StageWidth - this.editNameView.width) / 2;
             this.editNameView.y = (Main.StageHeight - this.editNameView.height) / 2;
         }
+
+        if (this.debugView != null && this.debugView.visible){
+            this.debugView.x = 10;
+            this.debugView.y = Main.StageHeight - this.debugView.height - 10;
+        }
     }
 
     private function onMouseWheel(e:MouseEvent):void {
@@ -328,6 +336,12 @@ public class MainView extends Sprite {
         this.updatePositions();
 
         this.drawElementsList.onScreenResize();
+    }
+
+    private function onEnterFrame(e:Event):void {
+        if (this.debugView != null && this.debugView.visible){
+            this.debugView.updateStats();
+        }
     }
 
     private static function onExitClick(e:Event):void {
@@ -802,6 +816,18 @@ public class MainView extends Sprite {
                 this.notifications.showNotification(message, 14, 5);
             }
         }
+    }
+
+    private function onToggleDebug(e:Event):void {
+        if (this.debugView == null){
+            this.debugView = new DebugView();
+            addChild(this.debugView);
+        }
+        else {
+            this.debugView.show(!this.debugView.visible);
+        }
+
+        this.updatePositions();
     }
 }
 }

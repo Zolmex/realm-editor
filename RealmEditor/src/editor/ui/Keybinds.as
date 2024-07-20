@@ -34,6 +34,7 @@ public class Keybinds {
         KEYS[Keyboard.DOWN] = MEEvent.MOVE_SELECTION_DOWN;
         KEYS[Keyboard.LEFT] = MEEvent.MOVE_SELECTION_LEFT;
         KEYS[Keyboard.RIGHT] = MEEvent.MOVE_SELECTION_RIGHT;
+        KEYS[Keyboard.F3] = MEEvent.TOGGLE_DEBUG;
         SHIFT_KEYS[Keyboard.G] = MEEvent.GRID_ENABLE;
         CTRL_KEYS[Keyboard.C] = MEEvent.COPY;
         CTRL_KEYS[Keyboard.V] = MEEvent.PASTE;
