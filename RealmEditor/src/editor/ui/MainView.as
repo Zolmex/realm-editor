@@ -302,7 +302,8 @@ public class MainView extends Sprite {
         }
 
         if (e.ctrlKey && (this.selectedTool.id == METool.PENCIL_ID || this.selectedTool.id == METool.ERASER_ID)) { // We're increasing/decreasing the brush size
-            this.userBrush.size += int(Math.ceil(e.delta));
+            var val:int = Math.min(Math.max(int(Math.ceil(e.delta)), -1), 1);
+            this.userBrush.size += val;
             if (this.userBrush.size < 0) {
                 this.userBrush.size = 0;
             }
