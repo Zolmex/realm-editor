@@ -14,7 +14,6 @@ public class DebugView extends Sprite {
     private var memoryText:SimpleText;
 
     private var statsCooldown:int;
-    private var lastFrameTime:int;
 
     public function DebugView() {
         this.background = new Shape();
@@ -40,12 +39,9 @@ public class DebugView extends Sprite {
         }
     }
 
-    public function updateStats():void {
-        var time:int = getTimer();
-        var dt:int = time - this.lastFrameTime;
-        this.lastFrameTime = time;
+    public function updateStats(time:int, deltaTime:int):void {
         if (this.statsCooldown == 0) {
-            var fps:int = int(1000.0 / dt);
+            var fps:int = int(1000.0 / deltaTime);
             this.fpsText.setText("FPS: " + fps);
             var memory:Number = System.privateMemory / 1000000.0;
             this.memoryText.setText("Memory: " + memory.toFixed(2) + " MB");
@@ -56,7 +52,7 @@ public class DebugView extends Sprite {
 
             this.statsCooldown = 1000;
         } else {
-            this.statsCooldown -= dt;
+            this.statsCooldown -= deltaTime;
             if (this.statsCooldown < 0){
                 this.statsCooldown = 0;
             }

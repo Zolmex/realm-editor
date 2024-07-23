@@ -12,6 +12,9 @@ import editor.ui.TileMapView;
 import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.events.IOErrorEvent;
+import flash.filesystem.File;
+import flash.filesystem.FileMode;
+import flash.filesystem.FileStream;
 import flash.net.FileFilter;
 import flash.net.FileReference;
 import flash.utils.ByteArray;
@@ -19,6 +22,7 @@ import flash.utils.ByteArray;
 import flash.utils.CompressionAlgorithm;
 import flash.utils.Dictionary;
 import flash.utils.Endian;
+import flash.utils.getTimer;
 
 import util.BinaryUtils;
 
@@ -50,7 +54,7 @@ public class MapData extends EventDispatcher {
         this.dispatchEvent(new Event(MEEvent.MAP_LOAD_END));
     }
 
-    public function save(wmap:Boolean):void {
+    public function save(wmap:Boolean, autoSave:Boolean = false):void {
         if (this.tileDict == null || this.tileDict.length == 0) {
             return;
         }
@@ -60,8 +64,21 @@ public class MapData extends EventDispatcher {
             return;
         }
 
-        var saveFile:FileReference = new FileReference();
-        saveFile.save(mapBytes, this.mapName + (wmap ? ".wmap" : ".jm"));
+        var fullMapName:String = this.mapName + (wmap ? ".wmap" : ".jm");
+        if (!autoSave) {
+            var saveFile:FileReference = new FileReference(); // Prompts the user to save to a specific folder
+            saveFile.save(mapBytes, fullMapName);
+        }
+        else{ // Automatic saving every 15 seconds
+            var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave");
+            autoSaveFolder.createDirectory(); // This will create the directory if it doesn't exist already
+
+            var file:File = autoSaveFolder.resolvePath(fullMapName);
+            var fs:FileStream = new FileStream();
+            fs.open(file, FileMode.WRITE);
+            fs.writeBytes(mapBytes);
+            fs.close();
+        }
     }
 
     public function load(tileMap:TileMapView):void {

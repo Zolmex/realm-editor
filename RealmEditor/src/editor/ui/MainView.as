@@ -6,6 +6,8 @@ import assets.ground.GroundLibrary;
 import assets.objects.ObjectLibrary;
 import assets.regions.RegionLibrary;
 
+import editor.AutoMapSaver;
+
 import editor.MEBrush;
 import editor.MEClipboard;
 import editor.MEDrawType;
@@ -49,6 +51,7 @@ import flash.system.fscommand;
 import flash.ui.Keyboard;
 import flash.ui.Mouse;
 import flash.utils.Dictionary;
+import flash.utils.getTimer;
 
 import util.IntPoint;
 
@@ -92,11 +95,15 @@ public class MainView extends Sprite {
     private var clipBoard:MEClipboard;
     public var timeControl:TimeControl; // Controls actions done/undone in each map
 
+    private var lastUpdate:int;
+    private var autoSaver:AutoMapSaver;
+
     public function MainView() {
         this.userBrush = new MEBrush(MEDrawType.GROUND, 0);
         this.clipBoard = new MEClipboard();
         this.timeControl = new TimeControl();
         this.selectedTool = new MESelectTool(this);
+        this.autoSaver = new AutoMapSaver();
 
         this.background = new Background();
         addChild(this.background);
@@ -183,7 +190,7 @@ public class MainView extends Sprite {
         this.notifications = new NotificationView();
         addChild(this.notifications);
 
-        Main.STAGE.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
+        Main.STAGE.addEventListener(Event.ENTER_FRAME, this.update);
         Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.STAGE.addEventListener(Event.RESIZE, this.onStageResize);
         this.updateScale();
@@ -339,9 +346,17 @@ public class MainView extends Sprite {
         this.drawElementsList.onScreenResize();
     }
 
-    private function onEnterFrame(e:Event):void {
+    private function update(e:Event):void { // Runs every frame
+        var time:int = getTimer();
+        var deltaTime:int = time - this.lastUpdate;
+        this.lastUpdate = time;
+
         if (this.debugView != null && this.debugView.visible){
-            this.debugView.updateStats();
+            this.debugView.updateStats(time, deltaTime);
+        }
+
+        if (this.mapData != null) {
+            this.autoSaver.trySaveMap(this.mapData, deltaTime);
         }
     }
 
