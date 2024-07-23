@@ -2,6 +2,7 @@ package editor.tools {
 import editor.MEBrush;
 import editor.MEDrawType;
 import editor.MapTileData;
+import editor.MapTileData;
 import editor.actions.MapAction;
 import editor.actions.MapActionSet;
 import editor.actions.MapReplaceTileAction;
@@ -12,6 +13,8 @@ import editor.ui.MapView;
 import editor.ui.TileMapView;
 
 import flash.display.Shape;
+
+import util.IntPoint;
 
 import util.IntPoint;
 
@@ -30,60 +33,59 @@ public class MEBucketTool extends METool {
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
-        if (!this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)){
+        this.doFill(tilePos, history);
+    }
+
+    private function doFill(tilePos:IntPoint, history:MapHistory):void {
+        var actions:MapActionSet = new MapActionSet();
+
+        // DFS (Depth-First Search) algorithm
+        var tileMap:TileMapView = this.mainView.mapView.tileMap;
+        var origTile:MapTileData = tileMap.getTileData(tilePos.x_, tilePos.y_).clone();
+        this.fillTile(tilePos.x_, tilePos.y_, origTile, actions); // Do fill on the current tile, recursion will continue within this method
+
+        history.recordSet(actions);
+    }
+
+    private function fillTile(mapX:int, mapY:int, origTile:MapTileData, actions:MapActionSet):void {
+        var brush:MEBrush = this.mainView.userBrush;
+        var tileMap:TileMapView = this.mainView.mapView.tileMap;
+
+        var prevData:MapTileData = tileMap.getTileData(mapX, mapY);
+        if (prevData == null){
             return;
         }
 
-        this.doFill(history);
-    }
+        prevData = prevData.clone();
 
-    private function doFill(history:MapHistory):void {
-        var brush:MEBrush = this.mainView.userBrush;
-        var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var selection:MapSelectData = this.mainView.mapView.selection;
-
-        var startX:int = selection.startX;
-        var startY:int = selection.startY;
-        var endX:int = selection.endX;
-        var endY:int = selection.endY;
-
-        var actions:MapActionSet = new MapActionSet();
-        for (var mapY:int = startY; mapY <= endY; mapY++) {
-            for (var mapX:int = startX; mapX <= endX; mapX++) {
-                var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
-                var changed:Boolean = true; // Flag to make sure we updated the tile data
-                switch (brush.elementType) {
-                    case MEDrawType.GROUND:
-                        if (prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same
-                            changed = false;
-                            break;
-                        }
-                        tileMap.setTileGround(mapX, mapY, brush.groundType);
-                        break;
-                    case MEDrawType.OBJECTS:
-                        if (prevData.objType == brush.objType) {
-                            changed = false;
-                            break;
-                        }
-                        tileMap.setTileObject(mapX, mapY, brush.objType);
-                        break;
-                    case MEDrawType.REGIONS:
-                        if (prevData.regType == brush.regType) {
-                            changed = false;
-                            break;
-                        }
-                        tileMap.setTileRegion(mapX, mapY, brush.regType);
-                        break;
+        switch (brush.elementType) {
+            case MEDrawType.GROUND:
+                if (prevData.groundType != origTile.groundType || prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same
+                    return;
                 }
-
-                if (changed) {
-                    tileMap.drawTile(mapX, mapY);
-                    actions.push(new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
+                tileMap.setTileGround(mapX, mapY, brush.groundType);
+                break;
+            case MEDrawType.OBJECTS:
+                if (prevData.objType != origTile.objType || prevData.objType == brush.objType) {
+                    return;
                 }
-            }
+                tileMap.setTileObject(mapX, mapY, brush.objType);
+                break;
+            case MEDrawType.REGIONS:
+                if (prevData.regType != origTile.regType || prevData.regType == brush.regType) {
+                    return;
+                }
+                tileMap.setTileRegion(mapX, mapY, brush.regType);
+                break;
         }
 
-        history.recordSet(actions);
+        tileMap.drawTile(mapX, mapY);
+        actions.push(new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
+
+        this.fillTile(mapX + 1, mapY, origTile, actions); // Try to perform fill on the nearby tiles
+        this.fillTile(mapX - 1, mapY, origTile, actions);
+        this.fillTile(mapX, mapY + 1, origTile, actions);
+        this.fillTile(mapX, mapY - 1, origTile, actions);
     }
 }
 }
