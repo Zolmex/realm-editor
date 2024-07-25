@@ -34,7 +34,15 @@ public class MEBucketTool extends METool {
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
-        this.doFill(tilePos, history);
+        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) { // Restrict bucket tool to only work inside the selected area
+            this.doFill(tilePos, history);
+        }
+    }
+
+    public override function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void {
+        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
+            this.doFill(tilePos, history);
+        }
     }
 
     private function doFill(tilePos:IntPoint, history:MapHistory):void {
@@ -57,12 +65,20 @@ public class MEBucketTool extends METool {
         var mapData:MapData = this.mainView.mapView.mapData;
         for (var yi:int = 0; yi < mapData.mapHeight; yi++) { // Iterate over the entire map
             for (var xi:int = 0; xi < mapData.mapWidth; xi++) {
+                if (!this.mainView.mapView.isInsideSelection(xi, yi)) {
+                    continue;
+                }
+
                 this.fillTile(xi, yi, origTile, actions, false); // Make sure we don't do the recursive call
             }
         }
     }
 
     private function fillTile(mapX:int, mapY:int, origTile:MapTileData, actions:MapActionSet, recursive:Boolean = true):void {
+        if (!this.mainView.mapView.isInsideSelection(mapX, mapY)) {
+            return;
+        }
+
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
 
