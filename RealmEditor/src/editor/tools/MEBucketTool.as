@@ -1,6 +1,7 @@
 package editor.tools {
 import editor.MEBrush;
 import editor.MEDrawType;
+import editor.MapData;
 import editor.MapTileData;
 import editor.MapTileData;
 import editor.actions.MapAction;
@@ -20,6 +21,8 @@ import util.IntPoint;
 
 public class MEBucketTool extends METool {
 
+    private var continuous:Boolean;
+
     public function MEBucketTool(view:MainView) {
         super(METool.BUCKET_ID, view);
     }
@@ -36,23 +39,40 @@ public class MEBucketTool extends METool {
         this.doFill(tilePos, history);
     }
 
+    public function toggleContinuous():void {
+        this.continuous = !this.continuous;
+    }
+
     private function doFill(tilePos:IntPoint, history:MapHistory):void {
         var actions:MapActionSet = new MapActionSet();
 
-        // DFS (Depth-First Search) algorithm
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
         var origTile:MapTileData = tileMap.getTileData(tilePos.x_, tilePos.y_).clone();
-        this.fillTile(tilePos.x_, tilePos.y_, origTile, actions); // Do fill on the current tile, recursion will continue within this method
+        if (this.continuous) {
+            this.continuousFill(origTile, actions);
+        } else {
+            // DFS (Depth-First Search) algorithm
+            this.fillTile(tilePos.x_, tilePos.y_, origTile, actions); // Do fill on the current tile, recursion will continue within this method
+        }
 
         history.recordSet(actions);
     }
 
-    private function fillTile(mapX:int, mapY:int, origTile:MapTileData, actions:MapActionSet):void {
+    private function continuousFill(origTile:MapTileData, actions:MapActionSet):void {
+        var mapData:MapData = this.mainView.mapView.mapData;
+        for (var yi:int = 0; yi < mapData.mapHeight; yi++) { // Iterate over the entire map
+            for (var xi:int = 0; xi < mapData.mapWidth; xi++) {
+                this.fillTile(xi, yi, origTile, actions, false); // Make sure we don't do the recursive call
+            }
+        }
+    }
+
+    private function fillTile(mapX:int, mapY:int, origTile:MapTileData, actions:MapActionSet, recursive:Boolean = true):void {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
 
         var prevData:MapTileData = tileMap.getTileData(mapX, mapY);
-        if (prevData == null){
+        if (prevData == null) {
             return;
         }
 
@@ -82,10 +102,12 @@ public class MEBucketTool extends METool {
         tileMap.drawTile(mapX, mapY);
         actions.push(new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
 
-        this.fillTile(mapX + 1, mapY, origTile, actions); // Try to perform fill on the nearby tiles
-        this.fillTile(mapX - 1, mapY, origTile, actions);
-        this.fillTile(mapX, mapY + 1, origTile, actions);
-        this.fillTile(mapX, mapY - 1, origTile, actions);
+        if (recursive) {
+            this.fillTile(mapX + 1, mapY, origTile, actions); // Try to perform fill on the nearby tiles
+            this.fillTile(mapX - 1, mapY, origTile, actions);
+            this.fillTile(mapX, mapY + 1, origTile, actions);
+            this.fillTile(mapX, mapY - 1, origTile, actions);
+        }
     }
 }
 }
