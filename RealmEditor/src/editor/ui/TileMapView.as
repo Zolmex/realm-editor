@@ -18,6 +18,7 @@ import flash.geom.ColorTransform;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
+import flash.utils.Dictionary;
 
 public class TileMapView extends Sprite {
 
@@ -35,6 +36,8 @@ public class TileMapView extends Sprite {
     private var objectMap:Bitmap;
     private var regionMapTexture:BitmapData;
     private var regionMap:Bitmap;
+    private var highResLayer:Sprite; // For higher resolution sprites
+    private var highResSprites:Dictionary = new Dictionary();
 
     public function setup(mapData:MapData):void {
         this.mapData = mapData;
@@ -52,10 +55,15 @@ public class TileMapView extends Sprite {
             this.regionMapTexture.dispose();
             removeChild(this.regionMap);
         }
+        if (this.highResLayer){
+            this.highResLayer.removeChildren();
+            removeChild(this.highResLayer);
+        }
 
         this.tileMapTexture = new BitmapData(TILE_SIZE * mapData.mapWidth, TILE_SIZE * mapData.mapHeight, true, 0);
         this.objectMapTexture = new BitmapData(TILE_SIZE * mapData.mapWidth, TILE_SIZE * mapData.mapHeight, true, 0);
         this.regionMapTexture = new BitmapData(mapData.mapWidth, mapData.mapHeight, true, 0);
+        this.highResLayer = new Sprite();
     }
 
     // IMPORTANT: This should only be used when the map loads
@@ -89,15 +97,32 @@ public class TileMapView extends Sprite {
             return;
         }
 
-        // Draw object
         // Clear space before drawing object
         this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(tile.spriteX, tile.spriteY));
-        if (tile.objTexture != null) {
-            var matrix:Matrix = new Matrix();
-            matrix.scale(TILE_SIZE / tile.objTexture.width, TILE_SIZE / tile.objTexture.height);
-            matrix.translate(tile.spriteX, tile.spriteY);
+        if (this.highResSprites[idx] != null){
+            this.highResLayer.removeChild(this.highResSprites[idx]);
+            delete this.highResSprites[idx];
+        }
 
-            this.objectMapTexture.draw(tile.objTexture, matrix);
+        // Draw object
+        if (tile.objTexture != null) {
+            var size:int = Math.max(tile.objTexture.width, tile.objTexture.height);
+            if (size != 8) {
+                var obj:Bitmap = new Bitmap(tile.objTexture);
+                obj.scaleX = 8 / tile.objTexture.width;
+                obj.scaleY = 8 / tile.objTexture.height;
+                obj.x = tile.spriteX;
+                obj.y = tile.spriteY;
+                this.highResLayer.addChild(obj);
+                this.highResSprites[idx] = obj; // Cache so that we can remove it later
+            }
+            else {
+                var matrix:Matrix = new Matrix();
+                matrix.scale(TILE_SIZE / tile.objTexture.width, TILE_SIZE / tile.objTexture.height);
+                matrix.translate(tile.spriteX, tile.spriteY);
+
+                this.objectMapTexture.draw(tile.objTexture, matrix);
+            }
         }
 
         // Draw region
@@ -188,6 +213,8 @@ public class TileMapView extends Sprite {
 
         this.objectMap = new Bitmap(this.objectMapTexture);
         addChild(this.objectMap);
+
+        addChild(this.highResLayer);
 
         this.regionMap = new Bitmap(this.regionMapTexture);
         this.regionMap.scaleX = TILE_SIZE;

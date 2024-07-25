@@ -149,7 +149,7 @@ public class MapView extends Sprite {
         return val;
     }
 
-    public function recordSelectionClear(history:MapHistory):void{
+    public function recordSelectionClear(history:MapHistory):void {
         history.record(new MapSelectAction(this.selection.clone(), EMPTY_SELECTION));
     }
 
@@ -196,13 +196,12 @@ public class MapView extends Sprite {
     }
 
     public function moveBrushOverlay(mapX:int, mapY:int, brush:MEBrush, eraser:Boolean = false, forceDraw:Boolean = false):void {
-        if (eraser){
-            if (forceDraw || brush.size != this.brushSize){
+        if (eraser) {
+            if (forceDraw || brush.size != this.brushSize) {
                 this.drawBrushOutline(mapX, mapY, brush);
                 return;
             }
-        }
-        else {
+        } else {
             if (forceDraw || brush.elementType != this.brushElementType) { // Re-draw if the draw type has changed
                 this.drawBrushTiles(mapX, mapY, brush);
                 return;
@@ -237,9 +236,9 @@ public class MapView extends Sprite {
 
     public function drawBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
         var regColor:uint;
-        var groundTexture:BitmapData;
-        var objectTexture:BitmapData;
+        var texture:BitmapData;
 
+        var size:int = TileMapView.TILE_SIZE; // Default to 8x8
         this.brushElementType = brush.elementType;
         switch (brush.elementType) {
             case MEDrawType.GROUND:
@@ -247,7 +246,7 @@ public class MapView extends Sprite {
                     return;
                 }
 
-                groundTexture = GroundLibrary.getBitmapData(brush.groundType);
+                texture = GroundLibrary.getBitmapData(brush.groundType);
                 this.brushTextureType = brush.groundType;
                 break;
             case MEDrawType.OBJECTS:
@@ -255,8 +254,9 @@ public class MapView extends Sprite {
                     return;
                 }
 
-                objectTexture = ObjectLibrary.getTextureFromType(brush.objType);
+                texture = ObjectLibrary.getTextureFromType(brush.objType);
                 this.brushTextureType = brush.objType;
+                size = Math.max(texture.width, texture.height);
                 break;
             case MEDrawType.REGIONS:
                 if (brush.regType == 0) {
@@ -267,10 +267,11 @@ public class MapView extends Sprite {
                 this.brushTextureType = brush.regType;
                 break;
         }
+        size = Math.max(texture.width, texture.height);
 
         var diameter:int = 1 + (brush.size * 2); // Times 2 because we have tiles on the front and on the back
         var radius:int = diameter / 2;
-        var bitmapSize:int = diameter * TileMapView.TILE_SIZE;
+        var bitmapSize:int = diameter * size;
         var brushTexture:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
         for (var yi:int = 0; yi <= diameter; yi++) { // The brush size represents the amount of tiles from the center we will render
             for (var xi:int = 0; xi <= diameter; xi++) {
@@ -281,12 +282,10 @@ public class MapView extends Sprite {
                     continue;
                 }
 
-                if (groundTexture != null) {
-                    brushTexture.copyPixels(groundTexture, new Rectangle(0, 0, groundTexture.width, groundTexture.height), new Point(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE));
-                } else if (objectTexture != null) {
-                    brushTexture.copyPixels(objectTexture, new Rectangle(0, 0, objectTexture.width, objectTexture.height), new Point(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE));
+                if (texture != null) {
+                    brushTexture.copyPixels(texture, new Rectangle(0, 0, texture.width, texture.height), new Point(xi * texture.width, yi * texture.height));
                 } else { // Must mean we're rendering a region
-                    brushTexture.fillRect(new Rectangle(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE, TileMapView.TILE_SIZE, TileMapView.TILE_SIZE), 1593835520 | regColor);
+                    brushTexture.fillRect(new Rectangle(xi * size, yi * size, size, size), 1593835520 | regColor);
                 }
             }
         }
@@ -297,6 +296,11 @@ public class MapView extends Sprite {
         }
 
         this.brushOverlay.bitmapData = brushTexture;
+        if (size != 8) {
+            this.brushOverlay.scaleX = 8 / texture.width;
+            this.brushOverlay.scaleY = 8 / texture.height;
+        }
+
         this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.visible = true;
@@ -329,6 +333,8 @@ public class MapView extends Sprite {
         }
 
         this.brushOverlay.bitmapData = brushTexture;
+        this.brushOverlay.scaleX = 1; // Paint brush changes the scale so we reset it here just in case
+        this.brushOverlay.scaleY = 1;
         this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.visible = true;
