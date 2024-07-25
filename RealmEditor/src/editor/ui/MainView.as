@@ -615,8 +615,8 @@ public class MainView extends Sprite {
 
         this.updateTileInfoPanel(tilePos);
 
-        this.mapView.highlightTile(-1, -1);
-        this.mapView.hideBrushTiles();
+        this.mapView.hideOverlays();
+
         this.selectedTool.mouseMoved(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -675,7 +675,7 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.mapView.hideBrushTiles();
+        this.mapView.hideOverlays();
         this.selectedTool.init(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -778,7 +778,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionUp(e:Event):void {
-        if (this.mapView == null){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
             return;
         }
 
@@ -787,7 +787,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionDown(e:Event):void {
-        if (this.mapView == null){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
             return;
         }
 
@@ -796,7 +796,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionLeft(e:Event):void {
-        if (this.mapView == null){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
             return;
         }
 
@@ -805,7 +805,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionRight(e:Event):void {
-        if (this.mapView == null){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
             return;
         }
 
@@ -819,7 +819,12 @@ public class MainView extends Sprite {
             return;
         }
 
-        this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
+        if (this.selectedTool.id == METool.ERASER_ID){
+            this.mapView.drawBrushOutline(tilePos.x_, tilePos.y_, this.userBrush);
+        }
+        else {
+            this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
+        }
     }
 
     private function showAssetLoaderNotifs():void {

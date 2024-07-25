@@ -18,7 +18,7 @@ public class MEEraserTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
-        this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
+        this.mainView.mapView.moveBrushOverlay(tilePos.x_, tilePos.y_, this.mainView.userBrush, true, true);
     }
 
     public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
@@ -30,7 +30,7 @@ public class MEEraserTool extends METool {
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
-        this.mainView.mapView.moveBrushTiles(tilePos.x_, tilePos.y_, this.mainView.userBrush);
+        this.mainView.mapView.moveBrushOverlay(tilePos.x_, tilePos.y_, this.mainView.userBrush, true);
     }
 
     private function useEraser(tilePos:IntPoint, history:MapHistory):void {
@@ -75,7 +75,13 @@ public class MEEraserTool extends METool {
     private function eraseTile(mapX:int, mapY:int):MapReplaceTileAction {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
-        var prevData:MapTileData = tileMap.getTileData(mapX, mapY).clone();
+        var prevData:MapTileData = tileMap.getTileData(mapX, mapY);
+        if (prevData == null){
+            return null;
+        }
+        else {
+            prevData = prevData.clone();
+        }
 
         switch (brush.elementType) {
             case MEDrawType.GROUND:

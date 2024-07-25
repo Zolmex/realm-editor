@@ -51,8 +51,9 @@ public class MapView extends Sprite {
     public var selection:MapSelectData;
     public var selectionRect:Shape;
     private var highlightRect:Shape;
-    private var brushPencil:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
+    private var brushOverlay:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
     private var brushElementType:int;
+    private var brushSize:int;
     private var brushTextureType:int;
     private var canvasTexture:BitmapData;
     private var canvasOutline:Bitmap;
@@ -79,9 +80,9 @@ public class MapView extends Sprite {
         this.selectionRect = new Shape();
         addChild(this.selectionRect);
 
-        this.brushPencil = new Bitmap();
-        this.brushPencil.alpha = 0.9;
-        addChild(this.brushPencil);
+        this.brushOverlay = new Bitmap();
+        this.brushOverlay.alpha = 0.9;
+        addChild(this.brushOverlay);
 
         this.canvasOutline = new Bitmap(null);
         addChild(this.canvasOutline);
@@ -185,40 +186,53 @@ public class MapView extends Sprite {
         g.lineStyle();
     }
 
-    public function hideBrushTiles():void {
-        this.brushPencil.visible = false;
+    public function hideBrushOverlay():void {
+        this.brushOverlay.visible = false;
     }
 
-    public function moveBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
-        if (brush.elementType != this.brushElementType) { // Re-draw if the draw type has changed
-            this.drawBrushTiles(mapX, mapY, brush);
-            return;
+    public function hideOverlays():void {
+        this.highlightTile(-1, -1);
+        this.hideBrushOverlay();
+    }
+
+    public function moveBrushOverlay(mapX:int, mapY:int, brush:MEBrush, eraser:Boolean = false, forceDraw:Boolean = false):void {
+        if (eraser){
+            if (forceDraw || brush.size != this.brushSize){
+                this.drawBrushOutline(mapX, mapY, brush);
+                return;
+            }
+        }
+        else {
+            if (forceDraw || brush.elementType != this.brushElementType) { // Re-draw if the draw type has changed
+                this.drawBrushTiles(mapX, mapY, brush);
+                return;
+            }
+
+            switch (brush.elementType) { // If element type matches, re-draw if the texture we're drawing also has changed
+                case MEDrawType.GROUND:
+                    if (brush.groundType != this.brushTextureType) {
+                        this.drawBrushTiles(mapX, mapY, brush);
+                        return;
+                    }
+                    break;
+                case MEDrawType.OBJECTS:
+                    if (brush.objType != this.brushTextureType) {
+                        this.drawBrushTiles(mapX, mapY, brush);
+                        return;
+                    }
+                    break;
+                case MEDrawType.REGIONS:
+                    if (brush.regType != this.brushTextureType) {
+                        this.drawBrushTiles(mapX, mapY, brush);
+                        return;
+                    }
+                    break;
+            }
         }
 
-        switch (brush.elementType) { // If element type matches, re-draw if the texture we're drawing also has changed
-            case MEDrawType.GROUND:
-                if (brush.groundType != this.brushTextureType) {
-                    this.drawBrushTiles(mapX, mapY, brush);
-                    return;
-                }
-                break;
-            case MEDrawType.OBJECTS:
-                if (brush.objType != this.brushTextureType) {
-                    this.drawBrushTiles(mapX, mapY, brush);
-                    return;
-                }
-                break;
-            case MEDrawType.REGIONS:
-                if (brush.regType != this.brushTextureType) {
-                    this.drawBrushTiles(mapX, mapY, brush);
-                    return;
-                }
-                break;
-        }
-
-        this.brushPencil.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
-        this.brushPencil.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
-        this.brushPencil.visible = true;
+        this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
+        this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
+        this.brushOverlay.visible = true;
     }
 
     public function drawBrushTiles(mapX:int, mapY:int, brush:MEBrush):void {
@@ -254,7 +268,7 @@ public class MapView extends Sprite {
                 break;
         }
 
-        var diameter:int = (1 + (brush.size * 2)); // Times 2 because we have tiles on the front and on the back
+        var diameter:int = 1 + (brush.size * 2); // Times 2 because we have tiles on the front and on the back
         var center:int = diameter / 2;
         var bitmapSize:int = diameter * TileMapView.TILE_SIZE;
         var brushTexture:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
@@ -272,20 +286,70 @@ public class MapView extends Sprite {
                 } else if (objectTexture != null) {
                     brushTexture.copyPixels(objectTexture, new Rectangle(0, 0, objectTexture.width, objectTexture.height), new Point(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE));
                 } else { // Must mean we're rendering a region
-                    brushTexture.fillRect(new Rectangle(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE, 1, 1), 1593835520 | regColor);
+                    brushTexture.fillRect(new Rectangle(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE, TileMapView.TILE_SIZE, TileMapView.TILE_SIZE), 1593835520 | regColor);
                 }
             }
         }
 
-        if (this.brushPencil.bitmapData != null) { // Make sure to clear our previous textures before we start drawing again
-            this.brushPencil.bitmapData.dispose();
-            this.brushPencil.bitmapData = null;
+        if (this.brushOverlay.bitmapData != null) { // Make sure to clear our previous textures before we start drawing again
+            this.brushOverlay.bitmapData.dispose();
+            this.brushOverlay.bitmapData = null;
         }
 
-        this.brushPencil.bitmapData = brushTexture;
-        this.brushPencil.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
-        this.brushPencil.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
-        this.brushPencil.visible = true;
+        this.brushOverlay.bitmapData = brushTexture;
+        this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
+        this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
+        this.brushOverlay.visible = true;
+    }
+
+    public function drawBrushOutline(mapX:int, mapY:int, brush:MEBrush):void {
+        this.brushSize = brush.size;
+
+        var diameter:int = 1 + (brush.size * 2); // Times 2 because we have tiles on the front and on the back
+        var radius:int = diameter / 2;
+        var topCenter:IntPoint = new IntPoint(radius * TileMapView.TILE_SIZE, 0);
+        var rightCenter:IntPoint = new IntPoint(diameter * TileMapView.TILE_SIZE, (radius + 1) * TileMapView.TILE_SIZE);
+        var bottomCenter:IntPoint = new IntPoint((radius + 1) * TileMapView.TILE_SIZE, diameter * TileMapView.TILE_SIZE);
+        var leftCenter:IntPoint = new IntPoint(0, radius * TileMapView.TILE_SIZE);
+
+        var bitmapSize:int = diameter * TileMapView.TILE_SIZE;
+        var brushTexture:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
+
+        var cursor:IntPoint = new IntPoint(topCenter.x_, topCenter.y_);
+        while (cursor.x_ != rightCenter.x_ && cursor.y_ != rightCenter.y_){ // Clock wise rotation, we start at the top center point
+            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line right
+            cursor.x_ += TileMapView.TILE_SIZE;
+            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line down
+            cursor.y_ += TileMapView.TILE_SIZE;
+        }
+        while (cursor.x_ != bottomCenter.x_ && cursor.y_ != bottomCenter.y_){ // X goes left, Y goes downwards
+            brushTexture.fillRect(new Rectangle(cursor.x_ - TileMapView.TILE_SIZE, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line left
+            cursor.x_ -= TileMapView.TILE_SIZE;
+            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line down
+            cursor.y_ += TileMapView.TILE_SIZE;
+        }
+        while (cursor.x_ != leftCenter.x_ && cursor.y_ != leftCenter.y_){ // X goes left, Y goes upwards
+            brushTexture.fillRect(new Rectangle(cursor.x_ - TileMapView.TILE_SIZE, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line left
+            cursor.x_ -= TileMapView.TILE_SIZE;
+            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_ - TileMapView.TILE_SIZE, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line up
+            cursor.y_ -= TileMapView.TILE_SIZE;
+        }
+        while (cursor.x_ != topCenter.x_ && cursor.y_ != topCenter.y_){ // X goes right, Y goes upwards
+            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line right
+            cursor.x_ += TileMapView.TILE_SIZE;
+            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_ - TileMapView.TILE_SIZE, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line up
+            cursor.y_ -= TileMapView.TILE_SIZE;
+        }
+
+        if (this.brushOverlay.bitmapData != null) { // Make sure to clear our previous textures before we start drawing again
+            this.brushOverlay.bitmapData.dispose();
+            this.brushOverlay.bitmapData = null;
+        }
+
+        this.brushOverlay.bitmapData = brushTexture;
+        this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
+        this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
+        this.brushOverlay.visible = true;
     }
 
     public function drawTileSelection(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void {
