@@ -81,6 +81,7 @@ public class MainView extends Sprite {
     private var toolBoxBackground:Shape;
     private var tileInfoPanel:TileInfoPanel;
     private var gridCheckbox:SimpleCheckBox;
+    private var autoSaveCheckbox:SimpleCheckBox;
     private var drawTypeSwitch:MultiOptionalSwitch;
     private var editNameView:EditTileNameView;
     private var objectFilterView:ObjectFilterOptionsView;
@@ -128,6 +129,10 @@ public class MainView extends Sprite {
         this.gridCheckbox.addEventListener(Event.CHANGE, this.onGridClick);
         addChild(this.gridCheckbox);
 
+        this.autoSaveCheckbox = new SimpleCheckBox("Autosave", true);
+        this.autoSaveCheckbox.addEventListener(Event.CHANGE, this.onAutoSaveClick);
+        addChild(this.autoSaveCheckbox);
+
         this.drawTypeSwitch = new MultiOptionalSwitch();
         this.drawTypeSwitch.addOption("Ground");
         this.drawTypeSwitch.addOption("Objects");
@@ -138,8 +143,8 @@ public class MainView extends Sprite {
         var g:Graphics = this.toolBoxBackground.graphics;
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
         g.drawRoundRect(0, 0,
-                this.gridCheckbox.width + 15, // Add here all of the things that are supposed to go inside of the toolbox
-                this.zoomInput.height + this.gridCheckbox.height + this.drawTypeSwitch.height + 25,
+                this.autoSaveCheckbox.width + 10, // Add here all of the things that are supposed to go inside of the toolbox
+                this.zoomInput.height + this.gridCheckbox.height + this.autoSaveCheckbox.height + this.drawTypeSwitch.height + 32,
                 10, 10);
         g.endFill();
 
@@ -254,14 +259,17 @@ public class MainView extends Sprite {
         this.toolBoxBackground.x = 15;
         this.toolBoxBackground.y = (Main.StageHeight - this.toolBoxBackground.height) / 2;
 
-        this.zoomInput.x = this.toolBoxBackground.x + (this.toolBoxBackground.width - this.zoomInput.width) / 2;
+        this.zoomInput.x = this.toolBoxBackground.x + 5;
         this.zoomInput.y = this.toolBoxBackground.y + 7.5;
 
-        this.gridCheckbox.x = this.toolBoxBackground.x + (this.toolBoxBackground.width - this.gridCheckbox.width) / 2;
+        this.gridCheckbox.x = this.zoomInput.x;
         this.gridCheckbox.y = this.zoomInput.y + this.zoomInput.height + 6;
 
-        this.drawTypeSwitch.x = this.toolBoxBackground.x + (this.toolBoxBackground.width - this.drawTypeSwitch.width) / 2;
-        this.drawTypeSwitch.y = this.gridCheckbox.y + this.gridCheckbox.height + 6;
+        this.autoSaveCheckbox.x = this.zoomInput.x;
+        this.autoSaveCheckbox.y = this.gridCheckbox.y + this.gridCheckbox.height + 6;
+
+        this.drawTypeSwitch.x = this.zoomInput.x;
+        this.drawTypeSwitch.y = this.autoSaveCheckbox.y + this.autoSaveCheckbox.height + 6;
 
         this.drawElementsList.x = Main.StageWidth - MapDrawElementListView.WIDTH - 15;
         this.drawElementsList.y = this.exitButton.y + this.exitButton.height + 15;
@@ -496,6 +504,10 @@ public class MainView extends Sprite {
         if (this.mapView) {
             this.mapView.toggleGrid();
         }
+    }
+
+    private function onAutoSaveClick(e:Event):void {
+        this.autoSaver.disabled = !this.autoSaver.disabled;
     }
 
     private function onGridEnable(e:Event):void {
