@@ -21,8 +21,6 @@ import util.IntPoint;
 
 public class MEBucketTool extends METool {
 
-    private var continuous:Boolean;
-
     public function MEBucketTool(view:MainView) {
         super(METool.BUCKET_ID, view);
     }
@@ -39,16 +37,13 @@ public class MEBucketTool extends METool {
         this.doFill(tilePos, history);
     }
 
-    public function toggleContinuous():void {
-        this.continuous = !this.continuous;
-    }
-
     private function doFill(tilePos:IntPoint, history:MapHistory):void {
         var actions:MapActionSet = new MapActionSet();
 
+        var continuous:Boolean = this.mainView.inputHandler.ctrlKey; // Hold ctrl key for continuous
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
         var origTile:MapTileData = tileMap.getTileData(tilePos.x_, tilePos.y_).clone();
-        if (this.continuous) {
+        if (continuous) {
             this.continuousFill(origTile, actions);
         } else {
             // DFS (Depth-First Search) algorithm

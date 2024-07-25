@@ -17,6 +17,7 @@ public class MapInputHandler extends EventDispatcher {
     private var dragging:Boolean;
     private var mouseDown:Boolean;
     private var middleMouseDown:Boolean;
+    public var ctrlKey:Boolean;
 
     public function MapInputHandler(view:MainView) {
         this.view = view;
@@ -99,6 +100,7 @@ public class MapInputHandler extends EventDispatcher {
     private function onKeyDown(e:KeyboardEvent):void {
         var dict:Dictionary;
         if (e.ctrlKey) {
+            this.ctrlKey = true;
             dict = Keybinds.HELD_CTRL_KEYS;
         } else {
             dict = Keybinds.HELD_KEYS;
@@ -111,6 +113,7 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onKeyUp(e:KeyboardEvent):void {
+        this.ctrlKey = false;
         var dict:Dictionary;
         if (e.ctrlKey) { // Love it or hate it, it's simple and it works
             dict = Keybinds.CTRL_KEYS;

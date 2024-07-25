@@ -75,7 +75,7 @@ public class MainView extends Sprite {
     private var mapCreateWindow:CreateMapWindow;
     private var assetsWindow:AssetsWindow;
 
-    private var inputHandler:MapInputHandler;
+    public var inputHandler:MapInputHandler;
     public var notifications:NotificationView;
     private var zoomInput:SimpleTextInput;
     private var toolBoxBackground:Shape;
