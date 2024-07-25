@@ -269,15 +269,15 @@ public class MapView extends Sprite {
         }
 
         var diameter:int = 1 + (brush.size * 2); // Times 2 because we have tiles on the front and on the back
-        var center:int = diameter / 2;
+        var radius:int = diameter / 2;
         var bitmapSize:int = diameter * TileMapView.TILE_SIZE;
         var brushTexture:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
         for (var yi:int = 0; yi <= diameter; yi++) { // The brush size represents the amount of tiles from the center we will render
             for (var xi:int = 0; xi <= diameter; xi++) {
-                var dx:int = xi - center;
-                var dy:int = yi - center;
+                var dx:int = xi - radius;
+                var dy:int = yi - radius;
                 var distSq:int = dx * dx + dy * dy;
-                if (distSq > brush.size * brush.size) {
+                if (distSq > radius * radius) {
                     continue;
                 }
 
@@ -307,38 +307,20 @@ public class MapView extends Sprite {
 
         var diameter:int = 1 + (brush.size * 2); // Times 2 because we have tiles on the front and on the back
         var radius:int = diameter / 2;
-        var topCenter:IntPoint = new IntPoint(radius * TileMapView.TILE_SIZE, 0);
-        var rightCenter:IntPoint = new IntPoint(diameter * TileMapView.TILE_SIZE, (radius + 1) * TileMapView.TILE_SIZE);
-        var bottomCenter:IntPoint = new IntPoint((radius + 1) * TileMapView.TILE_SIZE, diameter * TileMapView.TILE_SIZE);
-        var leftCenter:IntPoint = new IntPoint(0, radius * TileMapView.TILE_SIZE);
-
         var bitmapSize:int = diameter * TileMapView.TILE_SIZE;
         var brushTexture:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
 
-        var cursor:IntPoint = new IntPoint(topCenter.x_, topCenter.y_);
-        while (cursor.x_ != rightCenter.x_ && cursor.y_ != rightCenter.y_){ // Clock wise rotation, we start at the top center point
-            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line right
-            cursor.x_ += TileMapView.TILE_SIZE;
-            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line down
-            cursor.y_ += TileMapView.TILE_SIZE;
-        }
-        while (cursor.x_ != bottomCenter.x_ && cursor.y_ != bottomCenter.y_){ // X goes left, Y goes downwards
-            brushTexture.fillRect(new Rectangle(cursor.x_ - TileMapView.TILE_SIZE, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line left
-            cursor.x_ -= TileMapView.TILE_SIZE;
-            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line down
-            cursor.y_ += TileMapView.TILE_SIZE;
-        }
-        while (cursor.x_ != leftCenter.x_ && cursor.y_ != leftCenter.y_){ // X goes left, Y goes upwards
-            brushTexture.fillRect(new Rectangle(cursor.x_ - TileMapView.TILE_SIZE, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line left
-            cursor.x_ -= TileMapView.TILE_SIZE;
-            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_ - TileMapView.TILE_SIZE, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line up
-            cursor.y_ -= TileMapView.TILE_SIZE;
-        }
-        while (cursor.x_ != topCenter.x_ && cursor.y_ != topCenter.y_){ // X goes right, Y goes upwards
-            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_, TileMapView.TILE_SIZE, 1), 1593835520 | 0xFFFFFF); // Line right
-            cursor.x_ += TileMapView.TILE_SIZE;
-            brushTexture.fillRect(new Rectangle(cursor.x_, cursor.y_ - TileMapView.TILE_SIZE, 1, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF); // Line up
-            cursor.y_ -= TileMapView.TILE_SIZE;
+        for (var yi:int = 0; yi <= diameter; yi++) {
+            for (var xi:int = 0; xi <= diameter; xi++) {
+                var dx:int = xi - radius;
+                var dy:int = yi - radius;
+                var distSq:int = dx * dx + dy * dy;
+                if (distSq > radius * radius) {
+                    continue;
+                }
+
+                brushTexture.fillRect(new Rectangle(xi * TileMapView.TILE_SIZE, yi * TileMapView.TILE_SIZE, TileMapView.TILE_SIZE, TileMapView.TILE_SIZE), 1593835520 | 0xFFFFFF);
+            }
         }
 
         if (this.brushOverlay.bitmapData != null) { // Make sure to clear our previous textures before we start drawing again
