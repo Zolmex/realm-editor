@@ -54,8 +54,25 @@ public class MEBucketTool extends METool {
         if (continuous) {
             this.continuousFill(origTile, actions);
         } else {
-            // DFS (Depth-First Search) algorithm
-            this.fillTile(tilePos.x_, tilePos.y_, origTile, actions); // Do fill on the current tile, recursion will continue within this method
+            // DFS (Depth-First Search) algorithm. Edit: it's BFS (Breadth-First Search) now
+
+            // Try to perform fill on the nearby tiles. Edit: iterative approach, recursive gives stack overflow
+            var pending:Vector.<IntPoint> = new Vector.<IntPoint>();
+            pending.push(tilePos);
+
+            while (pending.length != 0){
+                var pos:IntPoint = pending.pop();
+                if (!this.mainView.mapView.isInsideSelection(pos.x_, pos.y_)) {
+                    continue;
+                }
+
+                if (this.fillTile(pos.x_, pos.y_, origTile, actions)) {
+                    pending.push(new IntPoint(pos.x_ + 1, pos.y_)); // Push to queue adjacent tiles
+                    pending.push(new IntPoint(pos.x_ - 1, pos.y_));
+                    pending.push(new IntPoint(pos.x_, pos.y_ + 1));
+                    pending.push(new IntPoint(pos.x_, pos.y_ - 1));
+                }
+            }
         }
 
         history.recordSet(actions);
@@ -69,22 +86,18 @@ public class MEBucketTool extends METool {
                     continue;
                 }
 
-                this.fillTile(xi, yi, origTile, actions, false); // Make sure we don't do the recursive call
+                this.fillTile(xi, yi, origTile, actions); // Make sure we don't do the recursive call
             }
         }
     }
 
-    private function fillTile(mapX:int, mapY:int, origTile:MapTileData, actions:MapActionSet, recursive:Boolean = true):void {
-        if (!this.mainView.mapView.isInsideSelection(mapX, mapY)) {
-            return;
-        }
-
+    private function fillTile(mapX:int, mapY:int, origTile:MapTileData, actions:MapActionSet):Boolean {
         var brush:MEBrush = this.mainView.userBrush;
         var tileMap:TileMapView = this.mainView.mapView.tileMap;
 
         var prevData:MapTileData = tileMap.getTileData(mapX, mapY);
         if (prevData == null) {
-            return;
+            return false;
         }
 
         prevData = prevData.clone();
@@ -92,19 +105,19 @@ public class MEBucketTool extends METool {
         switch (brush.elementType) {
             case MEDrawType.GROUND:
                 if (prevData.groundType != origTile.groundType || prevData.groundType == brush.groundType) { // Don't update tile data if it's already the same
-                    return;
+                    return false;
                 }
                 tileMap.setTileGround(mapX, mapY, brush.groundType);
                 break;
             case MEDrawType.OBJECTS:
                 if (prevData.objType != origTile.objType || prevData.objType == brush.objType) {
-                    return;
+                    return false;
                 }
                 tileMap.setTileObject(mapX, mapY, brush.objType);
                 break;
             case MEDrawType.REGIONS:
                 if (prevData.regType != origTile.regType || prevData.regType == brush.regType) {
-                    return;
+                    return false;
                 }
                 tileMap.setTileRegion(mapX, mapY, brush.regType);
                 break;
@@ -112,13 +125,7 @@ public class MEBucketTool extends METool {
 
         tileMap.drawTile(mapX, mapY);
         actions.push(new MapReplaceTileAction(mapX, mapY, prevData, tileMap.getTileData(mapX, mapY).clone()));
-
-        if (recursive) {
-            this.fillTile(mapX + 1, mapY, origTile, actions); // Try to perform fill on the nearby tiles
-            this.fillTile(mapX - 1, mapY, origTile, actions);
-            this.fillTile(mapX, mapY + 1, origTile, actions);
-            this.fillTile(mapX, mapY - 1, origTile, actions);
-        }
+        return true;
     }
 }
 }
