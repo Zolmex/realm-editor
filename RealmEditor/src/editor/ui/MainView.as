@@ -544,10 +544,6 @@ public class MainView extends Sprite {
 
     private function onMouseDrag(e:Event):void {
         var tilePos:IntPoint = getMouseTilePosition();
-        if (tilePos == null) {
-            return;
-        }
-
         this.selectedTool.mouseDrag(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -572,10 +568,6 @@ public class MainView extends Sprite {
 
     private function onMouseDragEnd(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (tilePos == null) {
-            return;
-        }
-
         this.selectedTool.mouseDragEnd(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -585,10 +577,6 @@ public class MainView extends Sprite {
 
     private function onTileClick(e:Event):void { // Perform select/draw/erase actions here
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (tilePos == null) {
-            return;
-        }
-
         this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -644,7 +632,7 @@ public class MainView extends Sprite {
         this.updatePositions();
     }
 
-    private function getMouseTilePosition():IntPoint {
+    private function getMouseTilePosition():IntPoint { // Not to handle null value
         if (this.mapView == null) {
             return null;
         }
@@ -683,10 +671,6 @@ public class MainView extends Sprite {
         }
 
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (tilePos == null) {
-            return;
-        }
-
         this.mapView.hideOverlays();
         this.selectedTool.init(tilePos, this.timeControl.getHistory(this.mapView.id));
     }

@@ -26,20 +26,36 @@ public class MEBucketTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) { // Restrict bucket tool to only work inside the selected area
             this.doFill(tilePos, history);
         }
     }
 
     public override function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_)) {
             this.doFill(tilePos, history);
         }

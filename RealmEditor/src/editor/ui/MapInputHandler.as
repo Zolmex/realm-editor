@@ -36,6 +36,11 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onRollOut(e:Event):void { // If the mouse has left the map view, stop listening for mouse events
+        if (this.dragging){
+            this.dispatchEvent(new Event(MEEvent.MOUSE_DRAG_END)); // Make sure we let the editor know that drag ended because mouse went out of the bounds of map
+            this.dispatchEvent(new Event(MEEvent.MIDDLE_MOUSE_DRAG_END));
+        }
+
         this.dragging = false;
         this.mouseDown = false;
         this.middleMouseDown = false;

@@ -40,6 +40,10 @@ public class MESelectTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
@@ -51,6 +55,11 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            this.reset();
+            return;
+        }
+
         if (this.selectionStart == null) {
             if (this.draggingSelection || this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) { // Drag selected tiles
                 this.draggingSelection = true;
@@ -73,7 +82,7 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseDragEnd(tilePos:IntPoint, history:MapHistory):void {
-        if (this.selectionStart == null) {
+        if (this.selectionStart == null || tilePos == null) {
             this.reset(); // Make sure to reset our selecting action, unless we're selecting an area
             return;
         }
@@ -96,6 +105,11 @@ public class MESelectTool extends METool {
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            this.reset();
+            return;
+        }
+
         if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)){ // Don't do anything if user clicked once inside selection
             return;
         }
@@ -105,6 +119,11 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            this.reset();
+            return;
+        }
+
         this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
@@ -130,7 +149,9 @@ public class MESelectTool extends METool {
         var endX:int = beginX + selection.width - 1;
         var endY:int = beginY + selection.height - 1;
 
-        if (diffX == 0 && diffY == 0) { // Prevent from re-selecting in the same place
+        if ((diffX == 0 && diffY == 0) || // Prevent from re-selecting in the same place
+            beginX < 0 || endX >= this.mainView.mapView.mapData.mapWidth || // Check map bounds
+            beginY < 0 || endY >= this.mainView.mapView.mapData.mapHeight) {
             return;
         }
 

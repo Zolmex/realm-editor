@@ -17,18 +17,34 @@ public class MEPencilTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.moveBrushOverlay(tilePos.x_, tilePos.y_, this.mainView.userBrush, false, true);
     }
 
     public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.usePencil(tilePos, history);
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.usePencil(tilePos, history);
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.moveBrushOverlay(tilePos.x_, tilePos.y_, this.mainView.userBrush);
     }
 

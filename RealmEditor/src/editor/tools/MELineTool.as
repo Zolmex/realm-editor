@@ -14,10 +14,18 @@ public class MELineTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
+        if (tilePos == null){
+            return;
+        }
+
         this.mainView.mapView.highlightTile(tilePos.x_, tilePos.y_);
     }
 }
