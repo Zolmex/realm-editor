@@ -19,6 +19,7 @@ public class MapSelectAction extends MapAction {
             return;
         }
 
+        mapView.setLastDragAction(this.newData.lastDragAction);
         mapView.drawTileSelection(this.newData.startX, this.newData.startY, this.newData.endX, this.newData.endY);
     }
 
@@ -29,6 +30,7 @@ public class MapSelectAction extends MapAction {
             return;
         }
 
+        mapView.setLastDragAction(this.prevData.lastDragAction);
         mapView.drawTileSelection(this.prevData.startX, this.prevData.startY, this.prevData.endX, this.prevData.endY);
     }
 

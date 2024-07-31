@@ -11,25 +11,25 @@ import editor.ui.TileMapView;
 public class MapDragController {
 
     private var mapView:MapView;
-    public var lastAction:MapDragAction;
+    public var lastDragAction:MapDragAction;
 
     public function MapDragController(mapView:MapView) {
         this.mapView = mapView;
     }
 
     public function reset():void {
-        this.lastAction = null;
+        this.mapView.setLastDragAction(null);
     }
 
     public function dragSelection(startX:int, startY:int, endX:int, endY:int):MapDragAction { // This method is only called when user drags tiles, not when a drag action is undone/redone
         var prevSelection:MapSelectData = this.mapView.selection.clone();
 
-        var firstMove:Boolean = this.lastAction == null;
+        var firstMove:Boolean = this.lastDragAction == null;
         var newTiles:Vector.<MapTileData> = this.getSelectedTiles();
         if (firstMove) {
             this.clearTileArea(prevSelection.startX, prevSelection.startY, prevSelection.endX, prevSelection.endY);
         } else {
-            this.pasteTiles(this.lastAction.oldTiles, prevSelection.startX, prevSelection.startY, prevSelection.endX, prevSelection.endY); // Undo previously moved tiles. NOTE: don't call undoAction(), since that redoes the previous to that action
+            this.pasteTiles(this.lastDragAction.oldTiles, prevSelection.startX, prevSelection.startY, prevSelection.endX, prevSelection.endY); // Undo previously moved tiles. NOTE: don't call undoAction(), since that redoes the previous to that action
         }
 
         this.mapView.selectTileArea(startX, startY, endX, endY); // Select new area
@@ -38,12 +38,14 @@ public class MapDragController {
 
         this.pasteTiles(newTiles, startX, startY, endX, endY);
 
-        var action:MapDragAction = new MapDragAction(this, this.lastAction, oldTiles, newTiles, prevSelection, this.mapView.selection.clone());
-        if (this.lastAction != null) {
-            this.lastAction.userNewTiles = newTiles; // Make sure the previous action has updated tile set in case user drew on the selection before moving again
+        var lastDragAction:MapDragAction = null;
+        if (this.lastDragAction != null){
+            this.lastDragAction.userNewTiles = newTiles; // Make sure the previous action has updated tile set in case user drew on the selection before moving again
+            lastDragAction = this.lastDragAction;
         }
 
-        this.lastAction = action;
+        var action:MapDragAction = new MapDragAction(this, lastDragAction, oldTiles, newTiles, prevSelection, this.mapView.selection.clone());
+        this.mapView.setLastDragAction(action);
 
         return action;
     }

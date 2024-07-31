@@ -12,6 +12,7 @@ import editor.MEBrush;
 import editor.MEClipboard;
 import editor.MEDrawType;
 import editor.actions.MapActionSet;
+import editor.actions.MapDragAction;
 import editor.actions.MapReplaceTileAction;
 import editor.actions.MapSelectAction;
 import editor.actions.data.MapSelectData;
@@ -157,6 +158,11 @@ public class MapView extends Sprite {
         this.selection = EMPTY_SELECTION;
         this.selectionRect.graphics.clear();
         this.dragController.reset();
+    }
+
+    public function setLastDragAction(dragAction:MapDragAction):void {
+        this.selection.lastDragAction = dragAction;
+        this.dragController.lastDragAction = dragAction;
     }
 
     public function selectTileArea(mapStartX:int, mapStartY:int, mapEndX:int, mapEndY:int):void { // Use this for selecting a rectangle area of tiles by holding left mouse button

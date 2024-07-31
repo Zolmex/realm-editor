@@ -19,11 +19,12 @@ public class MapDragAction extends MapAction {
     private var prevSelection:MapSelectData;
     private var newSelection:MapSelectData;
 
-    public function MapDragAction(controller:MapDragController, prevAction:MapDragAction, oldTiles:Vector.<MapTileData>, newTiles:Vector.<MapTileData>, oldSelection:MapSelectData, newSelection:MapSelectData) {
+    public function MapDragAction(controller:MapDragController, prevAction:MapDragAction, oldTiles:Vector.<MapTileData>, newTiles:Vector.<MapTileData>, oldSelection:MapSelectData, newSelection:MapSelectData, userNewTiles:Vector.<MapTileData> = null) {
         this.controller = controller;
         this.prevAction = prevAction;
         this.oldTiles = oldTiles;
         this.newTiles = newTiles;
+        this.userNewTiles = userNewTiles;
         this.prevSelection = oldSelection;
         this.newSelection = newSelection;
     }
@@ -40,7 +41,7 @@ public class MapDragAction extends MapAction {
         } else { // Here we're basically where we started
             this.controller.pasteTiles(this.newTiles, this.prevSelection.startX, this.prevSelection.startY, this.prevSelection.endX, this.prevSelection.endY);
             Main.View.mapView.selectTileArea(this.prevSelection.startX, this.prevSelection.startY, this.prevSelection.endX, this.prevSelection.endY);
-            this.controller.lastAction = null; // Also very important
+            Main.View.mapView.setLastDragAction(null); // Also very important
         }
     }
 
@@ -56,11 +57,11 @@ public class MapDragAction extends MapAction {
 
         Main.View.mapView.selectTileArea(this.newSelection.startX, this.newSelection.startY, this.newSelection.endX, this.newSelection.endY); // The select action is already recorded inside moveSelectedTiles
 
-        this.controller.lastAction = this; // Very important
+        Main.View.mapView.setLastDragAction(this); // Very important
     }
 
     public override function clone():MapAction {
-        return new MapDragAction(this.controller, this.prevAction, this.oldTiles, this.newTiles, this.prevSelection, this.newSelection);
+        return new MapDragAction(this.controller, this.prevAction, this.oldTiles, this.newTiles, this.prevSelection, this.newSelection, this.userNewTiles);
     }
 }
 }

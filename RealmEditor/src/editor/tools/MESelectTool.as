@@ -98,7 +98,7 @@ public class MESelectTool extends METool {
             return;
         }
 
-        history.record(new MapSelectAction(this.prevSelection.clone(), new MapSelectData(beginX, beginY, endX, endY)));
+        history.record(new MapSelectAction(this.prevSelection.clone(), this.mainView.mapView.selection.clone()));
         this.lastDragPos = new IntPoint(beginX, beginY);
 
         this.reset();

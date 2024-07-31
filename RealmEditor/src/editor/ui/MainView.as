@@ -544,6 +544,10 @@ public class MainView extends Sprite {
 
     private function onMouseDrag(e:Event):void {
         var tilePos:IntPoint = getMouseTilePosition();
+        if (this.mapView == null){
+            return;
+        }
+
         this.selectedTool.mouseDrag(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -568,6 +572,10 @@ public class MainView extends Sprite {
 
     private function onMouseDragEnd(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
+        if (this.mapView == null){
+            return;
+        }
+
         this.selectedTool.mouseDragEnd(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -577,6 +585,10 @@ public class MainView extends Sprite {
 
     private function onTileClick(e:Event):void { // Perform select/draw/erase actions here
         var tilePos:IntPoint = this.getMouseTilePosition();
+        if (this.mapView == null){
+            return;
+        }
+
         this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -608,6 +620,10 @@ public class MainView extends Sprite {
 
     private function onMouseMoved(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
+        if (this.mapView == null){
+            return;
+        }
+
         if (tilePos == null) {
             this.tileInfoPanel.visible = false;
             return;
@@ -671,6 +687,10 @@ public class MainView extends Sprite {
         }
 
         var tilePos:IntPoint = this.getMouseTilePosition();
+        if (this.mapView == null){
+            return;
+        }
+
         this.mapView.hideOverlays();
         this.selectedTool.init(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
