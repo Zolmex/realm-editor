@@ -302,11 +302,8 @@ public class MapView extends Sprite {
         }
 
         this.brushOverlay.bitmapData = brushTexture;
-        if (size != 8) {
-            this.brushOverlay.scaleX = 8 / texture.width;
-            this.brushOverlay.scaleY = 8 / texture.height;
-        }
-
+        this.brushOverlay.scaleX = 8 / texture.width;
+        this.brushOverlay.scaleY = 8 / texture.height;
         this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.visible = true;
