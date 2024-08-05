@@ -38,5 +38,8 @@ public class MEEvent {
     public static const ASSETS_DIR_REMOVED:String = "AssetsDirRemoved";
     public static const ASSETS_DIR_ADDED:String = "AssetsDirAdded";
     public static const TOGGLE_DEBUG:String = "ToggleDebug";
+    public static const CLOSE_NO_SAVE:String = "ExitNoSave";
+    public static const MAP_CHANGED:String = "MapChanged";
+    public static const MAP_SAVED:String = "MapSaved";
 }
 }

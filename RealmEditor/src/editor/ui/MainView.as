@@ -34,6 +34,7 @@ import editor.ui.elements.SimpleTextInput;
 import flash.desktop.NativeApplication;
 
 import flash.display.Graphics;
+import flash.display.NativeWindow;
 import flash.display.Shape;
 import flash.display.SimpleButton;
 import flash.display.Sprite;
@@ -66,7 +67,6 @@ public class MainView extends Sprite {
     private var nextMapId:int;
 
     private var background:Background;
-    private var exitButton:SimpleTextButton;
     private var assetsButton:SimpleTextButton;
     private var loadButton:SimpleTextButton;
     private var newButton:SimpleTextButton;
@@ -74,6 +74,7 @@ public class MainView extends Sprite {
     private var saveWmapButton:SimpleTextButton;
     private var mapCreateWindow:CreateMapWindow;
     private var assetsWindow:AssetsWindow;
+    private var closePrompt:ClosePromptWindow;
 
     public var inputHandler:MapInputHandler;
     public var notifications:NotificationView;
@@ -98,6 +99,7 @@ public class MainView extends Sprite {
 
     private var lastUpdate:int;
     private var autoSaver:AutoMapSaver;
+    private var window:NativeWindow;
 
     public function MainView() {
         this.userBrush = new MEBrush(MEDrawType.GROUND, 0);
@@ -105,6 +107,7 @@ public class MainView extends Sprite {
         this.timeControl = new TimeControl();
         this.selectedTool = new MESelectTool(this);
         this.autoSaver = new AutoMapSaver();
+        this.window = Main.STAGE.nativeWindow;
 
         this.background = new Background();
         addChild(this.background);
@@ -160,10 +163,6 @@ public class MainView extends Sprite {
         this.toolBar = new MapToolbar(this);
         addChild(this.toolBar);
 
-        this.exitButton = new SimpleTextButton("Exit");
-        this.exitButton.addEventListener(MouseEvent.CLICK, onExitClick);
-        addChild(this.exitButton);
-
         this.assetsButton = new SimpleTextButton("Assets");
         this.assetsButton.addEventListener(MouseEvent.CLICK, this.onAssetsClick);
         addChild(this.assetsButton);
@@ -198,6 +197,8 @@ public class MainView extends Sprite {
         Main.STAGE.addEventListener(Event.ENTER_FRAME, this.update);
         Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.STAGE.addEventListener(Event.RESIZE, this.onStageResize);
+        this.window.addEventListener(Event.CLOSING, this.onExiting); // Closing the window
+
         this.updateScale();
         this.updatePositions();
 
@@ -235,11 +236,8 @@ public class MainView extends Sprite {
     public function updatePositions():void {
         this.notifications.updatePosition();
 
-        this.exitButton.x = Main.StageWidth - this.exitButton.width - 15;
-        this.exitButton.y = 15;
-
-        this.assetsButton.x = this.exitButton.x - this.assetsButton.width - 10;
-        this.assetsButton.y = this.exitButton.y;
+        this.assetsButton.x = Main.StageWidth - this.assetsButton.width - 15;
+        this.assetsButton.y = 15;
 
         this.loadButton.x = 15;
         this.loadButton.y = 15;
@@ -272,7 +270,7 @@ public class MainView extends Sprite {
         this.drawTypeSwitch.y = this.autoSaveCheckbox.y + this.autoSaveCheckbox.height + 6;
 
         this.drawElementsList.x = Main.StageWidth - MapDrawElementListView.WIDTH - 15;
-        this.drawElementsList.y = this.exitButton.y + this.exitButton.height + 15;
+        this.drawElementsList.y = this.assetsButton.y + this.assetsButton.height + 15;
 
         this.tileInfoPanel.x = this.drawElementsList.x - this.tileInfoPanel.width - 15;
         this.tileInfoPanel.y = Main.StageHeight - this.tileInfoPanel.height - 15;
@@ -308,6 +306,11 @@ public class MainView extends Sprite {
         if (this.debugView != null && this.debugView.visible){
             this.debugView.x = 10;
             this.debugView.y = Main.StageHeight - this.debugView.height - 10;
+        }
+
+        if (this.closePrompt != null && this.closePrompt.visible){
+            this.closePrompt.x = (Main.StageWidth - this.closePrompt.width) / 2;
+            this.closePrompt.y = (Main.StageHeight - this.closePrompt.height) / 2;
         }
     }
 
@@ -368,9 +371,40 @@ public class MainView extends Sprite {
         }
     }
 
-    private static function onExitClick(e:Event):void {
+    private static function closeWindow():void {
         fscommand("quit"); // For Flash
         NativeApplication.nativeApplication.exit(); // For AIR
+    }
+
+    private function onExiting(e:Event):void {
+        e.preventDefault();
+        var unsavedChanges:Boolean = false;
+        for each (var view:MapView in this.mapViewContainer.maps){ // Find out if we have unsaved changes
+            if (!view.mapData.savedChanges){
+                unsavedChanges = true;
+                break;
+            }
+        }
+
+        if (!unsavedChanges){
+            onExit(null);
+            return;
+        }
+
+        if (this.closePrompt == null) {
+            this.closePrompt = new ClosePromptWindow();
+            this.closePrompt.x = (Main.StageWidth - this.closePrompt.width) / 2;
+            this.closePrompt.y = (Main.StageHeight - this.closePrompt.height) / 2;
+            this.closePrompt.addEventListener(MEEvent.CLOSE_NO_SAVE, onExit);
+            addChild(this.closePrompt);
+        } else {
+            this.closePrompt.visible = true;
+        }
+        this.updatePositions();
+    }
+
+    private static function onExit(e:Event):void {
+        closeWindow();
     }
 
     private function onAssetsClick(e:Event):void {
@@ -448,6 +482,7 @@ public class MainView extends Sprite {
     }
 
     private function onMapClosed(e:MapClosedEvent):void {
+        this.mapViewContainer.trySaveMap(e.mapId);
         this.mapViewContainer.removeMapView(e.mapId);
         this.timeControl.eraseHistory(e.mapId);
 
@@ -466,16 +501,26 @@ public class MainView extends Sprite {
 
     private function onSaveClick(e:Event):void {
         if (this.mapData != null) {
+            this.mapData.addEventListener(MEEvent.MAP_SAVED, this.onJsonSaved);
             this.mapData.save(false);
-            this.notifications.showNotification("Map saved in JSON format!");
         }
     }
 
     private function onSaveWmapClick(e:Event):void {
         if (this.mapData != null) {
+            this.mapData.addEventListener(MEEvent.MAP_SAVED, this.onWmapSaved);
             this.mapData.save(true);
-            this.notifications.showNotification("Map saved in WMap format!");
         }
+    }
+
+    private function onJsonSaved(e:Event):void {
+        this.mapData.removeEventListener(MEEvent.MAP_SAVED, this.onJsonSaved);
+        this.notifications.showNotification("Map saved in JSON format!");
+    }
+
+    private function onWmapSaved(e:Event):void {
+        this.mapData.removeEventListener(MEEvent.MAP_SAVED, this.onWmapSaved);
+        this.notifications.showNotification("Map saved in WMap format!");
     }
 
     private function onMapLoadBegin(e:Event):void {
@@ -492,11 +537,11 @@ public class MainView extends Sprite {
 
         this.updateZoomLevel();
 
-        var id:int = this.mapViewContainer.addMapView(this.mapView);
-        this.mapSelector.addMap(id, this.mapData.mapName);
-        this.mapSelector.selectMap(id);
+        var mapId:int = this.mapViewContainer.addMapView(this.mapView);
+        this.mapSelector.addMap(mapId, this.mapData.mapName);
+        this.mapSelector.selectMap(mapId);
 
-        this.mapViewContainer.viewMap(id);
+        this.mapViewContainer.viewMap(mapId);
         this.timeControl.createHistory(this.mapView.id);
     }
 

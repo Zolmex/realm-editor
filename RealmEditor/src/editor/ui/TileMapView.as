@@ -3,6 +3,8 @@ import assets.ground.GroundLibrary;
 import assets.objects.ObjectLibrary;
 import assets.regions.RegionLibrary;
 
+import editor.MEEvent;
+
 import editor.MapData;
 import editor.MapTileData;
 
@@ -154,6 +156,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setTileData(tileData);
+        this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
     public function setTileGround(mapX:int, mapY:int, groundType:int):void{ // Modify the tile's data, but don't draw unless we want to, in that case we cal drawTile()
@@ -171,6 +174,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setGroundType(groundType);
+        this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
     public function setTileObject(mapX:int, mapY:int, objType:int):void{
@@ -188,6 +192,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setObjectType(objType);
+        this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
     public function setTileRegion(mapX:int, mapY:int, regType:int):void{
@@ -205,6 +210,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setRegionType(regType);
+        this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
     public function onMapLoadEnd():void {

@@ -15,12 +15,12 @@ public class MapSelectorView extends Sprite {
 
     private var background:Shape;
     private var mapSlotsContainer:Sprite;
-    private var mapSlots:Vector.<MapSelectorSlot>;
+    private var mapSlots:Dictionary;
 
     public var selectedMap:int;
 
     public function MapSelectorView() {
-        this.mapSlots = new Vector.<MapSelectorSlot>();
+        this.mapSlots = new Dictionary();
 
         this.background = new Shape();
         var g:Graphics = this.background.graphics;
@@ -60,12 +60,12 @@ public class MapSelectorView extends Sprite {
         }
     }
 
-    public function addMap(id:int, name:String):void {
-        var slot:MapSelectorSlot = new MapSelectorSlot(id, name);
+    public function addMap(mapId:int, name:String):void {
+        var slot:MapSelectorSlot = new MapSelectorSlot(mapId, name);
         slot.addEventListener(MouseEvent.CLICK, this.onSlotClick);
         this.mapSlotsContainer.addChild(slot);
 
-        this.mapSlots.push(slot);
+        this.mapSlots[mapId] = slot;
 
         this.positionSlots();
     }
@@ -74,56 +74,53 @@ public class MapSelectorView extends Sprite {
         slot.removeEventListener(MouseEvent.CLICK, this.onSlotClick);
         this.mapSlotsContainer.removeChild(slot);
 
-        this.mapSlots.splice(slot.id, 1);
-        this.updateIds();
+        delete this.mapSlots[slot.mapId];
 
         this.positionSlots();
 
-        this.dispatchEvent(new MapClosedEvent(MEEvent.MAP_CLOSED, slot.id));
-    }
-
-    private function updateIds():void {
-        for (var i:int = 0; i < this.mapSlots.length; i++){
-            this.mapSlots[i].setId(i);
-        }
+        this.dispatchEvent(new MapClosedEvent(MEEvent.MAP_CLOSED, slot.mapId));
     }
 
     private function positionSlots():void {
-        for (var i:int = 0; i < this.mapSlots.length; i++){
-            this.mapSlots[i].y = i * MapSelectorSlot.HEIGHT + i * 2; // 2 pixels separation between each slot
+        var i:int = 0;
+        for each (var mapSlot:MapSelectorSlot in this.mapSlots){
+            mapSlot.y = i * MapSelectorSlot.HEIGHT + i * 2; // 2 pixels separation between each slot
+            i++;
         }
     }
 
     private function onSlotClick(e:Event):void {
-        for (var i:int = 0; i < this.mapSlots.length; i++){
-            this.mapSlots[i].setSelected(false);
+        for each (var mapSlot:MapSelectorSlot in this.mapSlots){
+            mapSlot.setSelected(false);
         }
 
         var slot:MapSelectorSlot = e.target as MapSelectorSlot;
         slot.setSelected(true);
 
-        this.selectedMap = this.mapSlots.indexOf(slot);
+        this.selectedMap = slot.mapId;
 
         this.dispatchEvent(new Event(MEEvent.MAP_SELECT));
     }
 
-    public function selectMap(id:int):void {
-        if (id < 0 || id >= this.mapSlots.length){
+    public function selectMap(mapId:int):void {
+        if (this.mapSlots[mapId] == null){
             return;
         }
 
-        for (var i:int = 0; i < this.mapSlots.length; i++){
-            this.mapSlots[i].setSelected(false);
+        for each (var mapSlot:MapSelectorSlot in this.mapSlots){
+            mapSlot.setSelected(false);
         }
 
-        this.mapSlots[id].setSelected(true);
-        this.selectedMap = id;
+        this.mapSlots[mapId].setSelected(true);
+        this.selectedMap = mapId;
     }
 }
 }
 
+import editor.MEEvent;
 import editor.ui.Constants;
 import editor.ui.MapSelectorView;
+import editor.ui.MapView;
 import editor.ui.elements.TextTooltip;
 import editor.ui.elements.SimpleText;
 
@@ -142,7 +139,7 @@ class MapSelectorSlot extends Sprite {
     private static const WIDTH:int = MapSelectorView.WIDTH;
     public static const HEIGHT:int = 25;
 
-    public var id:int;
+    public var mapId:int;
     private var mapName:String;
 
     private var background:Shape;
@@ -151,15 +148,19 @@ class MapSelectorSlot extends Sprite {
     private var cross:Sprite;
     private var closeTooltip:TextTooltip;
 
-    public function MapSelectorSlot(id:int, name:String){
-        this.id = id;
+    public function MapSelectorSlot(mapId:int, name:String){
+        this.mapId = mapId;
         this.mapName = name;
+
+        var mapView:MapView = Main.View.mapViewContainer.maps[mapId] as MapView;
+        mapView.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
+        mapView.mapData.addEventListener(MEEvent.MAP_SAVED, this.onMapSaved);
 
         this.background = new Shape();
         addChild(this.background);
 
         this.text = new SimpleText(16, 0xFFFFFF, false, WIDTH);
-        this.text.setText(id.toString() + ". " + name);
+        this.text.setText(mapId.toString() + ". " + name + (!mapView.mapData.savedChanges ? " *" : ""));
         this.text.updateMetrics();
         this.text.x = 3;
         this.text.filters = Constants.SHADOW_FILTER_1;
@@ -188,6 +189,16 @@ class MapSelectorSlot extends Sprite {
         this.cross.addEventListener(MouseEvent.ROLL_OVER, this.onRollOver);
     }
 
+    private function onMapChanged(e:Event):void {
+        this.text.setText(this.mapId.toString() + ". " + this.mapName + " *");
+        this.text.updateMetrics();
+    }
+
+    private function onMapSaved(e:Event):void {
+        this.text.setText(this.mapId.toString() + ". " + this.mapName);
+        this.text.updateMetrics();
+    }
+
     private function onCrossClick(e:Event):void {
         e.stopImmediatePropagation(); // Don't let the slot click trigger
 
@@ -205,11 +216,5 @@ class MapSelectorSlot extends Sprite {
     public function setSelected(val:Boolean):void {
         this.selected = val;
         this.transform.colorTransform = val ? MoreColorUtil.identity : MoreColorUtil.darkCT;
-    }
-
-    public function setId(id:int):void {
-        this.id = id;
-        this.text.setText(id + ". " + this.mapName);
-        this.text.updateMetrics();
     }
 }

@@ -34,9 +34,12 @@ public class MapData extends EventDispatcher {
     private var loadedFile:FileReference;
     public var mapName:String;
     private var tileMap:TileMapView;
+    public var savedChanges:Boolean;
 
     public function newMap(tileMap:TileMapView, name:String, width:int, height:int):void {
+        this.savedChanges = false;
         this.tileMap = tileMap;
+        this.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
         this.mapName = name;
         this.mapWidth = width;
         this.mapHeight = height;
@@ -67,6 +70,7 @@ public class MapData extends EventDispatcher {
         var fullMapName:String = this.mapName + (wmap ? ".wmap" : ".jm");
         if (!autoSave) {
             var saveFile:FileReference = new FileReference(); // Prompts the user to save to a specific folder
+            saveFile.addEventListener(Event.SELECT, this.onMapSaved);
             saveFile.save(mapBytes, fullMapName);
         }
         else{ // Automatic saving every 15 seconds
@@ -78,11 +82,22 @@ public class MapData extends EventDispatcher {
             fs.open(file, FileMode.WRITE);
             fs.writeBytes(mapBytes);
             fs.close();
+            this.onMapSaved(null); // Force save event
         }
+    }
+
+    private function onMapSaved(e:Event):void {
+        this.savedChanges = true;
+        this.dispatchEvent(new Event(MEEvent.MAP_SAVED));
+    }
+
+    private function onMapChanged(e:Event):void {
+        this.savedChanges = false;
     }
 
     public function load(tileMap:TileMapView):void {
         this.tileMap = tileMap;
+        this.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
         this.loadedFile = new FileReference();
         this.loadedFile.addEventListener(Event.SELECT, this.onFileBrowseSelect);
         this.loadedFile.browse([new FileFilter("JSON Map (*.jm)", "*.jm;*.wmap")]);
@@ -100,6 +115,7 @@ public class MapData extends EventDispatcher {
     }
 
     private function onFileLoadComplete(e:Event):void {
+        this.savedChanges = true;
         var loadedFile:FileReference = e.target as FileReference;
         var wmapIdx:int = loadedFile.name.indexOf(".wmap");
         if (wmapIdx != -1) {

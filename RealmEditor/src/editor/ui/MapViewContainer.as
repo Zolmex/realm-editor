@@ -1,39 +1,54 @@
 package editor.ui {
 import flash.display.Sprite;
+import flash.utils.Dictionary;
 
 public class MapViewContainer extends Sprite {
 
-    private var maps:Vector.<MapView>;
+    public var maps:Dictionary;
+    private var nextMapId:int;
 
     public function MapViewContainer() {
-        this.maps = new Vector.<MapView>();
+        this.maps = new Dictionary();
+    }
+
+    public function trySaveMap(mapId:int):void {
+        var map:MapView = this.maps[mapId] as MapView;
+        if (map == null){
+            return;
+        }
+
+        if (!map.mapData.savedChanges) {
+            map.mapData.save(false);
+        }
     }
 
     public function addMapView(mapView:MapView):int {
         mapView.visible = false;
         addChild(mapView);
 
-        this.maps.push(mapView);
+        var mapId:int = this.nextMapId;
+        this.maps[mapId] = mapView;
+        this.nextMapId++;
 
-        return this.maps.length - 1;
+        return mapId;
     }
 
     public function removeMapView(mapId:int):void {
-        if (mapId < 0 || mapId >= this.maps.length){
+        if (this.maps[mapId] == null){
             return;
         }
 
         removeChild(this.maps[mapId]);
-        this.maps.splice(mapId, 1);
+        delete this.maps[mapId];
     }
 
     public function viewMap(mapId:int):MapView {
-        if (mapId < 0 || mapId >= this.maps.length){
+        if (this.maps[mapId] == null){
             return null;
         }
 
-        for (var i:int = 0; i < this.maps.length; i++){
-            this.maps[i].visible = false;
+        for each (var map:MapView in this.maps){
+            map.visible = false;
         }
 
         this.maps[mapId].visible = true;
