@@ -15,6 +15,7 @@ public class MapInputHandler extends EventDispatcher {
 
     private var view:MainView;
     private var dragging:Boolean;
+    private var middleMouseDragging:Boolean;
     private var mouseDown:Boolean;
     private var middleMouseDown:Boolean;
     public var ctrlKey:Boolean;
@@ -38,10 +39,13 @@ public class MapInputHandler extends EventDispatcher {
     private function onRollOut(e:Event):void { // If the mouse has left the map view, stop listening for mouse events
         if (this.dragging){
             this.dispatchEvent(new Event(MEEvent.MOUSE_DRAG_END)); // Make sure we let the editor know that drag ended because mouse went out of the bounds of map
+        }
+        if (this.middleMouseDragging) {
             this.dispatchEvent(new Event(MEEvent.MIDDLE_MOUSE_DRAG_END));
         }
 
         this.dragging = false;
+        this.middleMouseDragging = false;
         this.mouseDown = false;
         this.middleMouseDown = false;
 
@@ -55,30 +59,28 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onMiddleMouseDown(e:MouseEvent):void {
-        this.dragging = false;
+        this.middleMouseDragging = false;
         this.middleMouseDown = true;
-        this.view.mapViewContainer.addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseDrag);
+        this.view.mapViewContainer.addEventListener(MouseEvent.MOUSE_MOVE, this.onMiddleMouseDrag);
     }
 
     private function onMiddleMouseUp(e:MouseEvent):void {
         this.middleMouseDown = false;
-        this.view.mapViewContainer.removeEventListener(MouseEvent.MOUSE_MOVE, this.onMouseDrag);
-        if (this.dragging) {
+        this.view.mapViewContainer.removeEventListener(MouseEvent.MOUSE_MOVE, this.onMiddleMouseDrag);
+        if (this.middleMouseDragging) {
+            this.middleMouseDragging = false;
             this.dispatchEvent(new Event(MEEvent.MIDDLE_MOUSE_DRAG_END));
         }
     }
 
+    private function onMiddleMouseDrag(e:MouseEvent):void {
+        this.middleMouseDragging = true;
+        this.dispatchEvent(new Event(MEEvent.MIDDLE_MOUSE_DRAG));
+    }
+
     private function onMouseDrag(e:MouseEvent):void {
         this.dragging = true;
-
-        var event:String;
-        if (this.mouseDown) {
-            event = MEEvent.MOUSE_DRAG;
-        }
-        else if (this.middleMouseDown) {
-            event = MEEvent.MIDDLE_MOUSE_DRAG;
-        }
-        this.dispatchEvent(new Event(event));
+        this.dispatchEvent(new Event(MEEvent.MOUSE_DRAG));
     }
 
     private function onMouseDown(e:MouseEvent):void {
