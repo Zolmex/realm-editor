@@ -40,7 +40,7 @@ public class MESelectTool extends METool {
     }
 
     public override function init(tilePos:IntPoint, history:MapHistory):void {
-        if (tilePos == null){
+        if (tilePos == null) {
             return;
         }
 
@@ -55,7 +55,7 @@ public class MESelectTool extends METool {
     }
 
     public override function mouseDrag(tilePos:IntPoint, history:MapHistory):void {
-        if (tilePos == null){
+        if (tilePos == null) {
             this.reset();
             return;
         }
@@ -87,39 +87,48 @@ public class MESelectTool extends METool {
             return;
         }
 
+        var currentSelection:MapSelectData = this.mainView.mapView.selection;
         var beginX:int = this.selectionStart.x_ < tilePos.x_ ? this.selectionStart.x_ : tilePos.x_;
         var beginY:int = this.selectionStart.y_ < tilePos.y_ ? this.selectionStart.y_ : tilePos.y_;
         var endX:int = this.selectionStart.x_ < tilePos.x_ ? tilePos.x_ : this.selectionStart.x_;
         var endY:int = this.selectionStart.y_ < tilePos.y_ ? tilePos.y_ : this.selectionStart.y_;
-        if (endX == beginX && endY == beginY) { // 1 tile selected = unselect
-            this.mainView.mapView.recordSelectionClear(history);
-            this.mainView.mapView.clearTileSelection();
-            this.reset();
+        if (endX == beginX && endY == beginY) {
+            this.singleSelection(tilePos, history, this.prevSelection.clone());
             return;
         }
 
-        history.record(new MapSelectAction(this.prevSelection.clone(), this.mainView.mapView.selection.clone()));
+        history.record(new MapSelectAction(this.prevSelection.clone(), currentSelection.clone()));
         this.lastDragPos = new IntPoint(beginX, beginY);
 
         this.reset();
     }
 
     public override function tileClick(tilePos:IntPoint, history:MapHistory):void {
-        if (tilePos == null){
+        if (tilePos == null) {
             this.reset();
             return;
         }
 
-        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)){ // Don't do anything if user clicked once inside selection
+        if (this.mainView.mapView.isInsideSelection(tilePos.x_, tilePos.y_, true)) { // Don't do anything if user clicked once inside selection
             return;
         }
 
-        this.mainView.mapView.recordSelectionClear(history);
-        this.mainView.mapView.clearTileSelection();
+        this.singleSelection(tilePos, history, this.mainView.mapView.selection.clone());
+    }
+
+    private function singleSelection(tilePos:IntPoint, history:MapHistory, prevSelection:MapSelectData):void {
+        if (prevSelection.startX == -1) { // Empty selection, save 1 tile selection
+            this.mainView.mapView.selectTileArea(tilePos.x_, tilePos.y_, tilePos.x_, tilePos.y_);
+            history.record(new MapSelectAction(prevSelection, this.mainView.mapView.selection.clone()));
+        } else { // Clear selection
+            this.mainView.mapView.recordSelectionClear(history);
+            this.mainView.mapView.clearTileSelection();
+        }
+        this.reset();
     }
 
     public override function mouseMoved(tilePos:IntPoint, history:MapHistory):void {
-        if (tilePos == null){
+        if (tilePos == null) {
             this.reset();
             return;
         }
@@ -150,8 +159,8 @@ public class MESelectTool extends METool {
         var endY:int = beginY + selection.height - 1;
 
         if ((diffX == 0 && diffY == 0) || // Prevent from re-selecting in the same place
-            beginX < 0 || endX >= this.mainView.mapView.mapData.mapWidth || // Check map bounds
-            beginY < 0 || endY >= this.mainView.mapView.mapData.mapHeight) {
+                beginX < 0 || endX >= this.mainView.mapView.mapData.mapWidth || // Check map bounds
+                beginY < 0 || endY >= this.mainView.mapView.mapData.mapHeight) {
             return;
         }
 
