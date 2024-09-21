@@ -142,6 +142,7 @@ public class MainView extends Sprite {
         addChild(this.background);
 
         this.mapViewContainer = new MapViewContainer();
+        this.mapViewContainer.addChild(this.background);
         addChild(this.mapViewContainer);
 
         this.setupInput();
