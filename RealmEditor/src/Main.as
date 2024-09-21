@@ -78,7 +78,7 @@ public class Main extends Sprite {
             AssetLoader.load();
         }
 
-        View = new MainView();
+        View = new MainView(this);
         addChild(View);
     }
 }
