@@ -273,6 +273,7 @@ public class MapView extends Sprite {
 
                 texture = GroundLibrary.getBitmapData(brush.groundType);
                 this.brushTextureType = brush.groundType;
+                size = Math.max(texture.width, texture.height);
                 break;
             case MEDrawType.OBJECTS:
                 if (brush.objType == 0) {
@@ -292,7 +293,6 @@ public class MapView extends Sprite {
                 this.brushTextureType = brush.regType;
                 break;
         }
-        size = Math.max(texture.width, texture.height);
 
         var diameter:int = 1 + (brush.size * 2); // Times 2 because we have tiles on the front and on the back
         var radius:int = diameter / 2;
@@ -321,8 +321,8 @@ public class MapView extends Sprite {
         }
 
         this.brushOverlay.bitmapData = brushTexture;
-        this.brushOverlay.scaleX = 8 / texture.width;
-        this.brushOverlay.scaleY = 8 / texture.height;
+        this.brushOverlay.scaleX = 8 / size;
+        this.brushOverlay.scaleY = 8 / size;
         this.brushOverlay.x = (mapX - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.y = (mapY - brush.size) * TileMapView.TILE_SIZE;
         this.brushOverlay.visible = true;

@@ -48,6 +48,8 @@ import flash.ui.Mouse;
 import flash.utils.Dictionary;
 import flash.utils.getTimer;
 
+import realmeditor.RealmEditorTestEvent;
+
 import realmeditor.editor.AutoMapSaver;
 
 import realmeditor.editor.MEBrush;
@@ -94,6 +96,7 @@ public class MainView extends Sprite {
     private var saveButton:SimpleTextButton;
     private var backButton:SimpleTextButton; // Back to title screen (in embedded mode)
     private var saveWmapButton:SimpleTextButton;
+    private var testMapButton:SimpleTextButton;
     private var mapCreateWindow:CreateMapWindow;
     private var closePrompt:ClosePromptWindow;
 
@@ -121,6 +124,8 @@ public class MainView extends Sprite {
     private var lastUpdate:int;
     private var autoSaver:AutoMapSaver;
     private var window:NativeWindow;
+
+    public var testMode:Boolean;
 
     public function MainView(main:Sprite, embedded:Boolean) {
         Instance = this;
@@ -214,6 +219,10 @@ public class MainView extends Sprite {
         this.saveWmapButton.addEventListener(MouseEvent.CLICK, this.onSaveWmapClick);
         addChild(this.saveWmapButton);
 
+        this.testMapButton = new SimpleTextButton("Test");
+        this.testMapButton.addEventListener(MouseEvent.CLICK, this.onTestMapClick);
+        addChild(this.testMapButton);
+
         this.mapSelector = new MapSelectorView();
         this.mapSelector.addEventListener(MEEvent.MAP_SELECT, this.onMapSelected);
         this.mapSelector.addEventListener(MEEvent.MAP_CLOSED, this.onMapClosed);
@@ -228,6 +237,7 @@ public class MainView extends Sprite {
         Main.stage.addEventListener(Event.ENTER_FRAME, this.update);
         Main.stage.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.stage.addEventListener(Event.RESIZE, this.onStageResize);
+        Main.stage.addEventListener(Event.REMOVED_FROM_STAGE, this.onRemovedFromStage);
         this.window.addEventListener(Event.CLOSING, this.onExiting); // Closing the window
 
         this.updateScale();
@@ -281,6 +291,9 @@ public class MainView extends Sprite {
 
         this.saveWmapButton.x = this.saveButton.x + this.saveButton.width + 10;
         this.saveWmapButton.y = this.loadButton.y;
+
+        this.testMapButton.x = this.saveWmapButton.x + this.saveWmapButton.width + 10;
+        this.testMapButton.y = this.loadButton.y;
 
         this.mapSelector.x = this.loadButton.x;
         this.mapSelector.y = this.loadButton.y + this.loadButton.height + 10;
@@ -346,7 +359,7 @@ public class MainView extends Sprite {
     }
 
     private function onMouseWheel(e:MouseEvent):void {
-        if (this.mapView == null) {
+        if (this.mapView == null || this.testMode) {
             return;
         }
 
@@ -393,7 +406,24 @@ public class MainView extends Sprite {
         this.drawElementsList.onScreenResize();
     }
 
+    private function onRemovedFromStage(e:Event):void {
+        this.inputHandler.clear();
+        Main.stage.removeEventListener(Event.ENTER_FRAME, this.update);
+        Main.stage.removeEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+        Main.stage.removeEventListener(Event.RESIZE, this.onStageResize);
+        Main.stage.removeEventListener(Event.REMOVED_FROM_STAGE, this.onRemovedFromStage);
+    }
+
     private function update(e:Event):void { // Runs every frame
+        if (this.testMode){
+            if (this.visible) { // If we are visible then that means we're no longer in test mode
+                this.testMode = false;
+            }
+            else {
+                return;
+            }
+        }
+
         var time:int = getTimer();
         var deltaTime:int = time - this.lastUpdate;
         this.lastUpdate = time;
@@ -516,14 +546,22 @@ public class MainView extends Sprite {
     }
 
     private function onBackClick(e:Event):void {
-        parent.removeChild(this);
         this.inputHandler.clear();
+        parent.removeChild(this);
     }
 
     private function onSaveWmapClick(e:Event):void {
         if (this.mapData != null) {
             this.mapData.addEventListener(MEEvent.MAP_SAVED, this.onWmapSaved);
             this.mapData.save(true);
+        }
+    }
+
+    private function onTestMapClick(e:Event):void {
+        if (this.mapData != null) {
+            var json:String = this.mapData.getMapJsonString();
+            dispatchEvent(new RealmEditorTestEvent(json));
+            this.testMode = true;
         }
     }
 

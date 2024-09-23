@@ -38,6 +38,10 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onRollOver(e:Event):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.view.mapViewContainer.addEventListener(MouseEvent.ROLL_OUT, this.onRollOut);
         this.view.mapViewContainer.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
         this.view.mapViewContainer.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
@@ -47,6 +51,10 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onRollOut(e:Event):void { // If the mouse has left the map view, stop listening for mouse events
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         if (e != null) {
             if (this.dragging) {
                 this.dispatchEvent(new Event(MEEvent.MOUSE_DRAG_END)); // Make sure we let the editor know that drag ended because mouse went out of the bounds of map
@@ -71,12 +79,20 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onMiddleMouseDown(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.middleMouseDragging = false;
         this.middleMouseDown = true;
         this.view.mapViewContainer.addEventListener(MouseEvent.MOUSE_MOVE, this.onMiddleMouseDrag);
     }
 
     private function onMiddleMouseUp(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.middleMouseDown = false;
         this.view.mapViewContainer.removeEventListener(MouseEvent.MOUSE_MOVE, this.onMiddleMouseDrag);
         if (this.middleMouseDragging) {
@@ -86,22 +102,38 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onMiddleMouseDrag(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.middleMouseDragging = true;
         this.dispatchEvent(new Event(MEEvent.MIDDLE_MOUSE_DRAG));
     }
 
     private function onMouseDrag(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.dragging = true;
         this.dispatchEvent(new Event(MEEvent.MOUSE_DRAG));
     }
 
     private function onMouseDown(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.dragging = false;
         this.mouseDown = true;
         this.view.mapViewContainer.addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseDrag); // Only detect map movements when the mouse is down
     }
 
     private function onMouseUp(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.mouseDown = false;
         this.view.mapViewContainer.removeEventListener(MouseEvent.MOUSE_MOVE, this.onMouseDrag);
         if (!this.dragging) {
@@ -113,10 +145,18 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onMouseMoved(e:MouseEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.dispatchEvent(new Event(MouseEvent.MOUSE_MOVE));
     }
 
     private function onKeyDown(e:KeyboardEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         var dict:Dictionary;
         if (e.ctrlKey) {
             this.ctrlKey = true;
@@ -132,6 +172,10 @@ public class MapInputHandler extends EventDispatcher {
     }
 
     private function onKeyUp(e:KeyboardEvent):void {
+        if (MainView.Instance.testMode){
+            return;
+        }
+
         this.ctrlKey = false;
         var dict:Dictionary;
         if (e.ctrlKey) { // Love it or hate it, it's simple and it works

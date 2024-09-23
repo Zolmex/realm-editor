@@ -360,6 +360,12 @@ public class MapData extends EventDispatcher {
 
     private function exportJson():ByteArray {
         var ret:ByteArray = new ByteArray();
+        var json:String = getMapJsonString();
+        ret.writeMultiByte(json, "utf-8");
+        return ret;
+    }
+
+    public function getMapJsonString():String{
         var jm:Object = {};
 
         jm["width"] = this.mapWidth;
@@ -386,9 +392,7 @@ public class MapData extends EventDispatcher {
         jm["dict"] = entries;
         indices.compress();
         jm["data"] = Base64.encodeByteArray(indices);
-
-        ret.writeMultiByte(encodeJson(jm), "utf-8");
-        return ret;
+        return encodeJson(jm);
     }
 
     private function getJsonTile(x:int, y:int):Object {
