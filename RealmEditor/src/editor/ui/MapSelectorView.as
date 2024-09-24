@@ -1,21 +1,30 @@
 package editor.ui {
+import assets.AssetLibrary;
+
 import editor.MEEvent;
+
+import flash.display.Bitmap;
 
 import flash.display.Graphics;
 import flash.display.Shape;
 import flash.display.Sprite;
 import flash.events.Event;
 import flash.events.MouseEvent;
+import flash.filters.GradientBevelFilter;
+import flash.sampler.StackFrame;
+import flash.ui.Mouse;
 import flash.utils.Dictionary;
 
 public class MapSelectorView extends Sprite {
 
-    public static const WIDTH:int = 150;
-    private static const HEIGHT:int = 150;
+    private static const HEIGHT:int = 25;
 
     private var background:Shape;
+    private var close:Sprite;
+    private var options:Sprite;
+    private var slotsMask:Shape;
     private var mapSlotsContainer:Sprite;
-    private var mapSlots:Dictionary;
+    public var mapSlots:Dictionary;
 
     public var selectedMap:int;
 
@@ -25,16 +34,37 @@ public class MapSelectorView extends Sprite {
         this.background = new Shape();
         var g:Graphics = this.background.graphics;
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
-        g.drawRoundRect(0, 0, WIDTH, HEIGHT, 10, 10);
+        g.drawRect(0, 0, Main.STAGE.stageWidth, HEIGHT);
         g.endFill();
         addChild(this.background);
 
-        var slotsMask:Shape = new Shape();
-        g = slotsMask.graphics;
+        this.slotsMask = new Shape();
+        g = this.slotsMask.graphics;
         g.beginFill(0);
-        g.drawRoundRect(0, 0, WIDTH, HEIGHT, 10, 10);
+        g.drawRoundRect(0, 0, Main.STAGE.stageWidth, HEIGHT, 10, 10);
         g.endFill();
-        addChild(slotsMask);
+        addChild(this.slotsMask);
+
+        this.close = new Sprite();
+
+        var crossSize:int = HEIGHT - 15;
+        g = this.close.graphics;
+        g.lineStyle(3, 0xFFFFFF);
+        g.lineTo(crossSize, crossSize);
+        g.moveTo(crossSize, 0);
+        g.lineTo(0, crossSize);
+        g.lineStyle();
+
+        this.close.addEventListener(MouseEvent.CLICK, beginClose);
+        this.close.addEventListener(MouseEvent.MOUSE_OVER, onCloseOver);
+        addChild(this.close);
+
+        this.options = new Sprite();
+        this.options.scaleX = this.options.scaleY = 0.9;
+        var b:Bitmap = new Bitmap(AssetLibrary.getImageFromSet("lofiInterfaceBig", 5));
+        this.options.addChild(b);
+        this.options.addEventListener(MouseEvent.CLICK, onOptionsClick);
+        addChild(this.options);
 
         this.mapSlotsContainer = new Sprite();
         this.mapSlotsContainer.mask = slotsMask;
@@ -43,6 +73,63 @@ public class MapSelectorView extends Sprite {
         this.addEventListener(MouseEvent.MOUSE_WHEEL, this.onScroll);
 
         filters = Constants.SHADOW_FILTER_1;
+        this.updatePosition();
+    }
+
+    private function onOptionsClick(event:MouseEvent):void {
+        Main.View.toggleOptions();
+    }
+
+    private function beginClose(event:MouseEvent):void {
+        Main.View.onExiting();
+    }
+
+    private function onCloseOver(event:MouseEvent):void {
+        var crossSize:int = HEIGHT - 15;
+        var g:Graphics = this.close.graphics;
+        g.clear();
+        g.lineStyle(3, 0xffe591);
+        g.lineTo(crossSize, crossSize);
+        g.moveTo(crossSize, 0);
+        g.lineTo(0, crossSize);
+        g.lineStyle();
+
+        this.close.removeEventListener(MouseEvent.MOUSE_OVER, onCloseOver);
+        this.close.addEventListener(MouseEvent.MOUSE_OUT, onCloseOut);
+    }
+
+    private function onCloseOut(event:MouseEvent):void {
+        var crossSize:int = HEIGHT - 15;
+        var g:Graphics = this.close.graphics;
+        g.clear();
+        g.lineStyle(3, 0xFFFFFF);
+        g.lineTo(crossSize, crossSize);
+        g.moveTo(crossSize, 0);
+        g.lineTo(0, crossSize);
+        g.lineStyle();
+
+        this.close.addEventListener(MouseEvent.MOUSE_OVER, onCloseOver);
+        this.close.removeEventListener(MouseEvent.MOUSE_OUT, onCloseOut);
+    }
+
+    public function updatePosition():void {
+        var g:Graphics = this.background.graphics;
+        g.clear();
+        g.beginFill(Constants.BACK_COLOR_2, 0.8);
+        g.drawRect(0, 0, Main.STAGE.stageWidth, HEIGHT);
+        g.endFill();
+
+        g = this.slotsMask.graphics;
+        g.clear();
+        g.beginFill(0);
+        g.drawRoundRect(0, 0, Main.STAGE.stageWidth, HEIGHT, 10, 10);
+        g.endFill();
+
+        this.close.x = Main.StageWidth - this.close.width - 7;
+        this.close.y = 7;
+
+        this.options.x = this.close.x - this.options.width - 8;
+        this.options.y = 5;
     }
 
     private function onScroll(e:MouseEvent):void {
@@ -60,13 +147,12 @@ public class MapSelectorView extends Sprite {
         }
     }
 
-    public function addMap(mapId:int, name:String):void {
-        var slot:MapSelectorSlot = new MapSelectorSlot(mapId, name);
+    public function addMap(mapId:int, name:String, ext:String):void {
+        var slot:MapSelectorSlot = new MapSelectorSlot(mapId, name, ext);
         slot.addEventListener(MouseEvent.CLICK, this.onSlotClick);
         this.mapSlotsContainer.addChild(slot);
 
         this.mapSlots[mapId] = slot;
-
         this.positionSlots();
     }
 
@@ -75,7 +161,6 @@ public class MapSelectorView extends Sprite {
         this.mapSlotsContainer.removeChild(slot);
 
         delete this.mapSlots[slot.mapId];
-
         this.positionSlots();
 
         this.dispatchEvent(new MapClosedEvent(MEEvent.MAP_CLOSED, slot.mapId));
@@ -84,7 +169,7 @@ public class MapSelectorView extends Sprite {
     private function positionSlots():void {
         var i:int = 0;
         for each (var mapSlot:MapSelectorSlot in this.mapSlots){
-            mapSlot.y = i * MapSelectorSlot.HEIGHT + i * 2; // 2 pixels separation between each slot
+            mapSlot.x = i * MapSelectorSlot.WIDTH + i * 2; // 2 pixels separation between each slot
             i++;
         }
     }
@@ -136,11 +221,12 @@ import util.MoreColorUtil;
 
 class MapSelectorSlot extends Sprite {
 
-    private static const WIDTH:int = MapSelectorView.WIDTH;
-    public static const HEIGHT:int = 25;
+    public static const WIDTH:int = 150;
+    private static const HEIGHT:int = 25;
 
     public var mapId:int;
     private var mapName:String;
+    private var extension:String;
 
     private var background:Shape;
     private var text:SimpleText;
@@ -148,9 +234,10 @@ class MapSelectorSlot extends Sprite {
     private var cross:Sprite;
     private var closeTooltip:TextTooltip;
 
-    public function MapSelectorSlot(mapId:int, name:String){
+    public function MapSelectorSlot(mapId:int, name:String, ext:String){
         this.mapId = mapId;
         this.mapName = name;
+        this.extension = ext;
 
         var mapView:MapView = Main.View.mapViewContainer.maps[mapId] as MapView;
         mapView.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
@@ -160,7 +247,7 @@ class MapSelectorSlot extends Sprite {
         addChild(this.background);
 
         this.text = new SimpleText(16, 0xFFFFFF, false, WIDTH);
-        this.text.setText(mapId.toString() + ". " + name + (!mapView.mapData.savedChanges ? " *" : ""));
+        this.text.setText(name + ext + (!mapView.mapData.savedChanges ? " *" : ""));
         this.text.updateMetrics();
         this.text.x = 3;
         this.text.filters = Constants.SHADOW_FILTER_1;
@@ -190,12 +277,12 @@ class MapSelectorSlot extends Sprite {
     }
 
     private function onMapChanged(e:Event):void {
-        this.text.setText(this.mapId.toString() + ". " + this.mapName + " *");
+        this.text.setText(this.mapName + this.extension + " *");
         this.text.updateMetrics();
     }
 
     private function onMapSaved(e:Event):void {
-        this.text.setText(this.mapId.toString() + ". " + this.mapName);
+        this.text.setText(this.mapName + this.extension);
         this.text.updateMetrics();
     }
 

@@ -33,6 +33,7 @@ public class MapData extends EventDispatcher {
     public var mapHeight:int;
     private var loadedFile:FileReference;
     public var mapName:String;
+    public var fileExt:String;
     private var tileMap:TileMapView;
     public var savedChanges:Boolean;
 
@@ -120,6 +121,7 @@ public class MapData extends EventDispatcher {
         var wmapIdx:int = loadedFile.name.indexOf(".wmap");
         if (wmapIdx != -1) {
             this.mapName = loadedFile.name.substr(0, wmapIdx);
+            this.fileExt = ".wmap";
             this.loadWMap(loadedFile.data);
             return;
         }
@@ -130,6 +132,7 @@ public class MapData extends EventDispatcher {
         }
 
         this.mapName = loadedFile.name.substr(0, jsonIdx);
+        this.fileExt = ".jm";
         var jm:Object = decodeJson(loadedFile.data.toString());
         this.mapWidth = jm["width"];
         this.mapHeight = jm["height"];

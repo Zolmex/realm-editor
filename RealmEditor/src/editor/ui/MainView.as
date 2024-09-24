@@ -28,6 +28,7 @@ import editor.ToolSwitchEvent;
 import editor.ui.MapDrawElementListView;
 import editor.ui.elements.IDrawElementFilter;
 import editor.ui.elements.MultiOptionalSwitch;
+import editor.ui.elements.ResizeAnchor;
 import editor.ui.elements.SimpleCheckBox;
 import editor.ui.elements.SimpleTextInput;
 
@@ -75,11 +76,12 @@ public class MainView extends Sprite {
     private var mapCreateWindow:CreateMapWindow;
     private var assetsWindow:AssetsWindow;
     private var closePrompt:ClosePromptWindow;
+    private var resizeAnchor:ResizeAnchor;
 
     public var inputHandler:MapInputHandler;
     public var notifications:NotificationView;
     private var zoomInput:SimpleTextInput;
-    private var toolBoxBackground:Shape;
+    private var toolBoxBackground:Sprite;
     private var tileInfoPanel:TileInfoPanel;
     private var gridCheckbox:SimpleCheckBox;
     private var autoSaveCheckbox:SimpleCheckBox;
@@ -118,36 +120,31 @@ public class MainView extends Sprite {
 
         this.setupInput();
 
-        this.toolBoxBackground = new Shape();
+        this.toolBoxBackground = new Sprite();
         this.toolBoxBackground.filters = Constants.SHADOW_FILTER_1;
         addChild(this.toolBoxBackground);
 
-        this.zoomInput = new SimpleTextInput("Zoom", false, "100", 18, 0xFFFFFF, 15, 0xEAEAEA, true);
+        this.zoomInput = new SimpleTextInput("Zoom", false, "100", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 74);
         this.zoomInput.inputText.restrict = "0-9";
         this.zoomInput.inputText.maxChars = 3;
         this.zoomInput.inputText.addEventListener(Event.CHANGE, this.onZoomInputChange);
-        addChild(this.zoomInput);
+        this.zoomInput.x = this.zoomInput.y = 3;
+        this.toolBoxBackground.addChild(this.zoomInput);
 
-        this.gridCheckbox = new SimpleCheckBox("Grid", false);
-        this.gridCheckbox.addEventListener(Event.CHANGE, this.onGridClick);
-        addChild(this.gridCheckbox);
-
-        this.autoSaveCheckbox = new SimpleCheckBox("Autosave", true);
-        this.autoSaveCheckbox.addEventListener(Event.CHANGE, this.onAutoSaveClick);
-        addChild(this.autoSaveCheckbox);
-
-        this.drawTypeSwitch = new MultiOptionalSwitch();
+        this.drawTypeSwitch = new MultiOptionalSwitch(74);
         this.drawTypeSwitch.addOption("Ground");
         this.drawTypeSwitch.addOption("Objects");
         this.drawTypeSwitch.addOption("Regions");
         this.drawTypeSwitch.addEventListener(MEEvent.OPTION_SWITCH, this.onDrawTypeSwitch);
-        addChild(this.drawTypeSwitch);
+        this.drawTypeSwitch.x = 3;
+        this.drawTypeSwitch.y = this.zoomInput.y + this.zoomInput.height + 3;
+        this.toolBoxBackground.addChild(this.drawTypeSwitch);
 
         var g:Graphics = this.toolBoxBackground.graphics;
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
         g.drawRoundRect(0, 0,
-                this.autoSaveCheckbox.width + 10, // Add here all of the things that are supposed to go inside of the toolbox
-                this.zoomInput.height + this.gridCheckbox.height + this.autoSaveCheckbox.height + this.drawTypeSwitch.height + 32,
+                80, // Add here all of the things that are supposed to go inside of the toolbox
+                150,
                 10, 10);
         g.endFill();
 
@@ -163,30 +160,58 @@ public class MainView extends Sprite {
         this.toolBar = new MapToolbar(this);
         addChild(this.toolBar);
 
-        this.assetsButton = new SimpleTextButton("Assets");
+        this.assetsButton = new SimpleTextButton("Import assets..", 14);
+        this.assetsButton.setBold(true);
+        this.assetsButton.setAlpha(0.8);
+        this.assetsButton.hideBackground();
         this.assetsButton.addEventListener(MouseEvent.CLICK, this.onAssetsClick);
         addChild(this.assetsButton);
 
-        this.loadButton = new SimpleTextButton("Load");
+        this.loadButton = new SimpleTextButton("Open", 14);
+        this.loadButton.setBold(true);
+        this.loadButton.setAlpha(0.8)
+        this.loadButton.hideBackground();
         this.loadButton.addEventListener(MouseEvent.CLICK, this.onLoadClick);
         addChild(this.loadButton);
 
-        this.newButton = new SimpleTextButton("New");
+        this.newButton = new SimpleTextButton("New", 14);
+        this.newButton.setBold(true);
+        this.newButton.setAlpha(0.8)
+        this.newButton.hideBackground();
         this.newButton.addEventListener(MouseEvent.CLICK, this.onNewClick);
         addChild(this.newButton);
 
-        this.saveButton = new SimpleTextButton("Save JSON");
+        this.saveButton = new SimpleTextButton("Save .jm", 14);
+        this.saveButton.setBold(true);
+        this.saveButton.setAlpha(0.8);
+        this.saveButton.hideBackground();
         this.saveButton.addEventListener(MouseEvent.CLICK, this.onSaveClick);
         addChild(this.saveButton);
 
-        this.saveWmapButton = new SimpleTextButton("Save Wmap");
+        this.saveWmapButton = new SimpleTextButton("Save .wmap", 14);
+        this.saveWmapButton.setBold(true);
+        this.saveWmapButton.setAlpha(0.8);
+        this.saveWmapButton.hideBackground();
         this.saveWmapButton.addEventListener(MouseEvent.CLICK, this.onSaveWmapClick);
         addChild(this.saveWmapButton);
 
         this.mapSelector = new MapSelectorView();
+        this.mapSelector.alpha = 0.8;
         this.mapSelector.addEventListener(MEEvent.MAP_SELECT, this.onMapSelected);
         this.mapSelector.addEventListener(MEEvent.MAP_CLOSED, this.onMapClosed);
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
         addChild(this.mapSelector);
+
+        this.gridCheckbox = new SimpleCheckBox("Grid", false);
+        this.gridCheckbox.visible = false;
+        this.gridCheckbox.addEventListener(Event.CHANGE, this.onGridClick);
+        addChild(this.gridCheckbox);
+
+        this.autoSaveCheckbox = new SimpleCheckBox("Autosave", true);
+        this.autoSaveCheckbox.visible = false;
+        this.autoSaveCheckbox.addEventListener(Event.CHANGE, this.onAutoSaveClick);
+        addChild(this.autoSaveCheckbox);
 
         this.objectFilterView = new ObjectFilterOptionsView(this.drawElementsList);
         addChild(this.objectFilterView);
@@ -194,15 +219,61 @@ public class MainView extends Sprite {
         this.notifications = new NotificationView();
         addChild(this.notifications);
 
+        this.resizeAnchor = new ResizeAnchor();
+        this.resizeAnchor.addEventListener(MouseEvent.MOUSE_DOWN, this.beginResize);
+        addChild(this.resizeAnchor);
+
         Main.STAGE.addEventListener(Event.ENTER_FRAME, this.update);
         Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.STAGE.addEventListener(Event.RESIZE, this.onStageResize);
+        Main.STAGE.removeEventListener(MouseEvent.MOUSE_MOVE, onResize);
+        Main.STAGE.addEventListener(MouseEvent.MOUSE_UP, onResizeEnd);
         this.window.addEventListener(Event.CLOSING, this.onExiting); // Closing the window
 
         this.updateScale();
         this.updatePositions();
 
         this.showAssetLoaderNotifs();
+    }
+
+    private function beginResize(event:MouseEvent):void {
+        this.resizeAnchor.isResizing = true;
+        Main.STAGE.addEventListener(MouseEvent.MOUSE_MOVE, onResize);
+    }
+
+    private function onResize(event:MouseEvent):void {
+        if (this.resizeAnchor.isResizing) {
+            var newWidth:Number = mouseX + 10;
+            var newHeight:Number = mouseY + 10;
+            this.window.width = newWidth;
+            this.window.height = newHeight;
+        }
+    }
+
+    private function onResizeEnd(event:MouseEvent):void {
+        this.resizeAnchor.isResizing = false;
+        Main.STAGE.removeEventListener(MouseEvent.MOUSE_MOVE, onResize);
+    }
+
+    private function onMouseOver(event:MouseEvent):void {
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
+        this.mapSelector.removeEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
+        this.mapSelector.alpha = 1;
+    }
+
+    private function onMouseOut(event:MouseEvent):void {
+        this.mapSelector.removeEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
+        this.mapSelector.alpha = 0.8;
+    }
+
+    private function onMouseDown(event:MouseEvent):void {
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+        this.window.startMove();
+    }
+
+    private function onMouseUp(event:MouseEvent):void {
+        this.mapSelector.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
     }
 
     private function setupInput():void {
@@ -234,43 +305,35 @@ public class MainView extends Sprite {
     }
 
     public function updatePositions():void {
+        this.mapSelector.updatePosition();
         this.notifications.updatePosition();
 
-        this.assetsButton.x = Main.StageWidth - this.assetsButton.width - 15;
-        this.assetsButton.y = 15;
+        this.assetsButton.x = 5;
+        this.assetsButton.y = Main.StageHeight - this.assetsButton.height - 5;
 
-        this.loadButton.x = 15;
-        this.loadButton.y = 15;
+        this.saveWmapButton.x = 5;
+        this.saveWmapButton.y = this.assetsButton.y - this.saveWmapButton.height + 2;
 
-        this.newButton.x = this.loadButton.x + this.loadButton.width + 10;
-        this.newButton.y = this.loadButton.y;
+        this.saveButton.x = 5;
+        this.saveButton.y = this.saveWmapButton.y - this.saveButton.height + 2;
 
-        this.saveButton.x = this.newButton.x + this.newButton.width + 10;
-        this.saveButton.y = this.loadButton.y;
+        this.loadButton.x = 5;
+        this.loadButton.y = this.saveButton.y - this.loadButton.height + 2;
 
-        this.saveWmapButton.x = this.saveButton.x + this.saveButton.width + 10;
-        this.saveWmapButton.y = this.loadButton.y;
-
-        this.mapSelector.x = this.loadButton.x;
-        this.mapSelector.y = this.loadButton.y + this.loadButton.height + 10;
+        this.newButton.x = 5;
+        this.newButton.y = this.loadButton.y - this.newButton.height + 2;
 
         this.toolBoxBackground.x = 15;
         this.toolBoxBackground.y = (Main.StageHeight - this.toolBoxBackground.height) / 2;
 
-        this.zoomInput.x = this.toolBoxBackground.x + 5;
-        this.zoomInput.y = this.toolBoxBackground.y + 7.5;
+        this.gridCheckbox.x = Main.StageWidth - 105;
+        this.gridCheckbox.y = 1;
 
-        this.gridCheckbox.x = this.zoomInput.x;
-        this.gridCheckbox.y = this.zoomInput.y + this.zoomInput.height + 6;
-
-        this.autoSaveCheckbox.x = this.zoomInput.x;
-        this.autoSaveCheckbox.y = this.gridCheckbox.y + this.gridCheckbox.height + 6;
-
-        this.drawTypeSwitch.x = this.zoomInput.x;
-        this.drawTypeSwitch.y = this.autoSaveCheckbox.y + this.autoSaveCheckbox.height + 6;
+        this.autoSaveCheckbox.x = this.gridCheckbox.x - this.autoSaveCheckbox.width - 2;
+        this.autoSaveCheckbox.y = 1;
 
         this.drawElementsList.x = Main.StageWidth - MapDrawElementListView.WIDTH - 15;
-        this.drawElementsList.y = this.assetsButton.y + this.assetsButton.height + 15;
+        this.drawElementsList.y = 45;
 
         this.tileInfoPanel.x = this.drawElementsList.x - this.tileInfoPanel.width - 15;
         this.tileInfoPanel.y = Main.StageHeight - this.tileInfoPanel.height - 15;
@@ -280,6 +343,9 @@ public class MainView extends Sprite {
 
         this.objectFilterView.x = this.drawElementsList.x - 20;
         this.objectFilterView.y = this.drawElementsList.y;
+
+        this.resizeAnchor.x = Main.StageWidth - this.resizeAnchor.width - 5;
+        this.resizeAnchor.y = Main.StageHeight - this.resizeAnchor.height - 5;
 
         if (this.mapView) {
             this.mapView.x = (Main.StageWidth - (this.mapData.mapWidth * TileMapView.TILE_SIZE) * this.mapView.scaleX) / 2;
@@ -312,6 +378,11 @@ public class MainView extends Sprite {
             this.closePrompt.x = (Main.StageWidth - this.closePrompt.width) / 2;
             this.closePrompt.y = (Main.StageHeight - this.closePrompt.height) / 2;
         }
+    }
+
+    public function toggleOptions():void {
+        this.autoSaveCheckbox.visible = !this.autoSaveCheckbox.visible;
+        this.gridCheckbox.visible = !this.gridCheckbox.visible;
     }
 
     private function onMouseWheel(e:MouseEvent):void {
@@ -376,8 +447,9 @@ public class MainView extends Sprite {
         NativeApplication.nativeApplication.exit(); // For AIR
     }
 
-    private function onExiting(e:Event):void {
-        e.preventDefault();
+    public function onExiting(e:Event = null):void {
+        if (e != null)
+            e.preventDefault();
         var unsavedChanges:Boolean = false;
         for each (var view:MapView in this.mapViewContainer.maps){ // Find out if we have unsaved changes
             if (!view.mapData.savedChanges){
@@ -538,7 +610,7 @@ public class MainView extends Sprite {
         this.updateZoomLevel();
 
         var mapId:int = this.mapViewContainer.addMapView(this.mapView);
-        this.mapSelector.addMap(mapId, this.mapData.mapName);
+        this.mapSelector.addMap(mapId, this.mapData.mapName, this.mapData.fileExt);
         this.mapSelector.selectMap(mapId);
 
         this.mapViewContainer.viewMap(mapId);

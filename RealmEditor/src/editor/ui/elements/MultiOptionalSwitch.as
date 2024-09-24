@@ -17,13 +17,15 @@ import util.FilterUtil;
 
 public class MultiOptionalSwitch extends Sprite {
 
+    private var fixedWidth:int;
     private var background:Shape;
     private var options:Vector.<SwitchOption>;
     private var nextOptionY:Number;
     public var selected:int;
 
-    public function MultiOptionalSwitch() {
+    public function MultiOptionalSwitch(w:int = -1) {
         this.options = new Vector.<SwitchOption>();
+        this.fixedWidth = w;
 
         this.background = new Shape();
         addChild(this.background);
@@ -45,9 +47,10 @@ public class MultiOptionalSwitch extends Sprite {
 
     private function drawBackground():void {
         var g:Graphics = this.background.graphics;
+        var w:int = this.fixedWidth != -1 ? this.fixedWidth : width + 4;
         g.clear();
         g.beginFill(Constants.BACK_COLOR_1, 0.9);
-        g.drawRoundRect(0, 0, width + 4, height + 4, 5, 5);
+        g.drawRoundRect(0, 0, w, height + 4, 5, 5);
         g.endFill();
     }
 

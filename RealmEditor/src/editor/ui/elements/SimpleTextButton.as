@@ -8,6 +8,7 @@ import flash.events.Event;
 import flash.events.MouseEvent;
 import flash.filters.DropShadowFilter;
 import flash.text.TextField;
+import flash.text.TextFieldAutoSize;
 
 import util.FilterUtil;
 
@@ -16,11 +17,14 @@ public class SimpleTextButton extends Sprite {
     private var shape:Shape;
     private var textField:SimpleText;
 
-    public function SimpleTextButton(textStr:String, size:int = 18, color:uint = 0xFFFFFF) {
+    private var hidden:Boolean;
+
+    public function SimpleTextButton(textStr:String, size:int = 18, color:uint = 0xCCCCCC) {
         this.shape = new Shape();
         addChild(this.shape);
 
-        this.textField = new SimpleText(size, color);
+        this.textField = new SimpleText(size, color, false);
+        this.textField.autoSize = TextFieldAutoSize.LEFT
         this.textField.text = textStr;
         this.textField.filters = Constants.SHADOW_FILTER_1;
         this.textField.updateMetrics();
@@ -41,12 +45,34 @@ public class SimpleTextButton extends Sprite {
         this.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
     }
 
+    public function setBold(b:Boolean):void
+    {
+        this.textField.setBold(b);
+    }
+
+    public function setAlpha(n:Number):void
+    {
+        this.textField.alpha = n;
+    }
+
+    public function hideBackground():void
+    {
+        this.hidden = true;
+        this.shape.visible = !this.hidden;
+    }
+
     private function onMouseRollOver(e:Event):void {
-        this.shape.filters = FilterUtil.GREY_COLOR_FILTER_1;
+        if (this.hidden)
+            this.textField.setColor(0xffe591);
+        else
+            this.shape.filters = FilterUtil.GREY_COLOR_FILTER_1;
     }
 
     private function onMouseRollOut(e:Event):void {
-        this.shape.filters = null;
+        if (this.hidden)
+            this.textField.setColor(0xcccccc);
+        else
+            this.shape.filters = null;
     }
 }
 }

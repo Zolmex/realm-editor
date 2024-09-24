@@ -35,8 +35,6 @@ public class MapToolbar extends Sprite {
             }
 
             var container:ToolIconContainer = new ToolIconContainer(i);
-            container.scaleX = ICON_SIZE / container.icon.width;
-            container.scaleY = ICON_SIZE / container.icon.height;
             container.x = 5;
             container.y = 6 + iconCount * container.icon.height + 6 * iconCount;
             container.filters = FilterUtil.GREY_COLOR_FILTER_1; // Set as unselected

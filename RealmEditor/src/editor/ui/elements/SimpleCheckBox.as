@@ -24,10 +24,12 @@ public class SimpleCheckBox extends Sprite {
         this.background = new Shape();
         addChild(this.background);
 
-        this.title = new SimpleText(18, 0xFFFFFF);
+        this.title = new SimpleText(16, 0xFFFFFF);
         this.title.setText(title);
         this.title.filters = Constants.SHADOW_FILTER_1;
         this.title.updateMetrics();
+        this.title.x = 4;
+        this.title.y = 1;
         addChild(this.title);
 
         this.checkBox = new Sprite();
@@ -68,7 +70,7 @@ public class SimpleCheckBox extends Sprite {
         this.title.x = 0;
         this.title.y = 0;
 
-        this.checkBox.x = this.title.x + this.title.width + 5;
+        this.checkBox.x = this.title.x + this.title.width + 2;
         this.checkBox.y = this.title.y + (this.title.height - this.checkBox.height) / 2;
 
         this.checkCross.x = this.checkBox.x + (CHECKBOX_SIZE - CHECKCROSS_SIZE) / 2;
@@ -78,7 +80,7 @@ public class SimpleCheckBox extends Sprite {
     private function drawBackground():void {
         var g:Graphics = this.background.graphics;
         g.beginFill(Constants.BACK_COLOR_1);
-        g.drawRoundRect(0, 0, width + 3, height, 10, 10);
+        g.drawRoundRect(0, 0, width + 5, height, 10, 10);
         g.endFill();
     }
 }

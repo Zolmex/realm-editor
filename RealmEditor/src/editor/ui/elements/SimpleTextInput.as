@@ -9,12 +9,15 @@ import flash.filters.DropShadowFilter;
 public class SimpleTextInput extends Sprite {
 
     private var background:Shape;
+    private var fixedWidth:int;
     private var titleText:SimpleText;
     public var inputText:SimpleText;
 
-    public function SimpleTextInput(title:String, inline:Boolean = false, inputText:String = "", titleSize:int = 18, titleColor:uint = 0xFFFFFF, inputSize:int = 15, inputColor:uint = 0xEAEAEA, stopKeyPropagation:Boolean = false) {
+    public function SimpleTextInput(title:String, inline:Boolean = false, inputText:String = "", titleSize:int = 18, titleColor:uint = 0xFFFFFF, inputSize:int = 15, inputColor:uint = 0xEAEAEA, stopKeyPropagation:Boolean = false, w:int = -1) {
         this.background = new Shape();
         addChild(this.background);
+
+        this.fixedWidth = w;
 
         this.titleText = new SimpleText(titleSize, titleColor);
         this.titleText.x = 2;
@@ -28,11 +31,11 @@ public class SimpleTextInput extends Sprite {
         this.inputText.text = inputText;
         if (inline){
             this.inputText.x = this.titleText.x + this.titleText.width;
-            this.inputText.y = this.titleText.y + (this.titleText.height - this.inputText.height) / 2;
+            this.inputText.y = this.titleText.y + (this.titleText.height - this.inputText.height) / 2 - 3;
         }
         else {
             this.inputText.x = this.titleText.x;
-            this.inputText.y = this.titleText.y + this.titleText.height;
+            this.inputText.y = this.titleText.y + this.titleText.height - 3;
         }
         this.inputText.border = false;
         this.inputText.updateMetrics();
@@ -49,8 +52,8 @@ public class SimpleTextInput extends Sprite {
     }
 
     private function drawBackground():void {
-        var bgWidth:int = width + 5;
-        var bgHeight:int = height;
+        var bgWidth:int = this.fixedWidth != -1 ? this.fixedWidth : width + 5;
+        var bgHeight:int = height + 5;
         var bg:Graphics = this.background.graphics;
         bg.clear();
         bg.beginFill(Constants.BACK_COLOR_1, 0.9);
