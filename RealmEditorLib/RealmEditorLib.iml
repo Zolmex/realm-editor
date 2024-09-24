@@ -3,19 +3,15 @@
   <component name="FlexBuildConfigurationManager" active="RealmEditorLib">
     <configurations>
       <configuration name="RealmEditorLib" target-platform="Desktop" pure-as="true" output-type="Library" output-file="RealmEditorLib.swc" output-folder="$MODULE_DIR$/out/production/RealmEditorLib">
-        <dependencies>
+        <dependencies target-player="32.0">
           <entries>
-            <entry library-id="5b9674af-df2a-4433-a59c-d50073f76296">
+            <entry library-id="2ca008eb-105f-4471-8d42-70d8f4bb283d">
               <dependency linkage="Merged" />
             </entry>
           </entries>
           <sdk name="Adobe AIR SDK 50.2" />
         </dependencies>
-        <compiler-options>
-          <map>
-            <entry key="compiler.debug.swc" value="true" />
-          </map>
-        </compiler-options>
+        <compiler-options />
         <packaging-air-desktop />
         <packaging-android />
         <packaging-ios />
@@ -32,7 +28,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library type="flex">
-        <properties id="5b9674af-df2a-4433-a59c-d50073f76296" />
+        <properties id="2ca008eb-105f-4471-8d42-70d8f4bb283d" />
         <CLASSES>
           <root url="file://$MODULE_DIR$/libs" />
         </CLASSES>
