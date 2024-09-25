@@ -9,15 +9,18 @@ import flash.filters.DropShadowFilter;
 public class SimpleTextInput extends Sprite {
 
     private var background:Shape;
-    private var fixedWidth:int;
     private var titleText:SimpleText;
     public var inputText:SimpleText;
 
-    public function SimpleTextInput(title:String, inline:Boolean = false, inputText:String = "", titleSize:int = 18, titleColor:uint = 0xFFFFFF, inputSize:int = 15, inputColor:uint = 0xEAEAEA, stopKeyPropagation:Boolean = false, w:int = -1) {
+    private var fixedWidth:int;
+    private var fixedHeight:int;
+
+    public function SimpleTextInput(title:String, inline:Boolean = false, inputText:String = "", titleSize:int = 18, titleColor:uint = 0xFFFFFF, inputSize:int = 15, inputColor:uint = 0xEAEAEA, stopKeyPropagation:Boolean = false, w:int = -1, h:int = -1) {
         this.background = new Shape();
         addChild(this.background);
 
         this.fixedWidth = w;
+        this.fixedHeight = h;
 
         this.titleText = new SimpleText(titleSize, titleColor);
         this.titleText.x = 2;
@@ -28,6 +31,7 @@ public class SimpleTextInput extends Sprite {
         addChild(this.titleText);
 
         this.inputText = new SimpleText(inputSize, inputColor, true, this.titleText.textWidth, this.titleText.textHeight, false, stopKeyPropagation);
+
         this.inputText.text = inputText;
         if (inline){
             this.inputText.x = this.titleText.x + this.titleText.width;
@@ -53,7 +57,7 @@ public class SimpleTextInput extends Sprite {
 
     private function drawBackground():void {
         var bgWidth:int = this.fixedWidth != -1 ? this.fixedWidth : width + 5;
-        var bgHeight:int = height + 5;
+        var bgHeight:int = this.fixedHeight != -1 ? this.fixedHeight : height + 3;
         var bg:Graphics = this.background.graphics;
         bg.clear();
         bg.beginFill(Constants.BACK_COLOR_1, 0.9);
