@@ -21,7 +21,7 @@ public class AssetBrowseSlot extends Sprite {
     public var selectedDir:String;
 
     public function AssetBrowseSlot(){
-        this.inputName = new SimpleTextInput("Name:", true, "", 18, 0xFFFFFF, 15, 0xEAEAEA, true);
+        this.inputName = new SimpleTextInput("Name:", true, "", 18, 0xFFFFFF, 16, 0xEAEAEA, true, 120, 30);
         this.inputName.inputText.restrict = "a-z A-Z 0-9"; // lowercase, uppercase, and numbers allowed
         addChild(this.inputName);
 
