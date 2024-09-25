@@ -15,6 +15,11 @@ import editor.ui.embed.fonts.MyriadProBold;
 import editor.ui.embed.fonts.MyriadProBoldCFF;
 import editor.ui.embed.fonts.MyriadProCFF;
 
+import realmeditor.editor.ui.embed.fonts.AurusenthialClassic;
+import realmeditor.editor.ui.embed.fonts.AurusenthialClassicBold;
+import realmeditor.editor.ui.embed.fonts.AurusenthialClassicBoldCFF;
+import realmeditor.editor.ui.embed.fonts.AurusenthialClassicCFF;
+
 import realmeditor.editor.ui.embed.fonts.MyriadPro;
 import realmeditor.editor.ui.embed.fonts.MyriadProBold;
 import realmeditor.editor.ui.embed.fonts.MyriadProBoldCFF;
@@ -24,10 +29,14 @@ public class SimpleText extends TextField {
 
     private static const GUTTER:int = 16;
 
-    public static const _MyriadPro:Class = MyriadPro;
-    public static const _MyriadProBold:Class = MyriadProBold;
-    public static const _MyriadProCFF:Class = MyriadProCFF;
-    public static const _MyriadProBoldCFF:Class = MyriadProBoldCFF;
+//    public static const _MyriadPro:Class = MyriadPro;
+//    public static const _MyriadProBold:Class = MyriadProBold;
+//    public static const _MyriadProCFF:Class = MyriadProCFF;
+//    public static const _MyriadProBoldCFF:Class = MyriadProBoldCFF;
+    public static const _AurusenthialClassic:Class = AurusenthialClassic;
+    public static const _AurusenthialClassicBold:Class = AurusenthialClassicBold;
+    public static const _AurusenthialClassicCFF:Class = AurusenthialClassicCFF;
+    public static const _AurusenthialClassicBoldCFF:Class = AurusenthialClassicBoldCFF;
     public static var _Font:Font;
     public static var _FontRegistered:Boolean = false;
 
@@ -39,11 +48,16 @@ public class SimpleText extends TextField {
 
     public function SimpleText(textSize:int, color:uint, makeSelectable:Boolean = false, widthParam:int = 0, heightParam:int = 0, isLink:Boolean = false, stopKeyPropagation:Boolean = false) {
         if (!_FontRegistered) {
-            Font.registerFont(_MyriadPro);
-            Font.registerFont(_MyriadProBold);
-            Font.registerFont(_MyriadProCFF);
-            Font.registerFont(_MyriadProBoldCFF);
-            _Font = new _MyriadPro();
+//            Font.registerFont(_MyriadPro);
+//            Font.registerFont(_MyriadProBold);
+//            Font.registerFont(_MyriadProCFF);
+//            Font.registerFont(_MyriadProBoldCFF);
+//            _Font = new _MyriadPro();
+            Font.registerFont(_AurusenthialClassic);
+            Font.registerFont(_AurusenthialClassicBold);
+            Font.registerFont(_AurusenthialClassicCFF);
+            Font.registerFont(_AurusenthialClassicBoldCFF);
+            _Font = new _AurusenthialClassic();
             _FontRegistered = true;
         }
 
