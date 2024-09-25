@@ -21,8 +21,8 @@ public class ClosePromptWindow extends Sprite {
         this.background = new Shape();
         addChild(this.background);
 
-        this.title = new SimpleText(20, 0xFFFFFF);
-        this.title.setText("You have unsaved changes");
+        this.title = new SimpleText(18, 0xFFFFFF);
+        this.title.setText("You have unsaved changes.");
         this.title.setBold(true);
         this.title.updateMetrics();
         this.title.filters = Constants.SHADOW_FILTER_1;
@@ -50,14 +50,14 @@ public class ClosePromptWindow extends Sprite {
         var g:Graphics = this.background.graphics;
         g.clear();
         g.beginFill(Constants.BACK_COLOR_2);
-        g.drawRoundRect(0, 0, width + 15, height + 5, 10, 10);
+        g.drawRoundRect(0, 0, width + 15, height + 8, 10, 10);
         g.endFill();
     }
 
     protected virtual function updatePositions():void {
-        this.title.x = 5;
+        this.title.x = this.title.y = 5;
         this.goBackButton.x = 5;
-        this.goBackButton.y = this.title.y + this.title.height + 5;
+        this.goBackButton.y = this.title.y + this.title.height + 3;
         this.closeButton.x = this.goBackButton.x + this.goBackButton.width + 10;
         this.closeButton.y = this.goBackButton.y;
     }

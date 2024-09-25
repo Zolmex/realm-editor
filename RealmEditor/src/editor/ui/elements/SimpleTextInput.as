@@ -5,6 +5,7 @@ import flash.display.Graphics;
 import flash.display.Shape;
 import flash.display.Sprite;
 import flash.filters.DropShadowFilter;
+import flash.text.TextFieldAutoSize;
 
 public class SimpleTextInput extends Sprite {
 
@@ -30,16 +31,16 @@ public class SimpleTextInput extends Sprite {
         this.titleText.updateMetrics();
         addChild(this.titleText);
 
-        this.inputText = new SimpleText(inputSize, inputColor, true, this.titleText.textWidth, this.titleText.textHeight, false, stopKeyPropagation);
-
+        this.inputText = new SimpleText(inputSize, inputColor, true, 0,0, false, stopKeyPropagation);
+        this.inputText.autoSize = TextFieldAutoSize.LEFT;
         this.inputText.text = inputText;
         if (inline){
             this.inputText.x = this.titleText.x + this.titleText.width;
-            this.inputText.y = this.titleText.y + (this.titleText.height - this.inputText.height) / 2 - 3;
+            this.inputText.y = this.titleText.y + (this.titleText.height - this.inputText.height) / 2 - 1;
         }
         else {
             this.inputText.x = this.titleText.x;
-            this.inputText.y = this.titleText.y + this.titleText.height - 3;
+            this.inputText.y = this.titleText.y + this.titleText.height - 1;
         }
         this.inputText.border = false;
         this.inputText.updateMetrics();

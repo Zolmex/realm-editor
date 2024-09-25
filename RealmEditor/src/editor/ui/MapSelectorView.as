@@ -45,11 +45,12 @@ public class MapSelectorView extends Sprite {
         g.endFill();
         addChild(this.slotsMask);
 
+        var crossSize:int = HEIGHT - 14;
         this.close = new Sprite();
-
-        var crossSize:int = HEIGHT - 15;
+        this.close.y = 7;
         g = this.close.graphics;
-        g.lineStyle(3, 0xFFFFFF);
+        g.clear();
+        g.lineStyle(3, 0xffffff);
         g.lineTo(crossSize, crossSize);
         g.moveTo(crossSize, 0);
         g.lineTo(0, crossSize);
@@ -60,10 +61,10 @@ public class MapSelectorView extends Sprite {
         addChild(this.close);
 
         this.options = new Sprite();
-        this.options.scaleX = this.options.scaleY = 0.9;
         var b:Bitmap = new Bitmap(AssetLibrary.getImageFromSet("lofiInterfaceBig", 5));
         this.options.addChild(b);
         this.options.addEventListener(MouseEvent.CLICK, onOptionsClick);
+        this.options.y = 4;
         addChild(this.options);
 
         this.mapSlotsContainer = new Sprite();
@@ -85,7 +86,7 @@ public class MapSelectorView extends Sprite {
     }
 
     private function onCloseOver(event:MouseEvent):void {
-        var crossSize:int = HEIGHT - 15;
+        var crossSize:int = HEIGHT - 14;
         var g:Graphics = this.close.graphics;
         g.clear();
         g.lineStyle(3, 0xffe591);
@@ -99,10 +100,10 @@ public class MapSelectorView extends Sprite {
     }
 
     private function onCloseOut(event:MouseEvent):void {
-        var crossSize:int = HEIGHT - 15;
+        var crossSize:int = HEIGHT - 14;
         var g:Graphics = this.close.graphics;
         g.clear();
-        g.lineStyle(3, 0xFFFFFF);
+        g.lineStyle(3, 0xffffff);
         g.lineTo(crossSize, crossSize);
         g.moveTo(crossSize, 0);
         g.lineTo(0, crossSize);
@@ -126,10 +127,8 @@ public class MapSelectorView extends Sprite {
         g.endFill();
 
         this.close.x = Main.StageWidth - this.close.width - 7;
-        this.close.y = 7;
 
-        this.options.x = this.close.x - this.options.width - 8;
-        this.options.y = 5;
+        this.options.x = this.close.x - this.options.width - 10;
     }
 
     private function onScroll(e:MouseEvent):void {

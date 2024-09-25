@@ -67,9 +67,6 @@ public class SimpleCheckBox extends Sprite {
     }
 
     private function positionChildren():void {
-        this.title.x = 0;
-        this.title.y = 0;
-
         this.checkBox.x = this.title.x + this.title.width + 2;
         this.checkBox.y = this.title.y + (this.title.height - this.checkBox.height) / 2;
 
@@ -80,7 +77,7 @@ public class SimpleCheckBox extends Sprite {
     private function drawBackground():void {
         var g:Graphics = this.background.graphics;
         g.beginFill(Constants.BACK_COLOR_1);
-        g.drawRoundRect(0, 0, width + 5, height, 10, 10);
+        g.drawRoundRect(0, 0, width + 10, height, 10, 10);
         g.endFill();
     }
 }

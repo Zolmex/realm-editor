@@ -44,6 +44,7 @@ public class MapData extends EventDispatcher {
         this.mapName = name;
         this.mapWidth = width;
         this.mapHeight = height;
+        this.fileExt = ".jm";
 
         this.tileMap.setup(this);
         this.dispatchEvent(new Event(MEEvent.MAP_LOAD_BEGIN));
@@ -101,7 +102,7 @@ public class MapData extends EventDispatcher {
         this.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
         this.loadedFile = new FileReference();
         this.loadedFile.addEventListener(Event.SELECT, this.onFileBrowseSelect);
-        this.loadedFile.browse([new FileFilter("JSON Map (*.jm)", "*.jm;*.wmap")]);
+        this.loadedFile.browse([new FileFilter("JSON Map (*.jm)", "*.jm;*.wmap"), new FileFilter("WorldMap (*.wmap)", "*.wmap")]);
     }
 
     private function onFileBrowseSelect(e:Event):void {
@@ -116,6 +117,7 @@ public class MapData extends EventDispatcher {
     }
 
     private function onFileLoadComplete(e:Event):void {
+        this.fileExt = ".jm";
         this.savedChanges = true;
         var loadedFile:FileReference = e.target as FileReference;
         var wmapIdx:int = loadedFile.name.indexOf(".wmap");
@@ -132,7 +134,6 @@ public class MapData extends EventDispatcher {
         }
 
         this.mapName = loadedFile.name.substr(0, jsonIdx);
-        this.fileExt = ".jm";
         var jm:Object = decodeJson(loadedFile.data.toString());
         this.mapWidth = jm["width"];
         this.mapHeight = jm["height"];

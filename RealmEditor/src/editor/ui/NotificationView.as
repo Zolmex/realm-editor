@@ -37,25 +37,13 @@ public class NotificationView extends Sprite {
 
     public function showNotification(text:String, size:int = 18, duration:Number = 2):void {
         this.text.setSize(size);
+        this.text.setBold(true);
         this.text.text = text;
         this.text.multiline = true;
         this.text.wordWrap = true;
         this.text.updateMetrics();
-
-        var g:Graphics = this.background.graphics;
-        g.clear();
-        g.beginFill(Constants.BACK_COLOR_1, 0.8);
-        g.drawRoundRect(-2, 0, this.text.actualWidth_ + 6, this.text.actualHeight_ + 4, 5, 5);
-        g.endFill();
-
-        this.updatePosition();
-
+        Main.View.updateNotifPosition();
         this.startAnimation(duration);
-    }
-
-    public function updatePosition():void {
-        this.x = (Main.StageWidth - this.background.width) / 2;
-        this.y = 60;
     }
 
     private function startAnimation(duration:Number):void {

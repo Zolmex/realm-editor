@@ -122,6 +122,7 @@ public class MainView extends Sprite {
 
         this.toolBoxBackground = new Sprite();
         this.toolBoxBackground.filters = Constants.SHADOW_FILTER_1;
+        this.toolBoxBackground.x = 15;
         addChild(this.toolBoxBackground);
 
         this.zoomInput = new SimpleTextInput("Zoom", false, "100", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 74);
@@ -144,7 +145,7 @@ public class MainView extends Sprite {
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
         g.drawRoundRect(0, 0,
                 80, // Add here all of the things that are supposed to go inside of the toolbox
-                150,
+                125,
                 10, 10);
         g.endFill();
 
@@ -155,6 +156,7 @@ public class MainView extends Sprite {
         this.drawElementsList = new MapDrawElementListView();
         this.drawElementsList.setContent(MEDrawType.GROUND);
         this.drawElementsList.addEventListener(Event.SELECT, this.onDrawElementSelected);
+        this.drawElementsList.y = 45;
         addChild(this.drawElementsList);
 
         this.toolBar = new MapToolbar(this);
@@ -165,6 +167,7 @@ public class MainView extends Sprite {
         this.assetsButton.setAlpha(0.8);
         this.assetsButton.hideBackground();
         this.assetsButton.addEventListener(MouseEvent.CLICK, this.onAssetsClick);
+        this.assetsButton.x = 5;
         addChild(this.assetsButton);
 
         this.loadButton = new SimpleTextButton("Open", 14);
@@ -172,6 +175,7 @@ public class MainView extends Sprite {
         this.loadButton.setAlpha(0.8)
         this.loadButton.hideBackground();
         this.loadButton.addEventListener(MouseEvent.CLICK, this.onLoadClick);
+        this.loadButton.x = 5;
         addChild(this.loadButton);
 
         this.newButton = new SimpleTextButton("New", 14);
@@ -179,6 +183,7 @@ public class MainView extends Sprite {
         this.newButton.setAlpha(0.8)
         this.newButton.hideBackground();
         this.newButton.addEventListener(MouseEvent.CLICK, this.onNewClick);
+        this.newButton.x = 5;
         addChild(this.newButton);
 
         this.saveButton = new SimpleTextButton("Save .jm", 14);
@@ -186,6 +191,7 @@ public class MainView extends Sprite {
         this.saveButton.setAlpha(0.8);
         this.saveButton.hideBackground();
         this.saveButton.addEventListener(MouseEvent.CLICK, this.onSaveClick);
+        this.saveButton.x = 5;
         addChild(this.saveButton);
 
         this.saveWmapButton = new SimpleTextButton("Save .wmap", 14);
@@ -193,87 +199,51 @@ public class MainView extends Sprite {
         this.saveWmapButton.setAlpha(0.8);
         this.saveWmapButton.hideBackground();
         this.saveWmapButton.addEventListener(MouseEvent.CLICK, this.onSaveWmapClick);
+        this.saveWmapButton.x = 5;
         addChild(this.saveWmapButton);
 
         this.mapSelector = new MapSelectorView();
         this.mapSelector.alpha = 0.8;
         this.mapSelector.addEventListener(MEEvent.MAP_SELECT, this.onMapSelected);
         this.mapSelector.addEventListener(MEEvent.MAP_CLOSED, this.onMapClosed);
-        this.mapSelector.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-        this.mapSelector.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_OVER, this.onTaskbarHover);
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_DOWN, this.onTaskbarClick);
         addChild(this.mapSelector);
 
         this.gridCheckbox = new SimpleCheckBox("Grid", false);
         this.gridCheckbox.visible = false;
         this.gridCheckbox.addEventListener(Event.CHANGE, this.onGridClick);
+        this.gridCheckbox.y = 1;
         addChild(this.gridCheckbox);
 
         this.autoSaveCheckbox = new SimpleCheckBox("Autosave", true);
         this.autoSaveCheckbox.visible = false;
         this.autoSaveCheckbox.addEventListener(Event.CHANGE, this.onAutoSaveClick);
+        this.autoSaveCheckbox.y = 1;
         addChild(this.autoSaveCheckbox);
 
         this.objectFilterView = new ObjectFilterOptionsView(this.drawElementsList);
         addChild(this.objectFilterView);
 
         this.notifications = new NotificationView();
+        this.notifications.y = 40;
         addChild(this.notifications);
 
         this.resizeAnchor = new ResizeAnchor();
-        this.resizeAnchor.addEventListener(MouseEvent.MOUSE_DOWN, this.beginResize);
+        this.resizeAnchor.alpha = 0.4;
+        this.resizeAnchor.addEventListener(MouseEvent.MOUSE_OVER, this.onAnchorOver);
+        this.resizeAnchor.addEventListener(MouseEvent.MOUSE_DOWN, this.onGrabAnchor);
         addChild(this.resizeAnchor);
 
         Main.STAGE.addEventListener(Event.ENTER_FRAME, this.update);
-        Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
         Main.STAGE.addEventListener(Event.RESIZE, this.onStageResize);
-        Main.STAGE.removeEventListener(MouseEvent.MOUSE_MOVE, onResize);
-        Main.STAGE.addEventListener(MouseEvent.MOUSE_UP, onResizeEnd);
-        this.window.addEventListener(Event.CLOSING, this.onExiting); // Closing the window
+        Main.STAGE.addEventListener(MouseEvent.MOUSE_UP, onReleaseAnchor);
+        Main.STAGE.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+        this.window.addEventListener(Event.CLOSING, this.onExiting);
 
         this.updateScale();
         this.updatePositions();
-
         this.showAssetLoaderNotifs();
-    }
-
-    private function beginResize(event:MouseEvent):void {
-        this.resizeAnchor.isResizing = true;
-        Main.STAGE.addEventListener(MouseEvent.MOUSE_MOVE, onResize);
-    }
-
-    private function onResize(event:MouseEvent):void {
-        if (this.resizeAnchor.isResizing) {
-            var newWidth:Number = mouseX + 10;
-            var newHeight:Number = mouseY + 10;
-            this.window.width = newWidth;
-            this.window.height = newHeight;
-        }
-    }
-
-    private function onResizeEnd(event:MouseEvent):void {
-        this.resizeAnchor.isResizing = false;
-        Main.STAGE.removeEventListener(MouseEvent.MOUSE_MOVE, onResize);
-    }
-
-    private function onMouseOver(event:MouseEvent):void {
-        this.mapSelector.addEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
-        this.mapSelector.removeEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-        this.mapSelector.alpha = 1;
-    }
-
-    private function onMouseOut(event:MouseEvent):void {
-        this.mapSelector.removeEventListener(MouseEvent.MOUSE_OUT, this.onMouseOut);
-        this.mapSelector.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-        this.mapSelector.alpha = 0.8;
-    }
-
-    private function onMouseDown(event:MouseEvent):void {
-        this.mapSelector.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-        this.window.startMove();
-    }
-
-    private function onMouseUp(event:MouseEvent):void {
-        this.mapSelector.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
     }
 
     private function setupInput():void {
@@ -304,36 +274,27 @@ public class MainView extends Sprite {
         this.background.scaleY = Main.ScaleY;
     }
 
+    public function updateNotifPosition():void {
+        this.notifications.x = Main.StageWidth / 2 - this.notifications.width / 2;
+    }
+
     public function updatePositions():void {
         this.mapSelector.updatePosition();
-        this.notifications.updatePosition();
 
-        this.assetsButton.x = 5;
+        this.notifications.x = Main.StageWidth / 2 - this.notifications.width / 2;
+
         this.assetsButton.y = Main.StageHeight - this.assetsButton.height - 5;
-
-        this.saveWmapButton.x = 5;
         this.saveWmapButton.y = this.assetsButton.y - this.saveWmapButton.height + 2;
-
-        this.saveButton.x = 5;
         this.saveButton.y = this.saveWmapButton.y - this.saveButton.height + 2;
-
-        this.loadButton.x = 5;
         this.loadButton.y = this.saveButton.y - this.loadButton.height + 2;
-
-        this.newButton.x = 5;
         this.newButton.y = this.loadButton.y - this.newButton.height + 2;
 
-        this.toolBoxBackground.x = 15;
         this.toolBoxBackground.y = (Main.StageHeight - this.toolBoxBackground.height) / 2;
 
-        this.gridCheckbox.x = Main.StageWidth - 105;
-        this.gridCheckbox.y = 1;
-
+        this.gridCheckbox.x = Main.StageWidth - 115;
         this.autoSaveCheckbox.x = this.gridCheckbox.x - this.autoSaveCheckbox.width - 2;
-        this.autoSaveCheckbox.y = 1;
 
         this.drawElementsList.x = Main.StageWidth - MapDrawElementListView.WIDTH - 15;
-        this.drawElementsList.y = 45;
 
         this.tileInfoPanel.x = this.drawElementsList.x - this.tileInfoPanel.width - 15;
         this.tileInfoPanel.y = Main.StageHeight - this.tileInfoPanel.height - 15;
@@ -515,7 +476,6 @@ public class MainView extends Sprite {
         this.mapData = newData;
         this.mapData.addEventListener(MEEvent.MAP_LOAD_BEGIN, this.onMapLoadBegin);
         this.mapData.addEventListener(MEEvent.MAP_LOAD_END, this.onMapLoadEnd);
-
         this.mapData.load(newMap.tileMap);
     }
 
@@ -982,6 +942,56 @@ public class MainView extends Sprite {
         }
 
         this.updatePositions();
+    }
+
+    private function resize(event:MouseEvent):void {
+        if (!this.resizeAnchor.isResizing)
+            return;
+        this.window.width = mouseX + 10;
+        this.window.height = mouseY + 10;
+    }
+
+    private function onGrabAnchor(event:MouseEvent):void {
+        this.resizeAnchor.isResizing = true;
+        Main.STAGE.addEventListener(MouseEvent.MOUSE_MOVE, resize);
+    }
+
+    private function onReleaseAnchor(event:MouseEvent):void {
+        this.resizeAnchor.isResizing = false;
+        Main.STAGE.removeEventListener(MouseEvent.MOUSE_MOVE, resize);
+    }
+
+    private function onTaskbarHover(event:MouseEvent):void {
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_OUT, this.onTaskbarOut);
+        this.mapSelector.removeEventListener(MouseEvent.MOUSE_OVER, this.onTaskbarHover);
+        this.mapSelector.alpha = 1;
+    }
+
+    private function onTaskbarOut(event:MouseEvent):void {
+        this.mapSelector.removeEventListener(MouseEvent.MOUSE_OUT, this.onTaskbarOut);
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_OVER, this.onTaskbarHover);
+        this.mapSelector.alpha = 0.8;
+    }
+
+    private function onTaskbarClick(event:MouseEvent):void {
+        this.mapSelector.addEventListener(MouseEvent.MOUSE_UP, onTaskbarRelease);
+        this.window.startMove();
+    }
+
+    private function onTaskbarRelease(event:MouseEvent):void {
+        this.mapSelector.removeEventListener(MouseEvent.MOUSE_UP, onTaskbarRelease);
+    }
+
+    private function onAnchorOver(e:Event):void {
+        this.resizeAnchor.removeEventListener(MouseEvent.MOUSE_OVER, this.onAnchorOver);
+        this.resizeAnchor.addEventListener(MouseEvent.MOUSE_OUT, this.onAnchorOut);
+        this.resizeAnchor.alpha = 0.7;
+    }
+
+    private function onAnchorOut(e:Event):void {
+        this.resizeAnchor.addEventListener(MouseEvent.MOUSE_OVER, this.onAnchorOver);
+        this.resizeAnchor.removeEventListener(MouseEvent.MOUSE_OUT, this.onAnchorOut);
+        this.resizeAnchor.alpha = 0.4;
     }
 }
 }
