@@ -76,28 +76,30 @@ public class MapData extends EventDispatcher {
             var saveFile:FileReference = new FileReference(); // Prompts the user to save to a specific folder
             saveFile.addEventListener(Event.SELECT, this.onMapSaved);
             saveFile.save(mapBytes, fullMapName);
-        }
-        else { // Auto-saves every 15 seconds.
-            var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave");
+        } else { // Auto-saves every 15 seconds.
+            var date:Date = new Date();
+            var dateFolder:String = formatDate(date);
+            var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave/" + dateFolder);
+
             try {
                 autoSaveFolder.createDirectory();
-            }
-            catch (error:Error) {
+            } catch (error:Error) {
                 // If createDirectory fails, attempt in Documents folder.
-                autoSaveFolder = File.documentsDirectory.resolvePath("autoSave");
+                autoSaveFolder = File.documentsDirectory.resolvePath("autoSave/" + dateFolder);
                 autoSaveFolder.createDirectory();
             }
 
+            var fileName:String = this.mapName + " " + formatTime(date) + (wmap ? ".wmap" : ".jm");
             var fs:FileStream = new FileStream();
             try {
-                fs.open(autoSaveFolder.resolvePath(fullMapName), FileMode.WRITE);
+                fs.open(autoSaveFolder.resolvePath(fileName), FileMode.WRITE);
                 fs.writeBytes(mapBytes);
                 fs.close();
                 this.onMapSaved(null); // Force-save.
                 if (!this.hasBeenAutoSaved) {
-                    var saveToDocuments:Boolean = autoSaveFolder == File.documentsDirectory.resolvePath("autoSave");
+                    var saveToDocuments:Boolean = autoSaveFolder == File.documentsDirectory.resolvePath("autoSave/" + dateFolder);
                     var directory:String = saveToDocuments ? File.documentsDirectory.nativePath : File.workingDirectory.nativePath;
-                    var htmlText:String = "<font color=\"#cccccc\">" + directory + "/" + fullMapName + "</font>"
+                    var htmlText:String = "<font color=\"#cccccc\">" + directory + "/" + dateFolder + "/" + fileName + "</font>";
                     Main.View.notifications.showNotification("<b>Your map auto-saves to:</b>\n" + htmlText, 14, 3);
                     this.hasBeenAutoSaved = true;
                 }
@@ -105,6 +107,27 @@ public class MapData extends EventDispatcher {
                 trace("Error saving map: " + error.message);
             }
         }
+    }
+
+    private function formatDate(date:Date):String {
+        var year:String = date.fullYear.toString();
+        var month:String = (date.month + 1).toString();
+        var day:String = date.date.toString();
+
+        month = (month.length < 2) ? "0" + month : month;
+        day = (day.length < 2) ? "0" + day : day;
+
+        return year + "-" + month + "-" + day;
+    }
+
+    private function formatTime(date:Date):String {
+        var hours:String = date.hours.toString();
+        var minutes:String = date.minutes.toString();
+
+        hours = (hours.length < 2) ? "0" + hours : hours;
+        minutes = (minutes.length < 2) ? "0" + minutes : minutes;
+
+        return hours + "-" + minutes;
     }
 
     private function onMapSaved(e:Event):void {
