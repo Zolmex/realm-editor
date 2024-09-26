@@ -1,7 +1,7 @@
 package editor {
 public class AutoMapSaver {
 
-    private static const COOLDOWN_MS:int = 30000; // Save map every 30 seconds
+    private static const COOLDOWN_MS:int = 60000; // Save map every minute.
 
     private var cooldown:int;
     public var disabled:Boolean;
@@ -16,7 +16,7 @@ public class AutoMapSaver {
             this.reset();
 
             if (!this.disabled) {
-                mapData.save(true, true); // Wmap is faster so save with that
+                mapData.save(true, true); // Saves as .wmap because it's faster.
             }
         }
     }
