@@ -80,6 +80,7 @@ public class MainView extends Sprite {
 
     public var inputHandler:MapInputHandler;
     public var notifications:NotificationView;
+    private var brushInput:SimpleTextInput;
     private var zoomInput:SimpleTextInput;
     private var toolBoxBackground:Sprite;
     private var tileInfoPanel:TileInfoPanel;
@@ -213,13 +214,11 @@ public class MainView extends Sprite {
         this.gridCheckbox = new SimpleCheckBox("Grid", false);
         this.gridCheckbox.visible = false;
         this.gridCheckbox.addEventListener(Event.CHANGE, this.onGridClick);
-        this.gridCheckbox.y = 1;
         addChild(this.gridCheckbox);
 
         this.autoSaveCheckbox = new SimpleCheckBox("Autosave", true);
         this.autoSaveCheckbox.visible = false;
         this.autoSaveCheckbox.addEventListener(Event.CHANGE, this.onAutoSaveClick);
-        this.autoSaveCheckbox.y = 1;
         addChild(this.autoSaveCheckbox);
 
         this.objectFilterView = new ObjectFilterOptionsView(this.drawElementsList);
@@ -332,7 +331,7 @@ public class MainView extends Sprite {
 
         if (this.debugView != null && this.debugView.visible){
             this.debugView.x = 10;
-            this.debugView.y = Main.StageHeight - this.debugView.height - 10;
+            this.debugView.y = 35;
         }
 
         if (this.closePrompt != null && this.closePrompt.visible){
@@ -460,7 +459,7 @@ public class MainView extends Sprite {
         if (DynamicAssetLoader.PendingNotifs != null) {
             this.showAssetLoaderNotifs();
         } else {
-            this.notifications.showNotification("Successfully loaded asset files!");
+            this.notifications.showNotification("Assets have been loaded!");
         }
 
         this.drawElementsList.resetFilters();
@@ -547,12 +546,12 @@ public class MainView extends Sprite {
 
     private function onJsonSaved(e:Event):void {
         this.mapData.removeEventListener(MEEvent.MAP_SAVED, this.onJsonSaved);
-        this.notifications.showNotification("Map saved in JSON format!");
+        this.notifications.showNotification("Map saved as a .jm");
     }
 
     private function onWmapSaved(e:Event):void {
         this.mapData.removeEventListener(MEEvent.MAP_SAVED, this.onWmapSaved);
-        this.notifications.showNotification("Map saved in WMap format!");
+        this.notifications.showNotification("Map saved as a .wmap");
     }
 
     private function onMapLoadBegin(e:Event):void {
@@ -621,9 +620,8 @@ public class MainView extends Sprite {
 
     private function onMouseDrag(e:Event):void {
         var tilePos:IntPoint = getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null)
             return;
-        }
 
         this.selectedTool.mouseDrag(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
@@ -637,6 +635,8 @@ public class MainView extends Sprite {
     }
 
     private function dragMap():void {
+        if (this.mapView == null)
+            return;
         var deltaX:Number = Main.STAGE.mouseX - this.lastMousePos.x;
         var deltaY:Number = Main.STAGE.mouseY - this.lastMousePos.y;
         var zoom:Number = Math.max(1, Math.min(MAX_ZOOM, MAX_ZOOM / this.mapView.zoomLevel));
@@ -649,9 +649,8 @@ public class MainView extends Sprite {
 
     private function onMouseDragEnd(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null)
             return;
-        }
 
         this.selectedTool.mouseDragEnd(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
@@ -662,9 +661,8 @@ public class MainView extends Sprite {
 
     private function onTileClick(e:Event):void { // Perform select/draw/erase actions here
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null)
             return;
-        }
 
         this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
@@ -697,9 +695,8 @@ public class MainView extends Sprite {
 
     private function onMouseMoved(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null)
             return;
-        }
 
         if (tilePos == null) {
             this.tileInfoPanel.visible = false;
@@ -726,9 +723,8 @@ public class MainView extends Sprite {
     }
 
     private function getMouseTilePosition():IntPoint { // Not to handle null value
-        if (this.mapView == null) {
+        if (this.mapView == null)
             return null;
-        }
 
         var mouseX:Number = Main.STAGE.mouseX;
         var mouseY:Number = Main.STAGE.mouseY;
@@ -778,7 +774,7 @@ public class MainView extends Sprite {
         }
 
         this.timeControl.undoLastAction(this.mapView.id); // Undo last action done in the current map
-        this.notifications.showNotification("Undone", 18, 1);
+        this.notifications.showNotification("Undo", 18, 1);
     }
 
     private function onRedoAction(e:Event):void {
@@ -787,7 +783,7 @@ public class MainView extends Sprite {
         }
 
         this.timeControl.redoLastUndoneAction(this.mapView.id); // Redo last undone action in the current map
-        this.notifications.showNotification("Redone", 18, 1);
+        this.notifications.showNotification("Redo", 18, 1);
     }
 
     private function onDrawTypeSwitch(e:Event):void {

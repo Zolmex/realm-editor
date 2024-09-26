@@ -56,6 +56,7 @@ public class Tooltip extends Sprite {
     protected virtual function drawBackground():void {
         var g:Graphics = this.background.graphics;
         g.clear();
+        g.lineStyle(2, Constants.BACK_COLOR_3,0.8);
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
         g.drawRoundRect(0, 0, width + 10, height + 10, 15, 15);
         g.endFill();

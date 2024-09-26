@@ -115,7 +115,7 @@ public class DrawListTooltip extends Tooltip {
             this.addProperty("Sinking");
         }
         if (this.xml.hasOwnProperty("NoWalk")) {
-            this.addProperty("No walk");
+            this.addProperty("Unwalkable");
         }
         if (this.xml.hasOwnProperty("RandomOffset")) {
             this.addProperty("Random offset");

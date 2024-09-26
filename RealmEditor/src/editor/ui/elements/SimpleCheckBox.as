@@ -77,7 +77,7 @@ public class SimpleCheckBox extends Sprite {
     private function drawBackground():void {
         var g:Graphics = this.background.graphics;
         g.beginFill(Constants.BACK_COLOR_1);
-        g.drawRoundRect(0, 0, width + 10, height, 10, 10);
+        g.drawRoundRect(0, 0, width + 10, height + 1, 10, 10);
         g.endFill();
     }
 }
