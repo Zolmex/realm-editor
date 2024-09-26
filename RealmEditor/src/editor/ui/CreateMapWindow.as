@@ -17,15 +17,15 @@ public class CreateMapWindow extends MEWindow {
     public function CreateMapWindow() {
         super("New Map");
 
-        this.inputName = new SimpleTextInput("Name:", true, "", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 150, 25);
+        this.inputName = new SimpleTextInput("Name:", true, "My Map", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 150, 25);
         this.inputName.inputText.restrict = "a-z A-Z 0-9"; // lowercase, uppercase, and numbers allowed
         addChild(this.inputName);
 
-        this.inputWidth = new SimpleTextInput("Width:", true, "", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 100, 25);
+        this.inputWidth = new SimpleTextInput("Width:", true, "128", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 100, 25);
         this.inputWidth.inputText.restrict = "0-9";
         addChild(this.inputWidth);
 
-        this.inputHeight = new SimpleTextInput("Height:", true, "", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 100, 25);
+        this.inputHeight = new SimpleTextInput("Height:", true, "128", 16, 0xFFFFFF, 14, 0xEAEAEA, true, 100, 25);
         this.inputHeight.inputText.restrict = "0-9";
         addChild(this.inputHeight);
     }

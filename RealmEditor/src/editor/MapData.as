@@ -36,6 +36,7 @@ public class MapData extends EventDispatcher {
     public var fileExt:String;
     private var tileMap:TileMapView;
     public var savedChanges:Boolean;
+    public var hasBeenAutoSaved:Boolean;
 
     public function newMap(tileMap:TileMapView, name:String, width:int, height:int):void {
         this.savedChanges = false;
@@ -44,7 +45,8 @@ public class MapData extends EventDispatcher {
         this.mapName = name;
         this.mapWidth = width;
         this.mapHeight = height;
-        this.fileExt = ".jm";
+        this.hasBeenAutoSaved = false;
+        this.fileExt = ".jm"; // File extension defaults to .jm because .__ or it being empty looks weird.
 
         this.tileMap.setup(this);
         this.dispatchEvent(new Event(MEEvent.MAP_LOAD_BEGIN));
@@ -52,7 +54,7 @@ public class MapData extends EventDispatcher {
         this.tileDict = new Dictionary();
         for (var yi:int = 0; yi < height; yi++) {
             for (var xi:int = 0; xi < width; xi++) {
-                tileMap.loadTileFromMap(null, xi, yi); // Empty tiles
+                tileMap.loadTileFromMap(null, xi, yi); // Empty tiles.
             }
         }
 
@@ -75,16 +77,33 @@ public class MapData extends EventDispatcher {
             saveFile.addEventListener(Event.SELECT, this.onMapSaved);
             saveFile.save(mapBytes, fullMapName);
         }
-        else{ // Automatic saving every 15 seconds
+        else { // Auto-saves every 15 seconds.
             var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave");
-            autoSaveFolder.createDirectory(); // This will create the directory if it doesn't exist already
+            try {
+                autoSaveFolder.createDirectory();
+            }
+            catch (error:Error) {
+                // If createDirectory fails, attempt in Documents folder.
+                autoSaveFolder = File.documentsDirectory.resolvePath("autoSave");
+                autoSaveFolder.createDirectory();
+            }
 
-            var file:File = autoSaveFolder.resolvePath(fullMapName);
             var fs:FileStream = new FileStream();
-            fs.open(file, FileMode.WRITE);
-            fs.writeBytes(mapBytes);
-            fs.close();
-            this.onMapSaved(null); // Force save event
+            try {
+                fs.open(autoSaveFolder.resolvePath(fullMapName), FileMode.WRITE);
+                fs.writeBytes(mapBytes);
+                fs.close();
+                this.onMapSaved(null); // Force-save.
+                if (!this.hasBeenAutoSaved) {
+                    var saveToDocuments:Boolean = autoSaveFolder == File.documentsDirectory.resolvePath("autoSave");
+                    var directory:String = saveToDocuments ? File.documentsDirectory.nativePath : File.workingDirectory.nativePath;
+                    var htmlText:String = "<font color=\"#cccccc\">" + directory + "/" + fullMapName + "</font>"
+                    Main.View.notifications.showNotification("<b>Your map auto-saves to:</b>\n" + htmlText, 14, 3);
+                    this.hasBeenAutoSaved = true;
+                }
+            } catch (error:Error) {
+                trace("Error saving map: " + error.message);
+            }
         }
     }
 
@@ -118,6 +137,7 @@ public class MapData extends EventDispatcher {
 
     private function onFileLoadComplete(e:Event):void {
         this.fileExt = ".jm";
+        this.hasBeenAutoSaved = false;
         this.savedChanges = true;
         var loadedFile:FileReference = e.target as FileReference;
         var wmapIdx:int = loadedFile.name.indexOf(".wmap");

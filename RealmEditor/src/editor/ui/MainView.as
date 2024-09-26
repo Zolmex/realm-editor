@@ -146,7 +146,7 @@ public class MainView extends Sprite {
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
         g.drawRoundRect(0, 0,
                 80, // Add here all of the things that are supposed to go inside of the toolbox
-                125,
+                127,
                 10, 10);
         g.endFill();
 
@@ -275,6 +275,7 @@ public class MainView extends Sprite {
 
     public function updateNotifPosition():void {
         this.notifications.x = Main.StageWidth / 2 - this.notifications.width / 2;
+        this.notifications.y = 60 - this.notifications.height / 2;
     }
 
     public function updatePositions():void {
@@ -459,7 +460,7 @@ public class MainView extends Sprite {
         if (DynamicAssetLoader.PendingNotifs != null) {
             this.showAssetLoaderNotifs();
         } else {
-            this.notifications.showNotification("Assets have been loaded!");
+            this.notifications.showNotification("<b>Assets have been loaded!</b>");
         }
 
         this.drawElementsList.resetFilters();
@@ -546,12 +547,12 @@ public class MainView extends Sprite {
 
     private function onJsonSaved(e:Event):void {
         this.mapData.removeEventListener(MEEvent.MAP_SAVED, this.onJsonSaved);
-        this.notifications.showNotification("Map saved as a .jm");
+        this.notifications.showNotification("Map saved as a <b>.jm</b>");
     }
 
     private function onWmapSaved(e:Event):void {
         this.mapData.removeEventListener(MEEvent.MAP_SAVED, this.onWmapSaved);
-        this.notifications.showNotification("Map saved as a .wmap");
+        this.notifications.showNotification("Map saved as a <b>.wmap</b>");
     }
 
     private function onMapLoadBegin(e:Event):void {
@@ -774,7 +775,7 @@ public class MainView extends Sprite {
         }
 
         this.timeControl.undoLastAction(this.mapView.id); // Undo last action done in the current map
-        this.notifications.showNotification("Undo", 18, 1);
+        this.notifications.showNotification("<b>Undo</b>", 18, 1);
     }
 
     private function onRedoAction(e:Event):void {
@@ -783,7 +784,7 @@ public class MainView extends Sprite {
         }
 
         this.timeControl.redoLastUndoneAction(this.mapView.id); // Redo last undone action in the current map
-        this.notifications.showNotification("Redo", 18, 1);
+        this.notifications.showNotification("<b>Redo</b>", 18, 1);
     }
 
     private function onDrawTypeSwitch(e:Event):void {
