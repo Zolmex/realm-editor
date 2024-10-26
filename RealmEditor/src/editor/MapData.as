@@ -33,8 +33,10 @@ public class MapData extends EventDispatcher {
     public var mapHeight:int;
     private var loadedFile:FileReference;
     public var mapName:String;
+    public var fileExt:String;
     private var tileMap:TileMapView;
     public var savedChanges:Boolean;
+    public var hasBeenAutoSaved:Boolean;
 
     public function newMap(tileMap:TileMapView, name:String, width:int, height:int):void {
         this.savedChanges = false;
@@ -43,6 +45,8 @@ public class MapData extends EventDispatcher {
         this.mapName = name;
         this.mapWidth = width;
         this.mapHeight = height;
+        this.hasBeenAutoSaved = false;
+        this.fileExt = ".jm"; // File extension defaults to .jm because .__ or it being empty looks weird.
 
         this.tileMap.setup(this);
         this.dispatchEvent(new Event(MEEvent.MAP_LOAD_BEGIN));
@@ -50,7 +54,7 @@ public class MapData extends EventDispatcher {
         this.tileDict = new Dictionary();
         for (var yi:int = 0; yi < height; yi++) {
             for (var xi:int = 0; xi < width; xi++) {
-                tileMap.loadTileFromMap(null, xi, yi); // Empty tiles
+                tileMap.loadTileFromMap(null, xi, yi); // Empty tiles.
             }
         }
 
@@ -72,18 +76,58 @@ public class MapData extends EventDispatcher {
             var saveFile:FileReference = new FileReference(); // Prompts the user to save to a specific folder
             saveFile.addEventListener(Event.SELECT, this.onMapSaved);
             saveFile.save(mapBytes, fullMapName);
-        }
-        else{ // Automatic saving every 15 seconds
-            var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave");
-            autoSaveFolder.createDirectory(); // This will create the directory if it doesn't exist already
+        } else { // Auto-saves every 15 seconds.
+            var date:Date = new Date();
+            var dateFolder:String = formatDate(date);
+            var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave/" + dateFolder);
 
-            var file:File = autoSaveFolder.resolvePath(fullMapName);
+            try {
+                autoSaveFolder.createDirectory();
+            } catch (error:Error) {
+                // If createDirectory fails, attempt in Documents folder.
+                autoSaveFolder = File.documentsDirectory.resolvePath("autoSave/" + dateFolder);
+                autoSaveFolder.createDirectory();
+            }
+
+            var fileName:String = this.mapName + " " + formatTime(date) + (wmap ? ".wmap" : ".jm");
             var fs:FileStream = new FileStream();
-            fs.open(file, FileMode.WRITE);
-            fs.writeBytes(mapBytes);
-            fs.close();
-            this.onMapSaved(null); // Force save event
+            try {
+                fs.open(autoSaveFolder.resolvePath(fileName), FileMode.WRITE);
+                fs.writeBytes(mapBytes);
+                fs.close();
+                this.onMapSaved(null); // Force-save.
+                if (!this.hasBeenAutoSaved) {
+                    var saveToDocuments:Boolean = autoSaveFolder == File.documentsDirectory.resolvePath("autoSave/" + dateFolder);
+                    var directory:String = saveToDocuments ? File.documentsDirectory.nativePath : File.workingDirectory.nativePath;
+                    var htmlText:String = "<font color=\"#cccccc\">" + directory + "/" + dateFolder + "/" + fileName + "</font>";
+                    Main.View.notifications.showNotification("<b>Your map auto-saves to:</b>\n" + htmlText, 14, 3);
+                    this.hasBeenAutoSaved = true;
+                }
+            } catch (error:Error) {
+                trace("Error saving map: " + error.message);
+            }
         }
+    }
+
+    private function formatDate(date:Date):String {
+        var year:String = date.fullYear.toString();
+        var month:String = (date.month + 1).toString();
+        var day:String = date.date.toString();
+
+        month = (month.length < 2) ? "0" + month : month;
+        day = (day.length < 2) ? "0" + day : day;
+
+        return year + "-" + month + "-" + day;
+    }
+
+    private function formatTime(date:Date):String {
+        var hours:String = date.hours.toString();
+        var minutes:String = date.minutes.toString();
+
+        hours = (hours.length < 2) ? "0" + hours : hours;
+        minutes = (minutes.length < 2) ? "0" + minutes : minutes;
+
+        return hours + "-" + minutes;
     }
 
     private function onMapSaved(e:Event):void {
@@ -100,7 +144,7 @@ public class MapData extends EventDispatcher {
         this.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
         this.loadedFile = new FileReference();
         this.loadedFile.addEventListener(Event.SELECT, this.onFileBrowseSelect);
-        this.loadedFile.browse([new FileFilter("JSON Map (*.jm)", "*.jm;*.wmap")]);
+        this.loadedFile.browse([new FileFilter("JSON Map (*.jm)", "*.jm;*.wmap"), new FileFilter("WorldMap (*.wmap)", "*.wmap")]);
     }
 
     private function onFileBrowseSelect(e:Event):void {
@@ -115,11 +159,14 @@ public class MapData extends EventDispatcher {
     }
 
     private function onFileLoadComplete(e:Event):void {
+        this.fileExt = ".jm";
+        this.hasBeenAutoSaved = false;
         this.savedChanges = true;
         var loadedFile:FileReference = e.target as FileReference;
         var wmapIdx:int = loadedFile.name.indexOf(".wmap");
         if (wmapIdx != -1) {
             this.mapName = loadedFile.name.substr(0, wmapIdx);
+            this.fileExt = ".wmap";
             this.loadWMap(loadedFile.data);
             return;
         }

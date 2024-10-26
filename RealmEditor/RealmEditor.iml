@@ -5,11 +5,11 @@
       <configuration name="RealmEditor" target-platform="Desktop" pure-as="true" main-class="Main" output-file="RealmEditor.swf" output-folder="$MODULE_DIR$/out">
         <dependencies>
           <entries>
-            <entry library-name="libs1" library-level="application">
+            <entry library-id="9dfd1443-20dd-4e41-b1a8-eb610c66aa35">
               <dependency linkage="Merged" />
             </entry>
           </entries>
-          <sdk name="Adobe AIR SDK 50.2" />
+          <sdk name="AIRSDK_Windows" />
         </dependencies>
         <compiler-options />
         <packaging-air-desktop use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/RealmEditor-descriptor.xml" package-file-name="RealmEditor" />
@@ -24,9 +24,20 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Adobe AIR SDK 50.2" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="jdk" jdkName="AIRSDK_Windows" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="libs1" level="project" />
     <orderEntry type="library" exported="" name="libs1" level="application" />
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="9dfd1443-20dd-4e41-b1a8-eb610c66aa35" />
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/libs" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/libs" recursive="false" />
+      </library>
+    </orderEntry>
   </component>
 </module>

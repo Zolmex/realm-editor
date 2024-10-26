@@ -23,11 +23,12 @@ public class MEWindow extends Sprite {
         this.background = new Shape();
         addChild(this.background);
 
-        this.title = new SimpleText(20, 0xFFFFFF);
-        this.title.setText(title);
+        this.title = new SimpleText(18, 0xFFFFFF);
+        this.title.htmlText = title;
         this.title.setBold(true);
         this.title.updateMetrics();
         this.title.filters = Constants.SHADOW_FILTER_1;
+        this.title.x = this.title.y = 3;
         addChild(this.title);
 
         this.okButton = new SimpleOkButton();

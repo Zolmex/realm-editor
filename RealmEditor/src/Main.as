@@ -9,6 +9,8 @@ import editor.ui.Keybinds;
 
 import editor.ui.MapInputHandler;
 
+import flash.display.NativeWindow;
+
 import flash.display.Sprite;
 import flash.display.Stage;
 import flash.display.StageAlign;
@@ -25,6 +27,7 @@ import flash.ui.Keyboard;
 public class Main extends Sprite {
 
     public static var STAGE:Stage;
+
     public static var View:MainView;
     public static var StageWidth:int = 800;
     public static var StageHeight:int = 600;
@@ -78,7 +81,7 @@ public class Main extends Sprite {
             AssetLoader.load();
         }
 
-        View = new MainView(this);
+        View = new MainView();
         addChild(View);
     }
 }

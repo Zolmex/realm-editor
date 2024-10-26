@@ -222,7 +222,7 @@ public class MapDrawElementListView extends Sprite {
     }
 
     public function onScreenResize():void {
-        this.totalHeight = Main.StageHeight - 80;
+        this.totalHeight = Main.StageHeight - 60;
 
         this.drawBackground();
         this.drawListMask();

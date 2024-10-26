@@ -9,6 +9,7 @@ import flash.display.Bitmap;
 import flash.display.BitmapData;
 
 import flash.display.DisplayObject;
+import flash.text.TextFieldAutoSize;
 import flash.text.TextFormatAlign;
 
 import util.TextureRedrawer;
@@ -51,7 +52,8 @@ public class DrawListTooltip extends Tooltip {
         addChild(this.icon);
         addChild(this.idText);
         if (this.propertiesText) {
-            addChild(this.propertiesText);
+            if (this.propertiesText.htmlText != "")
+                addChild(this.propertiesText);
         }
     }
 
@@ -62,7 +64,7 @@ public class DrawListTooltip extends Tooltip {
         this.idText.y = (this.icon.height - this.idText.height) / 2;
         if (this.propertiesText) {
             this.propertiesText.x = 10;
-            this.propertiesText.y = this.icon.y + this.icon.height;
+            this.propertiesText.y = this.icon.y + this.icon.height - 3;
         }
     }
 
@@ -83,25 +85,25 @@ public class DrawListTooltip extends Tooltip {
 
     private function addTileProperties():void {
         if (this.xml.hasOwnProperty("Damage")) {
-            this.addProperty("Damage: " + this.xml.Damage);
+            this.addProperty("<b>Damage:</b> " + this.xml.Damage);
         }
         if (this.xml.hasOwnProperty("CompositePriority")) {
-            this.addProperty("Composite priority: " + this.xml.CompositePriority);
+            this.addProperty("<b>Composite priority:</b> " + this.xml.CompositePriority);
         }
         if (this.xml.hasOwnProperty("Speed")) {
-            this.addProperty("Speed: " + this.xml.Speed);
+            this.addProperty("<b>Speed:</b> " + this.xml.Speed);
         }
         if (this.xml.hasOwnProperty("BlendPriority")) {
-            this.addProperty("Blend priority: " + this.xml.BlendPriority);
+            this.addProperty("<b>Blend priority:</b> " + this.xml.BlendPriority);
         }
         if (this.xml.hasOwnProperty("Color")) {
-            this.addProperty("Color: " + this.xml.Color);
+            this.addProperty("<b>Color:</b> " + this.xml.Color);
         }
         if (this.xml.hasOwnProperty("XOffset")) {
-            this.addProperty("X offset: " + this.xml.XOffset);
+            this.addProperty("<b>X offset:</b> " + this.xml.XOffset);
         }
         if (this.xml.hasOwnProperty("YOffset")) {
-            this.addProperty("Y offset: " + this.xml.YOffset);
+            this.addProperty("<b>Y offset:</b> " + this.xml.YOffset);
         }
         if (this.xml.hasOwnProperty("Push")) {
             this.addProperty("Push");
@@ -113,7 +115,7 @@ public class DrawListTooltip extends Tooltip {
             this.addProperty("Sinking");
         }
         if (this.xml.hasOwnProperty("NoWalk")) {
-            this.addProperty("No walk");
+            this.addProperty("Unwalkable");
         }
         if (this.xml.hasOwnProperty("RandomOffset")) {
             this.addProperty("Random offset");
@@ -125,43 +127,43 @@ public class DrawListTooltip extends Tooltip {
 
     private function addObjectProperties():void {
         if (this.xml.hasOwnProperty("DisplayId")) {
-            this.addProperty("Display id: " + this.xml.DisplayId);
+            this.addProperty("<b>Display ID:</b> " + this.xml.DisplayId);
         }
         if (this.xml.hasOwnProperty("Group")) {
-            this.addProperty("Group: " + this.xml.Group);
+            this.addProperty("<b>Group:</b> " + this.xml.Group);
         }
         if (this.xml.hasOwnProperty("Class")) {
-            this.addProperty("Class: " + this.xml.Class);
+            this.addProperty("<b>Class:</b> " + this.xml.Class);
         }
         if (this.xml.hasOwnProperty("Model")) {
-            this.addProperty("Model: " + this.xml.Model);
+            this.addProperty("<b>Model:</b> " + this.xml.Model);
         }
         if (this.xml.hasOwnProperty("Effect")) {
-            this.addProperty("Effect: " + this.xml.Effect);
+            this.addProperty("<b>Effect:</b> " + this.xml.Effect);
         }
         if (this.xml.hasOwnProperty("MaxHitPoints")) {
-            this.addProperty("Max hit points: " + this.xml.MaxHitPoints);
+            this.addProperty("<b>Max HP:</b> " + this.xml.MaxHitPoints);
         }
         if (this.xml.hasOwnProperty("Defense")) {
-            this.addProperty("Defense: " + this.xml.Defense);
+            this.addProperty("<b>Defense:</b> " + this.xml.Defense);
         }
         if (this.xml.hasOwnProperty("XpMult")) {
-            this.addProperty("Xp mult: " + this.xml.XpMult);
+            this.addProperty("<b>XP mult:</b> " + this.xml.XpMult);
         }
         if (this.xml.hasOwnProperty("Size")) {
-            this.addProperty("Size: " + this.xml.Size);
+            this.addProperty("<b>Size:</b> " + this.xml.Size);
         }
         if (this.xml.hasOwnProperty("Terrain")) {
-            this.addProperty("Terrain: " + this.xml.Terrain);
+            this.addProperty("<b>Terrain:</b> " + this.xml.Terrain);
         }
         if (this.xml.hasOwnProperty("SpawnProb")) {
-            this.addProperty("Spawn prob: " + this.xml.SpawnProb);
+            this.addProperty("<b>Spawn prob:</b> " + this.xml.SpawnProb);
         }
         if (this.xml.hasOwnProperty("Static")) {
             this.addProperty("Static");
         }
         if (this.xml.hasOwnProperty("DrawOnGround")) {
-            this.addProperty("Draw on ground");
+            this.addProperty("Draws on ground");
         }
         if (this.xml.hasOwnProperty("Enemy")) {
             this.addProperty("Enemy");
@@ -186,12 +188,13 @@ public class DrawListTooltip extends Tooltip {
         } else {
             this.properties += "\n" + str;
         }
+        trace(str);
     }
 
     private function drawProperties():void {
-        this.propertiesText = new SimpleText(16, 0xB2B2B2);
+        this.propertiesText = new SimpleText(14, 0xB2B2B2, false);
         this.propertiesText.htmlText = this.properties;
-        this.propertiesText.setAlignment(TextFormatAlign.LEFT);
+        this.propertiesText.autoSize = TextFieldAutoSize.LEFT;
         this.propertiesText.useTextDimensions();
         this.propertiesText.filters = Constants.SHADOW_FILTER_1;
     }

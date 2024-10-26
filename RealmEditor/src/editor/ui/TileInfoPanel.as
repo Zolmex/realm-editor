@@ -72,7 +72,8 @@ public class TileInfoPanel extends Sprite {
 
         this.tile = tileData;
 
-        this.posText.setText("X: " + x.toString() + " Y: " + y.toString());
+        this.posText.htmlText = "<b>X:</b> " + x.toString() + " <b>Y:</b> " + y.toString();
+        this.posText.updateMetrics();
         this.posText.useTextDimensions();
 
         if (tileData.groundType != -1) {

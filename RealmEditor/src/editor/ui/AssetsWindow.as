@@ -141,7 +141,7 @@ public class AssetsWindow extends MEWindow {
         this.slotsContainer.y = this.title.y + this.title.height + 5;
 
         this.newDirectorySlot.x = this.slotsContainer.x;
-        this.newDirectorySlot.y = this.slotsContainer.y + this.slotsContainer.height + 5;
+        this.newDirectorySlot.y = this.slotsContainer.y + this.slotsContainer.height;
 
         this.okButton.x = this.slotsContainer.x;
         this.okButton.y = this.newDirectorySlot.y + this.newDirectorySlot.height;
