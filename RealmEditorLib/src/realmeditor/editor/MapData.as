@@ -308,8 +308,7 @@ public class MapData extends EventDispatcher {
                             tiles[i].objType == tile.objType &&
                             tiles[i].regType == tile.regType &&
                             tiles[i].objCfg == tile.objCfg &&
-                            tiles[i].terrainType == tile.terrainType &&
-                            tiles[i].elevation == tile.elevation) {
+                            tiles[i].terrainType == tile.terrainType) {
                         idx = i;
                         break;
                     }
