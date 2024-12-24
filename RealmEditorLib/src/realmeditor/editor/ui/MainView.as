@@ -99,6 +99,8 @@ public class MainView extends Sprite {
     private var testMapButton:SimpleTextButton;
     private var mapCreateWindow:CreateMapWindow;
     private var closePrompt:ClosePromptWindow;
+    private var mapDimensionsText:SimpleTextButton;
+    private var mapDimensionsWindow:MapDimensionsWindow;
 
     public var inputHandler:MapInputHandler;
     public var notifications:NotificationView;
@@ -231,6 +233,10 @@ public class MainView extends Sprite {
         this.objectFilterView = new ObjectFilterOptionsView(this.drawElementsList);
         addChild(this.objectFilterView);
 
+        this.mapDimensionsText = new SimpleTextButton("Width: 0\nHeight: 0", 20, 0xFFFFFF, false);
+        this.mapDimensionsText.addEventListener(MouseEvent.CLICK, this.onMapDimensionsClick);
+        addChild(this.mapDimensionsText);
+
         this.notifications = new NotificationView();
         addChild(this.notifications);
 
@@ -298,6 +304,9 @@ public class MainView extends Sprite {
         this.mapSelector.x = this.loadButton.x;
         this.mapSelector.y = this.loadButton.y + this.loadButton.height + 10;
 
+        this.mapDimensionsText.x = this.mapSelector.x + this.mapSelector.width + 5;
+        this.mapDimensionsText.y = this.mapSelector.y;
+
         this.toolBoxBackground.x = 15;
         this.toolBoxBackground.y = (StageHeight - this.toolBoxBackground.height) / 2;
 
@@ -355,6 +364,11 @@ public class MainView extends Sprite {
         if (this.closePrompt != null && this.closePrompt.visible){
             this.closePrompt.x = (StageWidth - this.closePrompt.width) / 2;
             this.closePrompt.y = (StageHeight - this.closePrompt.height) / 2;
+        }
+
+        if (this.mapDimensionsWindow != null && this.mapDimensionsWindow.visible) {
+            this.mapDimensionsWindow.x = (StageWidth - this.mapDimensionsWindow.width) / 2;
+            this.mapDimensionsWindow.y = (StageHeight - this.mapDimensionsWindow.height) / 2;
         }
     }
 
@@ -595,6 +609,8 @@ public class MainView extends Sprite {
 
         this.mapViewContainer.viewMap(mapId);
         this.timeControl.createHistory(this.mapView.id);
+
+        this.mapDimensionsText.setText("Width: " + this.mapData.mapWidth + "\nHeight: " + this.mapData.mapHeight);
     }
 
     private function onGridClick(e:Event):void {
@@ -950,6 +966,27 @@ public class MainView extends Sprite {
         }
 
         this.updatePositions();
+    }
+
+    private function onMapDimensionsClick(e:Event):void {
+        if (this.mapDimensionsWindow == null) {
+            this.mapDimensionsWindow = new MapDimensionsWindow();
+            this.mapDimensionsWindow.x = (StageWidth - this.mapDimensionsWindow.width) / 2;
+            this.mapDimensionsWindow.y = (StageHeight - this.mapDimensionsWindow.height) / 2;
+            this.mapDimensionsWindow.addEventListener(MEEvent.MAP_DIMENSIONS_CHANGE, this.onMapDimensionsChange);
+            addChild(this.mapDimensionsWindow);
+        } else {
+            this.mapDimensionsWindow.visible = true;
+        }
+        this.updatePositions();
+    }
+
+    private function onMapDimensionsChange(e:Event):void { // Changing map size basically creates a new map and pastes the previous map's data onto it
+        var width:int = this.mapDimensionsWindow.mapWidth;
+        var height:int = this.mapDimensionsWindow.mapHeight;
+
+        this.mapData.changeMapDimensions(this.mapView, width, height);
+        this.mapDimensionsText.setText("Width: " + width + "\nHeight: " + height);
     }
 }
 }

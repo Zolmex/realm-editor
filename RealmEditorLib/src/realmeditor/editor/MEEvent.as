@@ -41,5 +41,6 @@ public class MEEvent {
     public static const CLOSE_NO_SAVE:String = "ExitNoSave";
     public static const MAP_CHANGED:String = "MapChanged";
     public static const MAP_SAVED:String = "MapSaved";
+    public static const MAP_DIMENSIONS_CHANGE:String = "MapDimensionsChange";
 }
 }

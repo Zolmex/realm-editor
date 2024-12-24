@@ -58,7 +58,7 @@ public class MEWindow extends Sprite {
         var g:Graphics = this.background.graphics;
         g.clear();
         g.beginFill(Constants.BACK_COLOR_2);
-        g.drawRoundRect(0, 0, width + 15, height + 5, 10, 10);
+        g.drawRoundRect(0, -2, width + 15, height + 7, 10, 10);
         g.endFill();
     }
 

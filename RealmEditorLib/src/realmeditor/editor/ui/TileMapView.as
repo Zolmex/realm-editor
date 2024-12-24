@@ -104,7 +104,7 @@ public class TileMapView extends Sprite {
 
         // Clear space before drawing object
         this.objectMapTexture.copyPixels(emptyBitmap, new Rectangle(0, 0, emptyBitmap.width, emptyBitmap.height), new Point(tile.spriteX, tile.spriteY));
-        if (this.highResSprites[idx] != null){
+        if (this.highResSprites[idx] != null && this.highResLayer.contains(this.highResSprites[idx])){
             this.highResLayer.removeChild(this.highResSprites[idx]);
             delete this.highResSprites[idx];
         }

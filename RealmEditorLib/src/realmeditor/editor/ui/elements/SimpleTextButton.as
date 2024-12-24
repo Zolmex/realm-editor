@@ -18,25 +18,29 @@ public class SimpleTextButton extends Sprite {
 
     private var shape:Shape;
     private var textField:SimpleText;
+    private var background:Boolean;
 
-    public function SimpleTextButton(textStr:String, size:int = 18, color:uint = 0xFFFFFF) {
+    public function SimpleTextButton(textStr:String, size:int = 18, color:uint = 0xFFFFFF, background:Boolean = true) {
         this.shape = new Shape();
         addChild(this.shape);
 
         this.textField = new SimpleText(size, color);
-        this.textField.text = textStr;
+        this.textField.htmlText = textStr;
         this.textField.filters = Constants.SHADOW_FILTER_1;
         this.textField.updateMetrics();
         addChild(this.textField);
 
-        var shapeW:int = this.width + 10;
-        var shapeH:int = this.height + 5;
-        var gShape:Graphics = this.shape.graphics;
-        gShape.beginFill(Constants.BACK_COLOR_1, 0.8);
-        gShape.drawRoundRect(0, 0, shapeW, shapeH, 5, 5);
-        gShape.endFill();
-        this.textField.x = (this.width - this.textField.width) / 2;
-        this.textField.y = (this.height - this.textField.height) / 2;
+        this.background = background;
+        if (background) {
+            var shapeW:int = this.width + 10;
+            var shapeH:int = this.height + 5;
+            var gShape:Graphics = this.shape.graphics;
+            gShape.beginFill(Constants.BACK_COLOR_1, 0.8);
+            gShape.drawRoundRect(0, 0, shapeW, shapeH, 5, 5);
+            gShape.endFill();
+            this.textField.x = (this.width - this.textField.width) / 2;
+            this.textField.y = (this.height - this.textField.height) / 2;
+        }
 
         filters = Constants.SHADOW_FILTER_1;
 
@@ -44,11 +48,22 @@ public class SimpleTextButton extends Sprite {
         this.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
     }
 
+    public function setText(htmlText:String):void {
+        this.textField.htmlText = htmlText;
+        this.textField.updateMetrics();
+    }
+
     private function onMouseRollOver(e:Event):void {
+        if (!this.background){
+            scaleX -= 0.1;
+        }
         this.shape.filters = FilterUtil.GREY_COLOR_FILTER_1;
     }
 
     private function onMouseRollOut(e:Event):void {
+        if (!this.background){
+            scaleX += 0.1;
+        }
         this.shape.filters = null;
     }
 }

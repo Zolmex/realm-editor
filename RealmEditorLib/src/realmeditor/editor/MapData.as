@@ -24,6 +24,7 @@ import flash.utils.Endian;
 import realmeditor.assets.GroundLibrary;
 import realmeditor.assets.ObjectLibrary;
 import realmeditor.assets.RegionLibrary;
+import realmeditor.editor.ui.MapView;
 
 import realmeditor.editor.ui.TileMapView;
 import realmeditor.util.BinaryUtils;
@@ -39,6 +40,56 @@ public class MapData extends EventDispatcher {
     public var mapName:String;
     private var tileMap:TileMapView;
     public var savedChanges:Boolean;
+
+    public function changeMapDimensions(mapView:MapView, width:int, height:int):void {
+        var oldWidth:int = this.mapWidth;
+        var oldHeight:int = this.mapHeight;
+
+        this.mapWidth = width;
+        this.mapHeight = height;
+
+        var xOffset:int = (width - oldWidth) / 2;
+        var yOffset:int = (height - oldHeight) / 2;
+
+        this.tileMap.setup(this);
+        mapView.onMapLoadBegin();
+
+        var newTileDict:Dictionary = new Dictionary();
+        for (var xi:int = 0; xi < width; xi++) {
+            for (var yi:int = 0; yi < height; yi++) {
+                var newX:int = xi;
+                var newY:int = yi;
+                if (xi < oldWidth && yi < oldHeight) {
+                    newX += xOffset; // Transform the current old map coordinate to the new map
+                    newY += yOffset;
+                    if (newX < 0) { // Account for negative values (if new size is smaller)
+                        newX = xi;
+                    }
+                    if (newY < 0) {
+                        newY = yi;
+                    }
+                    if (newX >= width || newY >= height) { // Out of bounds
+                        continue;
+                    }
+                }
+
+                var tile:MapTileData = null;
+                if (xi < oldWidth && yi < oldHeight){
+                    tile = this.tileDict[xi + yi * oldWidth];
+                }
+
+                newTileDict[newX + newY * width] = tile;
+                this.tileMap.loadTileFromMap(tile, newX, newY);
+
+                if (xi != newX || yi != newY){ // Necessary for empty tiles
+                    this.tileMap.loadTileFromMap(null, xi, yi);
+                }
+            }
+        }
+        this.tileDict = newTileDict;
+
+        mapView.onMapLoadEnd();
+    }
 
     public function newMap(tileMap:TileMapView, name:String, width:int, height:int):void {
         this.savedChanges = false;
@@ -76,8 +127,7 @@ public class MapData extends EventDispatcher {
             var saveFile:FileReference = new FileReference(); // Prompts the user to save to a specific folder
             saveFile.addEventListener(Event.SELECT, this.onMapSaved);
             saveFile.save(mapBytes, fullMapName);
-        }
-        else{ // Automatic saving every 15 seconds
+        } else { // Automatic saving every 15 seconds
             var autoSaveFolder:File = File.workingDirectory.resolvePath("autoSave");
             autoSaveFolder.createDirectory(); // This will create the directory if it doesn't exist already
 
@@ -364,7 +414,7 @@ public class MapData extends EventDispatcher {
         return ret;
     }
 
-    public function getMapJsonString():String{
+    public function getMapJsonString():String {
         var jm:Object = {};
 
         jm["width"] = this.mapWidth;
