@@ -705,6 +705,11 @@ public class MainView extends Sprite {
             return;
         }
 
+        if ((this.mapDimensionsWindow != null && this.mapDimensionsWindow.visible) ||
+                (this.mapCreateWindow != null && this.mapCreateWindow.visible)){
+            return;
+        }
+        
         this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
