@@ -61,22 +61,17 @@ public class MapData extends EventDispatcher {
         mapView.onMapLoadBegin();
 
         var newTileDict:Dictionary = new Dictionary();
-        for (var yi:int = 0; yi < height; yi++) {
-            for (var xi:int = 0; xi < width; xi++) {
-                if (xi < oldMapRect.x + xOffset || xi > mapRectEndX + xOffset || yi < oldMapRect.y + yOffset || yi > mapRectEndY + yOffset){
+        for (var yi:int = 0; yi < Math.max(height, oldHeight); yi++) {
+            for (var xi:int = 0; xi < Math.max(width, oldWidth); xi++) {
+                if (xi < width && yi < height &&
+                        (xi < oldMapRect.x + xOffset || xi > mapRectEndX + xOffset || yi < oldMapRect.y + yOffset || yi > mapRectEndY + yOffset)){
                     this.tileMap.loadTileFromMap(null, xi, yi);
                 }
 
                 if (xi >= oldMapRect.x && xi <= mapRectEndX && yi >= oldMapRect.y && yi <= mapRectEndY) { // Current position is inside the "real" map area (area with tiles on it)
                     var newX:int = xi + xOffset; // Transform the current old map coordinate to the new map
                     var newY:int = yi + yOffset;
-                    if (newX < 0) { // Account for negative values (if new size is smaller)
-                        newX = xi;
-                    }
-                    if (newY < 0) {
-                        newY = yi;
-                    }
-                    if (newX >= width || newY >= height) { // Out of bounds
+                    if (newX < 0 || newY < 0 || newX >= width || newY >= height || xi >= oldWidth || yi >= oldHeight) { // Out of bounds
                         continue;
                     }
 
