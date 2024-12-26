@@ -11,6 +11,15 @@ public class MapTileData {
     public var terrainType:int;
     public var elevation:int;
 
+    public function copy(tileData:MapTileData):void {
+        this.groundType = tileData == null ? -1 : tileData.groundType;
+        this.objType = tileData == null ? 0 : tileData.objType;
+        this.objCfg = tileData == null ? null : tileData.objCfg;
+        this.regType = tileData == null ? 0 : tileData.regType;
+        this.terrainType = tileData == null ? 0 : tileData.terrainType;
+        this.elevation = tileData == null ? 0 : tileData.elevation;
+    }
+
     public function clone():MapTileData {
         var ret:MapTileData = new MapTileData();
         ret.groundType = this.groundType;

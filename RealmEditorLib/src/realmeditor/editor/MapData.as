@@ -15,6 +15,7 @@ import flash.events.IOErrorEvent;
 import flash.filesystem.File;
 import flash.filesystem.FileMode;
 import flash.filesystem.FileStream;
+import flash.geom.Rectangle;
 import flash.net.FileFilter;
 import flash.net.FileReference;
 import flash.utils.ByteArray;
@@ -42,9 +43,14 @@ public class MapData extends EventDispatcher {
     public var savedChanges:Boolean;
 
     public function changeMapDimensions(mapView:MapView, width:int, height:int):void {
+        var oldMapRect:Rectangle = this.getRealMapRect();
         var oldWidth:int = this.mapWidth;
         var oldHeight:int = this.mapHeight;
+        var mapRectEndX:int = oldMapRect.x + oldMapRect.width - 1;
+        var mapRectEndY:int = oldMapRect.y + oldMapRect.height - 1;
+        trace("[Rect] X:", oldMapRect.x, "Y:", oldMapRect.y, "Width:", oldMapRect.width, "Height:", oldMapRect.height);
 
+        this.savedChanges = false;
         this.mapWidth = width;
         this.mapHeight = height;
 
@@ -55,13 +61,15 @@ public class MapData extends EventDispatcher {
         mapView.onMapLoadBegin();
 
         var newTileDict:Dictionary = new Dictionary();
-        for (var xi:int = 0; xi < width; xi++) {
-            for (var yi:int = 0; yi < height; yi++) {
-                var newX:int = xi;
-                var newY:int = yi;
-                if (xi < oldWidth && yi < oldHeight) {
-                    newX += xOffset; // Transform the current old map coordinate to the new map
-                    newY += yOffset;
+        for (var yi:int = 0; yi < height; yi++) {
+            for (var xi:int = 0; xi < width; xi++) {
+                if (xi < oldMapRect.x + xOffset || xi > mapRectEndX + xOffset || yi < oldMapRect.y + yOffset || yi > mapRectEndY + yOffset){
+                    this.tileMap.loadTileFromMap(null, xi, yi);
+                }
+
+                if (xi >= oldMapRect.x && xi <= mapRectEndX && yi >= oldMapRect.y && yi <= mapRectEndY) { // Current position is inside the "real" map area (area with tiles on it)
+                    var newX:int = xi + xOffset; // Transform the current old map coordinate to the new map
+                    var newY:int = yi + yOffset;
                     if (newX < 0) { // Account for negative values (if new size is smaller)
                         newX = xi;
                     }
@@ -71,24 +79,47 @@ public class MapData extends EventDispatcher {
                     if (newX >= width || newY >= height) { // Out of bounds
                         continue;
                     }
-                }
 
-                var tile:MapTileData = null;
-                if (xi < oldWidth && yi < oldHeight){
-                    tile = this.tileDict[xi + yi * oldWidth];
-                }
-
-                newTileDict[newX + newY * width] = tile;
-                this.tileMap.loadTileFromMap(tile, newX, newY);
-
-                if (xi != newX || yi != newY){ // Necessary for empty tiles
-                    this.tileMap.loadTileFromMap(null, xi, yi);
+                    var tile:MapTileData = this.tileDict[xi + yi * oldWidth];
+                    newTileDict[newX + newY * width] = tile;
+                    this.tileMap.loadTileFromMap(tile, newX, newY); // If tile is null when this method is called, the tilemap will create an empty tile data, while the map data holds a null value
                 }
             }
         }
         this.tileDict = newTileDict;
 
         mapView.onMapLoadEnd();
+    }
+
+    private function getRealMapRect():Rectangle {
+        var minX:int = this.mapWidth;
+        var minY:int = this.mapHeight;
+        var maxX:int = 0;
+        var maxY:int = 0;
+
+        for (var y:int = 0; y < this.mapHeight; y++) {
+            for (var x:int = 0; x < this.mapWidth; x++) {
+                var tile:MapTileData = this.tileDict[x + y * this.mapWidth];
+                if (tile == null) {
+                    continue;
+                }
+
+                if (x < minX) {
+                    minX = x;
+                }
+                if (y < minY) {
+                    minY = y;
+                }
+                if (x > maxX) {
+                    maxX = x;
+                }
+                if (y > maxY) {
+                    maxY = y;
+                }
+            }
+        }
+
+        return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 
     public function newMap(tileMap:TileMapView, name:String, width:int, height:int):void {
@@ -305,6 +336,19 @@ public class MapData extends EventDispatcher {
 
     private static function onFileLoadIOError(e:Event):void {
         trace("JM Map load error: " + e);
+    }
+
+    public function setTileData(x:int, y:int, tileData:MapTileData):void {
+        var tile:MapTileData = this.getTile(x, y);
+        if (tileData == null && tile == null) {
+            return;
+        }
+
+        if (tile == null){
+            tile = this.createTile(x, y);
+        }
+
+        tile.copy(tileData);
     }
 
     public function getTile(x:int, y:int):MapTileData {

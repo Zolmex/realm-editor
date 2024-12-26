@@ -159,6 +159,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setTileData(tileData);
+        this.mapData.setTileData(mapX, mapY, tileData);
         this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
@@ -177,6 +178,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setGroundType(groundType);
+        this.mapData.setTileData(mapX, mapY, tile.tileData);
         this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
@@ -195,6 +197,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setObjectType(objType);
+        this.mapData.setTileData(mapX, mapY, tile.tileData);
         this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 
@@ -213,6 +216,7 @@ public class TileMapView extends Sprite {
         }
 
         tile.setRegionType(regType);
+        this.mapData.setTileData(mapX, mapY, tile.tileData);
         this.dispatchEvent(new Event(MEEvent.MAP_CHANGED));
     }
 

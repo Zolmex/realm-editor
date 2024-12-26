@@ -54,16 +54,10 @@ public class SimpleTextButton extends Sprite {
     }
 
     private function onMouseRollOver(e:Event):void {
-        if (!this.background){
-            scaleX -= 0.1;
-        }
         this.shape.filters = FilterUtil.GREY_COLOR_FILTER_1;
     }
 
     private function onMouseRollOut(e:Event):void {
-        if (!this.background){
-            scaleX += 0.1;
-        }
         this.shape.filters = null;
     }
 }

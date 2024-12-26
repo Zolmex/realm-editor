@@ -325,8 +325,7 @@ public class MainView extends Sprite {
         this.drawElementsList.x = StageWidth - MapDrawElementListView.WIDTH - 15;
         if (this.backButton != null) {
             this.drawElementsList.y = this.backButton.y + this.backButton.height + 15;
-        }
-        else{
+        } else {
             this.drawElementsList.y = 15;
         }
 
@@ -356,12 +355,12 @@ public class MainView extends Sprite {
             this.editNameView.y = (StageHeight - this.editNameView.height) / 2;
         }
 
-        if (this.debugView != null && this.debugView.visible){
+        if (this.debugView != null && this.debugView.visible) {
             this.debugView.x = 10;
             this.debugView.y = StageHeight - this.debugView.height - 10;
         }
 
-        if (this.closePrompt != null && this.closePrompt.visible){
+        if (this.closePrompt != null && this.closePrompt.visible) {
             this.closePrompt.x = (StageWidth - this.closePrompt.width) / 2;
             this.closePrompt.y = (StageHeight - this.closePrompt.height) / 2;
         }
@@ -391,11 +390,11 @@ public class MainView extends Sprite {
         var zoomLevel:int = this.mapView.zoomLevel + (this.mapView.zoomLevel / e.delta + 1); // + 1 for divisions that result in less than 1
         zoomLevel = Math.max(1, Math.min(zoomLevel, MAX_ZOOM));
 
-        if (this.mapView.zoomLevel != zoomLevel){
+        if (this.mapView.zoomLevel != zoomLevel) {
             this.mapView.zoomLevel = zoomLevel;
             var deltaX:Number = StageWidth / 2 - Main.stage.mouseX; // Figure out how far from the middle the mouse is
             var deltaY:Number = StageHeight / 2 - Main.stage.mouseY;
-            if (e.delta < 0){ // Invert the order if we're zooming out
+            if (e.delta < 0) { // Invert the order if we're zooming out
                 deltaX *= -1;
                 deltaY *= -1;
             }
@@ -429,11 +428,10 @@ public class MainView extends Sprite {
     }
 
     private function update(e:Event):void { // Runs every frame
-        if (this.testMode){
+        if (this.testMode) {
             if (this.visible) { // If we are visible then that means we're no longer in test mode
                 this.testMode = false;
-            }
-            else {
+            } else {
                 return;
             }
         }
@@ -442,7 +440,7 @@ public class MainView extends Sprite {
         var deltaTime:int = time - this.lastUpdate;
         this.lastUpdate = time;
 
-        if (this.debugView != null && this.debugView.visible){
+        if (this.debugView != null && this.debugView.visible) {
             this.debugView.updateStats(time, deltaTime);
         }
 
@@ -459,14 +457,14 @@ public class MainView extends Sprite {
     private function onExiting(e:Event):void {
         e.preventDefault();
         var unsavedChanges:Boolean = false;
-        for each (var view:MapView in this.mapViewContainer.maps){ // Find out if we have unsaved changes
-            if (!view.mapData.savedChanges){
+        for each (var view:MapView in this.mapViewContainer.maps) { // Find out if we have unsaved changes
+            if (!view.mapData.savedChanges) {
                 unsavedChanges = true;
                 break;
             }
         }
 
-        if (!unsavedChanges){
+        if (!unsavedChanges) {
             onExit(null);
             return;
         }
@@ -544,12 +542,17 @@ public class MainView extends Sprite {
 
         this.mapView = this.mapViewContainer.viewMap(nextId);
 
+        var mapWidth:int = 0;
+        var mapHeight:int = 0;
         if (this.mapView) {
             this.mapData = this.mapView.mapData;
+            mapWidth = this.mapData.mapWidth;
+            mapHeight = this.mapData.mapHeight;
 
             this.updateZoomLevel();
             this.gridCheckbox.setValue(this.mapView.gridEnabled);
         }
+        this.mapDimensionsText.setText("Width: " + mapWidth + "\nHeight: " + mapHeight);
     }
 
     private function onSaveClick(e:Event):void {
@@ -632,7 +635,7 @@ public class MainView extends Sprite {
 
     private function onZoomInputChange(e:Event):void {
         var zoomLevel:int = int(this.zoomInput.inputText.text);
-        if (this.mapView.zoomLevel == zoomLevel){
+        if (this.mapView.zoomLevel == zoomLevel) {
             return;
         }
 
@@ -657,7 +660,7 @@ public class MainView extends Sprite {
 
     private function onMouseDrag(e:Event):void {
         var tilePos:IntPoint = getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -685,7 +688,7 @@ public class MainView extends Sprite {
 
     private function onMouseDragEnd(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -698,7 +701,7 @@ public class MainView extends Sprite {
 
     private function onTileClick(e:Event):void { // Perform select/draw/erase actions here
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -723,7 +726,7 @@ public class MainView extends Sprite {
         var mapY:int = this.editNameView.tileY;
         var history:MapHistory = this.timeControl.getHistory(this.mapView.id);
         var prevData:MapTileData = this.mapView.tileMap.getTileData(mapX, mapY);
-        if (prevData.objType == 0){
+        if (prevData.objType == 0) {
             return;
         }
 
@@ -733,7 +736,7 @@ public class MainView extends Sprite {
 
     private function onMouseMoved(e:Event):void {
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -777,7 +780,7 @@ public class MainView extends Sprite {
     }
 
     private function onToolSwitch(e:ToolSwitchEvent):void {
-        if (e.toolId == this.selectedTool.id){
+        if (e.toolId == this.selectedTool.id) {
             return;
         }
 
@@ -791,7 +794,7 @@ public class MainView extends Sprite {
         this.selectedTool.reset(); // Reset tool data
         this.selectedTool = METool.GetTool(toolId, this);
 
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -800,7 +803,7 @@ public class MainView extends Sprite {
         }
 
         var tilePos:IntPoint = this.getMouseTilePosition();
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -809,7 +812,7 @@ public class MainView extends Sprite {
     }
 
     private function onUndoAction(e:Event):void {
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -818,7 +821,7 @@ public class MainView extends Sprite {
     }
 
     private function onRedoAction(e:Event):void {
-        if (this.mapView == null){
+        if (this.mapView == null) {
             return;
         }
 
@@ -897,7 +900,7 @@ public class MainView extends Sprite {
     }
 
     private function onClearSelection(e:Event):void {
-        if (this.selectedTool.id == METool.SELECT_ID){
+        if (this.selectedTool.id == METool.SELECT_ID) {
             this.selectedTool.reset();
         }
 
@@ -907,7 +910,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionUp(e:Event):void {
-        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID) {
             return;
         }
 
@@ -916,7 +919,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionDown(e:Event):void {
-        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID) {
             return;
         }
 
@@ -925,7 +928,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionLeft(e:Event):void {
-        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID) {
             return;
         }
 
@@ -934,7 +937,7 @@ public class MainView extends Sprite {
     }
 
     private function onMoveSelectionRight(e:Event):void {
-        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID){
+        if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID) {
             return;
         }
 
@@ -948,20 +951,18 @@ public class MainView extends Sprite {
             return;
         }
 
-        if (this.selectedTool.id == METool.ERASER_ID){
+        if (this.selectedTool.id == METool.ERASER_ID) {
             this.mapView.drawBrushOutline(tilePos.x_, tilePos.y_, this.userBrush);
-        }
-        else {
+        } else {
             this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush);
         }
     }
 
     private function onToggleDebug(e:Event):void {
-        if (this.debugView == null){
+        if (this.debugView == null) {
             this.debugView = new DebugView();
             addChild(this.debugView);
-        }
-        else {
+        } else {
             this.debugView.show(!this.debugView.visible);
         }
 
@@ -969,6 +970,10 @@ public class MainView extends Sprite {
     }
 
     private function onMapDimensionsClick(e:Event):void {
+        if (this.mapView == null){
+            return;
+        }
+
         if (this.mapDimensionsWindow == null) {
             this.mapDimensionsWindow = new MapDimensionsWindow();
             this.mapDimensionsWindow.x = (StageWidth - this.mapDimensionsWindow.width) / 2;
@@ -987,6 +992,8 @@ public class MainView extends Sprite {
 
         this.mapData.changeMapDimensions(this.mapView, width, height);
         this.mapDimensionsText.setText("Width: " + width + "\nHeight: " + height);
+
+        this.updatePositions();
     }
 }
 }
