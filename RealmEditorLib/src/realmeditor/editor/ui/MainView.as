@@ -709,7 +709,7 @@ public class MainView extends Sprite {
                 (this.mapCreateWindow != null && this.mapCreateWindow.visible)){
             return;
         }
-        
+
         this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
