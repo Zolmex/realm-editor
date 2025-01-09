@@ -5,7 +5,7 @@
       <configuration name="RealmEditorLib" target-platform="Desktop" pure-as="true" output-type="Library" output-file="RealmEditorLib.swc" output-folder="$MODULE_DIR$/out/production/RealmEditorLib">
         <dependencies target-player="32.0">
           <entries>
-            <entry library-id="2ca008eb-105f-4471-8d42-70d8f4bb283d">
+            <entry library-id="b271f8d5-45e2-47a2-8675-d64292271758">
               <dependency linkage="Merged" />
             </entry>
           </entries>
@@ -28,7 +28,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library type="flex">
-        <properties id="2ca008eb-105f-4471-8d42-70d8f4bb283d" />
+        <properties id="b271f8d5-45e2-47a2-8675-d64292271758" />
         <CLASSES>
           <root url="file://$MODULE_DIR$/libs" />
         </CLASSES>
