@@ -48,6 +48,8 @@ import flash.ui.Mouse;
 import flash.utils.Dictionary;
 import flash.utils.getTimer;
 
+import org.osflash.signals.Signal;
+
 import realmeditor.RealmEditorTestEvent;
 
 import realmeditor.editor.AutoMapSaver;
@@ -71,6 +73,8 @@ import realmeditor.editor.ui.elements.SimpleTextButton;
 import realmeditor.editor.ui.elements.SimpleTextInput;
 import realmeditor.editor.ui.embed.Background;
 import realmeditor.util.IntPoint;
+import realmeditor.util.TimedAction;
+import realmeditor.util.TimedAction;
 
 import util.IntPoint;
 
@@ -128,6 +132,7 @@ public class MainView extends Sprite {
     private var window:NativeWindow;
 
     public var testMode:Boolean;
+    public var timers:Vector.<TimedAction> = new Vector.<TimedAction>();
 
     public function MainView(main:Sprite, embedded:Boolean) {
         Instance = this;
@@ -447,6 +452,17 @@ public class MainView extends Sprite {
         if (this.mapData != null) {
             this.autoSaver.trySaveMap(this.mapData, deltaTime);
         }
+
+        for (var i:int = 0; i < this.timers.length; i++) {
+            var act:TimedAction = this.timers[i];
+            act.timeLeftMS -= deltaTime;
+            if (act.timeLeftMS > 0){
+                continue;
+            }
+
+            act.callback();
+            this.timers.removeAt(i);
+        }
     }
 
     private static function closeWindow():void {
@@ -558,8 +574,19 @@ public class MainView extends Sprite {
     private function onSaveClick(e:Event):void {
         if (this.mapData != null) {
             this.mapData.addEventListener(MEEvent.MAP_SAVED, this.onJsonSaved);
-            this.mapData.save(false);
+            this.notifications.showNotification("Serializing map to JSON...", 18, -1); // Need to clear notification if duration is -1
+            this.timers.push(new TimedAction(100, this.saveJson)); // Wait like 100 ms to make sure the serializing notification is visible
         }
+    }
+
+    private function saveJson():void {
+        this.mapData.save(false);
+        this.notifications.clear();
+    }
+
+    private function saveWmap():void {
+        this.mapData.save(true);
+        this.notifications.clear();
     }
 
     private function onBackClick(e:Event):void {
@@ -570,7 +597,8 @@ public class MainView extends Sprite {
     private function onSaveWmapClick(e:Event):void {
         if (this.mapData != null) {
             this.mapData.addEventListener(MEEvent.MAP_SAVED, this.onWmapSaved);
-            this.mapData.save(true);
+            this.notifications.showNotification("Serializing map to WMap...", 18, -1);
+            this.timers.push(new TimedAction(100, this.saveWmap));
         }
     }
 
@@ -611,7 +639,7 @@ public class MainView extends Sprite {
         this.mapSelector.selectMap(mapId);
 
         this.mapViewContainer.viewMap(mapId);
-        this.timeControl.createHistory(this.mapView.id);
+        this.timeControl.createHistory(mapId);
 
         this.mapDimensionsText.setText("Width: " + this.mapData.mapWidth + "\nHeight: " + this.mapData.mapHeight);
     }
@@ -664,10 +692,18 @@ public class MainView extends Sprite {
             return;
         }
 
+        if (this.isWindowOpened()){
+            return;
+        }
+
         this.selectedTool.mouseDrag(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMiddleMouseDrag(e:Event):void {
+        if (this.isWindowOpened()){
+            return;
+        }
+
         if (this.lastMousePos == null) {
             this.lastMousePos = new Point(Main.stage.mouseX, Main.stage.mouseY);
         }
@@ -692,6 +728,10 @@ public class MainView extends Sprite {
             return;
         }
 
+        if (this.isWindowOpened()){
+            return;
+        }
+
         this.selectedTool.mouseDragEnd(tilePos, this.timeControl.getHistory(this.mapView.id));
     }
 
@@ -701,16 +741,25 @@ public class MainView extends Sprite {
 
     private function onTileClick(e:Event):void { // Perform select/draw/erase actions here
         var tilePos:IntPoint = this.getMouseTilePosition();
+        if (tilePos == null){
+            this.onClearSelection(null);
+            return;
+        }
+
         if (this.mapView == null) {
             return;
         }
 
-        if ((this.mapDimensionsWindow != null && this.mapDimensionsWindow.visible) ||
-                (this.mapCreateWindow != null && this.mapCreateWindow.visible)){
+        if (this.isWindowOpened()){
             return;
         }
 
         this.selectedTool.tileClick(tilePos, this.timeControl.getHistory(this.mapView.id));
+    }
+
+    private function isWindowOpened():Boolean{
+        return (this.mapDimensionsWindow != null && this.mapDimensionsWindow.visible) ||
+                (this.mapCreateWindow != null && this.mapCreateWindow.visible);
     }
 
     public function showEditNameView(x:int, y:int, objName:String):void {
@@ -727,6 +776,10 @@ public class MainView extends Sprite {
     }
 
     private function onEditName(e:Event):void {
+        if (this.isWindowOpened()){
+            return;
+        }
+
         var mapX:int = this.editNameView.tileX;
         var mapY:int = this.editNameView.tileY;
         var history:MapHistory = this.timeControl.getHistory(this.mapView.id);
@@ -747,6 +800,10 @@ public class MainView extends Sprite {
 
         if (tilePos == null) {
             this.tileInfoPanel.visible = false;
+            return;
+        }
+
+        if (this.isWindowOpened()){
             return;
         }
 
@@ -887,12 +944,21 @@ public class MainView extends Sprite {
             return;
         }
 
+        if (this.isWindowOpened()){
+            return;
+        }
+
         this.clipBoard.clear();
         this.mapView.copySelectionToClipboard(this.clipBoard);
+        this.notifications.showNotification("Copy");
     }
 
     private function onPaste(e:Event):void {
         if (this.mapView == null) {
+            return;
+        }
+
+        if (this.isWindowOpened()){
             return;
         }
 
@@ -902,9 +968,14 @@ public class MainView extends Sprite {
         }
 
         this.mapView.pasteFromClipboard(this.clipBoard, tilePos.x_, tilePos.y_, this.timeControl.getHistory(this.mapView.id));
+        this.notifications.showNotification("Paste");
     }
 
     private function onClearSelection(e:Event):void {
+        if (this.isWindowOpened()){
+            return;
+        }
+
         if (this.selectedTool.id == METool.SELECT_ID) {
             this.selectedTool.reset();
         }
@@ -919,12 +990,20 @@ public class MainView extends Sprite {
             return;
         }
 
+        if (this.isWindowOpened()){
+            return;
+        }
+
         var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
         selectTool.dragSelection(0, -1, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionDown(e:Event):void {
         if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID) {
+            return;
+        }
+
+        if (this.isWindowOpened()){
             return;
         }
 
@@ -937,12 +1016,20 @@ public class MainView extends Sprite {
             return;
         }
 
+        if (this.isWindowOpened()){
+            return;
+        }
+
         var selectTool:MESelectTool = METool.GetTool(METool.SELECT_ID, this) as MESelectTool;
         selectTool.dragSelection(-1, 0, this.timeControl.getHistory(this.mapView.id));
     }
 
     private function onMoveSelectionRight(e:Event):void {
         if (this.mapView == null || this.selectedTool.id != METool.SELECT_ID) {
+            return;
+        }
+
+        if (this.isWindowOpened()){
             return;
         }
 
@@ -953,6 +1040,10 @@ public class MainView extends Sprite {
     private function onBrushSizeChanged():void {
         var tilePos:IntPoint = this.getMouseTilePosition();
         if (tilePos == null) {
+            return;
+        }
+
+        if (this.isWindowOpened()){
             return;
         }
 

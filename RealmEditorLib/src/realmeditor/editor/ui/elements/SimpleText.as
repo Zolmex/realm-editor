@@ -153,8 +153,11 @@ public class SimpleText extends TextField {
         }
         width = this.inputWidth_ == 0 ? this.actualWidth_ : this.inputWidth_;
         height = this.inputHeight_ == 0 ? this.actualHeight_ : this.inputHeight_;
-        if (this.autoResize)
+        if (this.autoResize) {
             this.resize();
+            this.actualWidth_ *= this.scaleX;
+            this.actualHeight_ *= this.scaleY;
+        }
         return this;
     }
 

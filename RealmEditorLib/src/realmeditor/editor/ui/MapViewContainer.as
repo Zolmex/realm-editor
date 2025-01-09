@@ -5,7 +5,6 @@ import flash.utils.Dictionary;
 public class MapViewContainer extends Sprite {
 
     public var maps:Dictionary;
-    private var nextMapId:int;
 
     public function MapViewContainer() {
         this.maps = new Dictionary();
@@ -26,11 +25,8 @@ public class MapViewContainer extends Sprite {
         mapView.visible = false;
         addChild(mapView);
 
-        var mapId:int = this.nextMapId;
-        this.maps[mapId] = mapView;
-        this.nextMapId++;
-
-        return mapId;
+        this.maps[mapView.id] = mapView;
+        return mapView.id;
     }
 
     public function removeMapView(mapId:int):void {
