@@ -25,10 +25,12 @@ import flash.utils.Endian;
 import realmeditor.assets.GroundLibrary;
 import realmeditor.assets.ObjectLibrary;
 import realmeditor.assets.RegionLibrary;
+import realmeditor.editor.ui.MainView;
 import realmeditor.editor.ui.MapView;
 
 import realmeditor.editor.ui.TileMapView;
 import realmeditor.util.BinaryUtils;
+import realmeditor.util.TimedAction;
 
 import util.BinaryUtils;
 
@@ -38,6 +40,7 @@ public class MapData extends EventDispatcher {
     public var mapWidth:int;
     public var mapHeight:int;
     private var loadedFile:FileReference;
+    private var selectedFile:FileReference;
     public var mapName:String;
     private var tileMap:TileMapView;
     public var savedChanges:Boolean;
@@ -48,7 +51,7 @@ public class MapData extends EventDispatcher {
         var oldHeight:int = this.mapHeight;
         var mapRectEndX:int = oldMapRect.x + oldMapRect.width - 1;
         var mapRectEndY:int = oldMapRect.y + oldMapRect.height - 1;
-        trace("[Rect] X:", oldMapRect.x, "Y:", oldMapRect.y, "Width:", oldMapRect.width, "Height:", oldMapRect.height);
+//        trace("[Rect] X:", oldMapRect.x, "Y:", oldMapRect.y, "Width:", oldMapRect.width, "Height:", oldMapRect.height);
 
         this.savedChanges = false;
         this.mapWidth = width;
@@ -180,15 +183,20 @@ public class MapData extends EventDispatcher {
         this.tileMap.addEventListener(MEEvent.MAP_CHANGED, this.onMapChanged);
         this.loadedFile = new FileReference();
         this.loadedFile.addEventListener(Event.SELECT, this.onFileBrowseSelect);
-        this.loadedFile.browse([new FileFilter("JSON Map (*.jm)", "*.jm;*.wmap")]);
+        this.loadedFile.browse([new FileFilter("Map file (*.jm, *.wmap)", "*.jm;*.wmap")]);
     }
 
     private function onFileBrowseSelect(e:Event):void {
-        var loadedFile:FileReference = e.target as FileReference;
-        loadedFile.addEventListener(Event.COMPLETE, this.onFileLoadComplete);
-        loadedFile.addEventListener(IOErrorEvent.IO_ERROR, onFileLoadIOError);
+        this.selectedFile = e.target as FileReference;
+        MainView.Instance.notifications.showNotification("Loading map " + this.selectedFile.name + "...");
+        MainView.Instance.timers.push(new TimedAction(100, this.finishLoadFile));
+    }
+
+    private function finishLoadFile():void {
+        this.selectedFile.addEventListener(Event.COMPLETE, this.onFileLoadComplete);
+        this.selectedFile.addEventListener(IOErrorEvent.IO_ERROR, onFileLoadIOError);
         try {
-            loadedFile.load();
+            this.loadedFile.load();
         } catch (e:Error) {
             trace("Error: " + e);
         }

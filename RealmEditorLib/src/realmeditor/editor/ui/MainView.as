@@ -642,6 +642,8 @@ public class MainView extends Sprite {
         this.timeControl.createHistory(mapId);
 
         this.mapDimensionsText.setText("Width: " + this.mapData.mapWidth + "\nHeight: " + this.mapData.mapHeight);
+
+        MainView.Instance.notifications.clear(); // Clear "loading map..." notification
     }
 
     private function onGridClick(e:Event):void {
