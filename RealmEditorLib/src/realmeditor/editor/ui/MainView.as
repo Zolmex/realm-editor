@@ -113,6 +113,8 @@ public class MainView extends Sprite {
     private var tileInfoPanel:TileInfoPanel;
     private var gridCheckbox:SimpleCheckBox;
     private var autoSaveCheckbox:SimpleCheckBox;
+    private var qualityTilesCheckbox:SimpleCheckBox;
+    private var qualityObjectsCheckbox:SimpleCheckBox;
     private var drawTypeSwitch:MultiOptionalSwitch;
     private var editNameView:EditTileNameView;
     private var objectFilterView:ObjectFilterOptionsView;
@@ -133,6 +135,9 @@ public class MainView extends Sprite {
 
     public var testMode:Boolean;
     public var timers:Vector.<TimedAction> = new Vector.<TimedAction>();
+
+    public var qualityTiles:Boolean;
+    public var qualityObjects:Boolean = true;
 
     public function MainView(main:Sprite, embedded:Boolean) {
         Instance = this;
@@ -177,6 +182,14 @@ public class MainView extends Sprite {
         this.autoSaveCheckbox.addEventListener(Event.CHANGE, this.onAutoSaveClick);
         addChild(this.autoSaveCheckbox);
 
+        this.qualityTilesCheckbox = new SimpleCheckBox("Quality Tiles", false);
+        this.qualityTilesCheckbox.addEventListener(Event.CHANGE, this.onQualityTilesClick);
+        addChild(this.qualityTilesCheckbox);
+
+        this.qualityObjectsCheckbox = new SimpleCheckBox("Quality Objects", true);
+        this.qualityObjectsCheckbox.addEventListener(Event.CHANGE, this.onQualityObjectsClick);
+        addChild(this.qualityObjectsCheckbox);
+
         this.drawTypeSwitch = new MultiOptionalSwitch();
         this.drawTypeSwitch.addOption("Ground");
         this.drawTypeSwitch.addOption("Objects");
@@ -188,7 +201,7 @@ public class MainView extends Sprite {
         g.beginFill(Constants.BACK_COLOR_2, 0.8);
         g.drawRoundRect(0, 0,
                 this.autoSaveCheckbox.width + 10, // Add here all of the things that are supposed to go inside of the toolbox
-                this.zoomInput.height + this.gridCheckbox.height + this.autoSaveCheckbox.height + this.drawTypeSwitch.height + 32,
+                this.zoomInput.height + this.gridCheckbox.height + this.autoSaveCheckbox.height + this.drawTypeSwitch.height + this.qualityTilesCheckbox.height + this.qualityObjectsCheckbox.height + 44,
                 10, 10);
         g.endFill();
 
@@ -258,6 +271,8 @@ public class MainView extends Sprite {
     private function setupInput():void {
         this.inputHandler = new MapInputHandler(this);
         this.inputHandler.addEventListener(MEEvent.GRID_ENABLE, this.onGridEnable);
+        this.inputHandler.addEventListener(MEEvent.QUALITY_TILES, this.onQualityTilesToggle);
+        this.inputHandler.addEventListener(MEEvent.QUALITY_OBJECTS, this.onQualityObjectsToggle);
         this.inputHandler.addEventListener(MEEvent.TILE_CLICK, this.onTileClick);
         this.inputHandler.addEventListener(MEEvent.MOUSE_DRAG, this.onMouseDrag);
         this.inputHandler.addEventListener(MEEvent.MOUSE_DRAG_END, this.onMouseDragEnd);
@@ -314,6 +329,9 @@ public class MainView extends Sprite {
 
         this.toolBoxBackground.x = 15;
         this.toolBoxBackground.y = (StageHeight - this.toolBoxBackground.height) / 2;
+        if (this.toolBoxBackground.y < this.mapSelector.y + this.mapSelector.height){ // Make sure the lef side toolbox doesn't overlap with the map selector
+            this.toolBoxBackground.y = this.mapSelector.y + this.mapSelector.height + 15;
+        }
 
         this.zoomInput.x = this.toolBoxBackground.x + 5;
         this.zoomInput.y = this.toolBoxBackground.y + 7.5;
@@ -324,8 +342,14 @@ public class MainView extends Sprite {
         this.autoSaveCheckbox.x = this.zoomInput.x;
         this.autoSaveCheckbox.y = this.gridCheckbox.y + this.gridCheckbox.height + 6;
 
+        this.qualityTilesCheckbox.x = this.zoomInput.x;
+        this.qualityTilesCheckbox.y = this.autoSaveCheckbox.y + this.autoSaveCheckbox.height + 6;
+
+        this.qualityObjectsCheckbox.x = this.zoomInput.x;
+        this.qualityObjectsCheckbox.y = this.qualityTilesCheckbox.y + this.qualityTilesCheckbox.height + 6;
+
         this.drawTypeSwitch.x = this.zoomInput.x;
-        this.drawTypeSwitch.y = this.autoSaveCheckbox.y + this.autoSaveCheckbox.height + 6;
+        this.drawTypeSwitch.y = this.qualityObjectsCheckbox.y + this.qualityObjectsCheckbox.height + 6;
 
         this.drawElementsList.x = StageWidth - MapDrawElementListView.WIDTH - 15;
         if (this.backButton != null) {
@@ -544,6 +568,8 @@ public class MainView extends Sprite {
         this.mapView = this.mapViewContainer.viewMap(this.mapSelector.selectedMap);
         this.mapData = this.mapView.mapData;
 
+        this.mapDimensionsText.setText("Width: " + this.mapData.mapWidth + "\nHeight: " + this.mapData.mapHeight);
+
         this.updateZoomLevel();
         this.gridCheckbox.setValue(this.mapView.gridEnabled);
     }
@@ -553,8 +579,7 @@ public class MainView extends Sprite {
         this.mapViewContainer.removeMapView(e.mapId);
         this.timeControl.eraseHistory(e.mapId);
 
-        var nextId:int = this.mapSelector.selectedMap - 1 < 0 ? 0 : this.mapSelector.selectedMap - 1;
-        this.mapSelector.selectMap(nextId);
+        var nextId:int = this.mapSelector.selectNextMap(this.mapSelector.selectedMap);
 
         this.mapView = this.mapViewContainer.viewMap(nextId);
 
@@ -660,6 +685,36 @@ public class MainView extends Sprite {
         if (this.mapView) {
             var value:Boolean = this.mapView.toggleGrid();
             this.gridCheckbox.setValue(value);
+        }
+    }
+
+    private function onQualityTilesToggle(e:Event):void {
+        this.qualityTiles = !this.qualityTiles;
+        this.qualityTilesCheckbox.setValue(this.qualityTiles);
+        if (this.mapView){
+            this.mapView.tileMap.showHighQualityTiles(this.qualityTiles);
+        }
+    }
+
+    private function onQualityTilesClick(e:Event):void {
+        this.qualityTiles = this.qualityTilesCheckbox.value;
+        if (this.mapView){
+            this.mapView.tileMap.showHighQualityTiles(this.qualityTiles);
+        }
+    }
+
+    private function onQualityObjectsToggle(e:Event):void {
+        this.qualityObjects = !this.qualityObjects;
+        this.qualityObjectsCheckbox.setValue(this.qualityObjects);
+        if (this.mapView){
+            this.mapView.tileMap.showHighQualityObjects(this.qualityObjects);
+        }
+    }
+
+    private function onQualityObjectsClick(e:Event):void {
+        this.qualityObjects = this.qualityObjectsCheckbox.value;
+        if (this.mapView){
+            this.mapView.tileMap.showHighQualityObjects(this.qualityObjects);
         }
     }
 
@@ -974,7 +1029,7 @@ public class MainView extends Sprite {
     }
 
     private function onClearSelection(e:Event):void {
-        if (this.isWindowOpened()){
+        if (this.mapView == null || this.isWindowOpened()){
             return;
         }
 

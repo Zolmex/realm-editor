@@ -116,6 +116,27 @@ public class MapSelectorView extends Sprite {
         this.mapSlots[mapId].setSelected(true);
         this.selectedMap = mapId;
     }
+
+    public function selectNextMap(closedMapId:int):int {
+        var minDiff:int = -1;
+        var current:int = 0;
+        for each (var mapSlot:MapSelectorSlot in this.mapSlots){
+            var diff:int = Math.abs(closedMapId - mapSlot.mapId);
+            if (minDiff == -1 || diff < minDiff) {
+                minDiff = diff;
+                current = mapSlot.mapId;
+            }
+            mapSlot.setSelected(false);
+        }
+
+        if (minDiff == -1){
+            return 0;
+        }
+
+        this.mapSlots[current].setSelected(true);
+        this.selectedMap = current;
+        return current;
+    }
 }
 }
 
