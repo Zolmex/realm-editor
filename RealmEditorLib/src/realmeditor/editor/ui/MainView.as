@@ -693,6 +693,7 @@ public class MainView extends Sprite {
         this.qualityTilesCheckbox.setValue(this.qualityTiles);
         if (this.mapView){
             this.mapView.tileMap.showHighQualityTiles(this.qualityTiles);
+            this.updateBrushOverlayQuality();
         }
     }
 
@@ -700,6 +701,7 @@ public class MainView extends Sprite {
         this.qualityTiles = this.qualityTilesCheckbox.value;
         if (this.mapView){
             this.mapView.tileMap.showHighQualityTiles(this.qualityTiles);
+            this.updateBrushOverlayQuality();
         }
     }
 
@@ -708,6 +710,7 @@ public class MainView extends Sprite {
         this.qualityObjectsCheckbox.setValue(this.qualityObjects);
         if (this.mapView){
             this.mapView.tileMap.showHighQualityObjects(this.qualityObjects);
+            this.updateBrushOverlayQuality();
         }
     }
 
@@ -715,6 +718,18 @@ public class MainView extends Sprite {
         this.qualityObjects = this.qualityObjectsCheckbox.value;
         if (this.mapView){
             this.mapView.tileMap.showHighQualityObjects(this.qualityObjects);
+            this.updateBrushOverlayQuality();
+        }
+    }
+
+    private function updateBrushOverlayQuality():void {
+        if (this.mapView.brushOverlay.visible) {
+            var tilePos:IntPoint = this.getMouseTilePosition();
+            if (tilePos == null) {
+                return;
+            }
+
+            this.mapView.drawBrushTiles(tilePos.x_, tilePos.y_, this.userBrush); // Force draw the brush again
         }
     }
 

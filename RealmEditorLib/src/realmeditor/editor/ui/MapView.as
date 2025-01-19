@@ -30,6 +30,7 @@ import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.Shape;
 import flash.display.Sprite;
+import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
 import flash.utils.Dictionary;
@@ -71,7 +72,7 @@ public class MapView extends Sprite {
     public var selection:MapSelectData;
     public var selectionRect:Shape;
     private var highlightRect:Shape;
-    private var brushOverlay:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
+    public var brushOverlay:Bitmap; // Draws a transparent view of the tiles (ground/object/region) the user will be painting on the map
     private var brushElementType:int;
     private var brushSize:int;
     private var brushTextureType:int;
@@ -273,7 +274,9 @@ public class MapView extends Sprite {
 
                 texture = GroundLibrary.getBitmapData(brush.groundType);
                 this.brushTextureType = brush.groundType;
-                size = Math.max(texture.width, texture.height);
+                if (MainView.Instance.qualityTiles) {
+                    size = Math.max(texture.width, texture.height);
+                }
                 break;
             case MEDrawType.OBJECTS:
                 if (brush.objType == 0) {
@@ -282,7 +285,9 @@ public class MapView extends Sprite {
 
                 texture = ObjectLibrary.getTextureFromType(brush.objType);
                 this.brushTextureType = brush.objType;
-                size = Math.max(texture.width, texture.height);
+                if (MainView.Instance.qualityObjects) {
+                    size = Math.max(texture.width, texture.height);
+                }
                 break;
             case MEDrawType.REGIONS:
                 if (brush.regType == 0) {
@@ -308,7 +313,14 @@ public class MapView extends Sprite {
                 }
 
                 if (texture != null) {
-                    brushTexture.copyPixels(texture, new Rectangle(0, 0, texture.width, texture.height), new Point(xi * texture.width, yi * texture.height));
+                    if (texture.width > size || texture.height > size) {
+                        var matrix:Matrix = new Matrix();
+                        matrix.scale(size / texture.width, size / texture.height);
+                        matrix.translate(xi * size, yi * size);
+                        brushTexture.draw(texture, matrix);
+                    } else {
+                        brushTexture.copyPixels(texture, new Rectangle(0, 0, texture.width, texture.height), new Point(xi * texture.width, yi * texture.height));
+                    }
                 } else { // Must mean we're rendering a region
                     brushTexture.fillRect(new Rectangle(xi * size, yi * size, size, size), 1593835520 | regColor);
                 }
