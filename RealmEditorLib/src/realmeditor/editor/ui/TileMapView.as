@@ -76,7 +76,9 @@ public class TileMapView extends Sprite {
         this.objectMapTexture = new BitmapData(TILE_SIZE * mapData.mapWidth, TILE_SIZE * mapData.mapHeight, true, 0);
         this.regionMapTexture = new BitmapData(mapData.mapWidth, mapData.mapHeight, true, 0);
         this.highResObjLayer = new Sprite();
+        this.highResObjLayer.cacheAsBitmap = true;
         this.highResTileLayer = new Sprite();
+        this.highResTileLayer.cacheAsBitmap = true;
     }
 
     // IMPORTANT: This should only be used when the map loads
